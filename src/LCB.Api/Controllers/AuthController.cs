@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
 using LCB.Application.Auth;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LCB.Api.Controllers;
 

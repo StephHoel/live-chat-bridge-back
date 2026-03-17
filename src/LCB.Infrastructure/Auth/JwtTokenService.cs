@@ -1,9 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.IdentityModel.Tokens;
 using LCB.Application.Interfaces;
 using LCB.Domain.Entities;
+using Microsoft.IdentityModel.Tokens;
 
 namespace LCB.Infrastructure.Auth;
 

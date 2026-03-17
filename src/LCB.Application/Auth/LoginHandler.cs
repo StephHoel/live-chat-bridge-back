@@ -1,5 +1,5 @@
-using LCB.Domain.Repositories;
 using LCB.Application.Interfaces;
+using LCB.Domain.Repositories;
 
 namespace LCB.Application.Auth;
 
