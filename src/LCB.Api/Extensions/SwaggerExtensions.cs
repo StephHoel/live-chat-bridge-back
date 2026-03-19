@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 
-namespace LCB.Api.DependencyInjection;
+namespace LCB.Api.Extensions;
 
 public static class SwaggerExtensions
 {
@@ -48,7 +48,7 @@ public static class SwaggerExtensions
             app.UseSwaggerUI(options =>
             {
                 options.SwaggerEndpoint("/swagger/v1/swagger.json", "LCB API");
-                options.RoutePrefix = string.Empty;
+                options.RoutePrefix = "swagger";
             });
         }
 

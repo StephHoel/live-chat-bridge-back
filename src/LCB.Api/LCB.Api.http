@@ -1,6 +1,13 @@
-@LCB.Api_HostAddress = http://localhost:5227
+@LCB.Api_HostAddress = https://localhost:7274
 
-GET {{LCB.Api_HostAddress}}/weatherforecast/
+POST {{ LCB.Api_HostAddress }}/auth/login
 Accept: application/json
+Content-Type: application/json
 
+{
+    "email": "teste1@teste.com",
+    "password": "1234"
+}
 ###
+
+GET {{ LCB.Api_HostAddress }}/swagger/v1/swagger.json

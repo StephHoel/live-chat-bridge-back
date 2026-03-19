@@ -5,7 +5,7 @@ namespace LCB.Infrastructure.Repositories;
 
 public class InMemoryUserRepository : IUserRepository
 {
-    private readonly List<User> _users = new();
+    private readonly List<User> _users = [];
 
     public Task Add(User user)
     {
@@ -15,6 +15,7 @@ public class InMemoryUserRepository : IUserRepository
 
     public Task<User?> GetByEmail(string email)
     {
+        Add(User.Create("teste@teste.com","1234"));
         return Task.FromResult(_users.FirstOrDefault(x => x.Email == email));
     }
 }

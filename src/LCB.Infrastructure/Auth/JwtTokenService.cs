@@ -11,7 +11,12 @@ public class JwtTokenService : ITokenService
 {
     public string GenerateToken(User user)
     {
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("super-secret-key-123"));
+        var secret = Environment.GetEnvironmentVariable("JWT_KEY") ?? "super-secret-key-123-super-secret-key-123";
+        var keyBytes = Encoding.UTF8.GetBytes(secret);
+        if (keyBytes.Length < 32)
+            throw new ArgumentException("JWT key must be at least 256 bits (32 bytes). Set environment variable 'JWT_KEY' to a secure 32+ byte value.");
+
+        var key = new SymmetricSecurityKey(keyBytes);
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new[]

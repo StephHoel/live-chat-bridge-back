@@ -1,4 +1,5 @@
-using LCB.Api.DependencyInjection;
+using LCB.Api.Endpoints;
+using LCB.Api.Extensions;
 using LCB.Infrastructure.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,6 +19,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.UseDevelopSwagger();
-app.MapControllers();
+
+app.MapAuthEndpoints();
 
 app.Run();
