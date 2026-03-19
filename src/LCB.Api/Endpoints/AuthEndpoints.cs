@@ -16,7 +16,9 @@ public static class AuthEndpoints
             return result.ToMinimalResult();
         })
         .WithTags("Auth")
-        .Produces((int)HttpStatusCode.OK, typeof(Result<LoginResponse>)); // TODO criar outros produces possíveis (404, 500)
+        .Produces((int)HttpStatusCode.OK, typeof(Result<LoginResponse>))
+        .Produces((int)HttpStatusCode.NotFound, typeof(Result<LoginResponse>))
+        .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<LoginResponse>));
 
         return app;
     }
