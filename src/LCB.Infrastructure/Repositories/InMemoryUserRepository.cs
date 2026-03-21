@@ -1,21 +1,52 @@
 using LCB.Domain.Entities;
 using LCB.Domain.Repositories;
+using Microsoft.Extensions.Logging;
 
 namespace LCB.Infrastructure.Repositories;
 
-public class InMemoryUserRepository : IUserRepository
+public class InMemoryUserRepository(ILogger<InMemoryUserRepository> logger) : IUserRepository
 {
     private readonly List<User> _users = [];
 
-    public Task Add(User user)
+    public async Task Add(User user)
     {
-        _users.Add(user);
-        return Task.CompletedTask;
+        try
+        {
+            logger.LogInformation("[{method}] Starting...", [nameof(Add)]);
+
+            _users.Add(user);
+
+            return;
+        }
+        catch
+        {
+            logger.LogError("[{method}] Error on register", [nameof(Add)]);
+            return;
+        }
+        finally
+        {
+            logger.LogInformation("[{method}] Finishing...", [nameof(Add)]);
+        }
     }
 
-    public Task<User?> GetByEmail(string email)
+    public async Task<User?> GetByEmail(string email)
     {
-        Add(User.Create("teste@teste.com","1234"));
-        return Task.FromResult(_users.FirstOrDefault(x => x.Email == email));
+        try
+        {
+            logger.LogInformation("[{method}] Starting...", [nameof(GetByEmail)]);
+
+            await Add(User.Create("teste@teste.com", "1234"));
+
+            return _users.FirstOrDefault(x => x.Email == email);
+        }
+        catch
+        {
+            logger.LogError("[{method}] Error on get user", [nameof(GetByEmail)]);
+            return null;
+        }
+        finally
+        {
+            logger.LogInformation("[{method}] Finishing...", [nameof(GetByEmail)]);
+        }
     }
 }
