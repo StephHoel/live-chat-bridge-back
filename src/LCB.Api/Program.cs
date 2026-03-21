@@ -1,6 +1,7 @@
 using LCB.Api.DependencyInjection;
 using LCB.Api.Endpoints;
 using LCB.Api.Extensions;
+using LCB.Api.Middleware;
 using LCB.Application.DependencyInjection;
 
 namespace LCB.Api;
@@ -9,9 +10,9 @@ public class Program
 {
     private static void Main(string[] args)
     {
-var builder = WebApplication.CreateBuilder(args);
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Logging.AddLogging(builder.Configuration);
+        builder.Logging.AddLogging(builder.Configuration);
 
         builder.Services.ConfigureLogging();
         builder.Services.AddJwtAuthentication(builder.Configuration);
@@ -20,18 +21,20 @@ builder.Logging.AddLogging(builder.Configuration);
         builder.Services.AddServices();
         builder.Services.AddSwagger();
 
-builder.Services.AddAuthorization();
-builder.Services.AddControllers();
+        builder.Services.AddAuthorization();
+        builder.Services.AddControllers();
 
-var app = builder.Build();
+        var app = builder.Build();
 
-app.UseAuthentication();
-app.UseAuthorization();
+        app.UseMiddleware<CorrelationIdMiddleware>();
 
-app.UseDevelopSwagger();
+        app.UseAuthentication();
+        app.UseAuthorization();
 
-app.MapAuthEndpoints();
+        app.UseDevelopSwagger();
 
-app.Run();
+        app.MapAuthEndpoints();
+
+        app.Run();
     }
 }
