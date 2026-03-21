@@ -8,11 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.6" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.16.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.14" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\LCB.Infrastructure\LCB.Infrastructure.csproj" />
     <ProjectReference Include="..\LCB.Application\LCB.Application.csproj" />
+    <ProjectReference Include="..\LCB.Domain\LCB.Domain.csproj" />
   </ItemGroup>
 
 </Project>

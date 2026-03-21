@@ -3,7 +3,7 @@ using Microsoft.OpenApi.Models;
 
 namespace LCB.Api.Extensions;
 
-public static class SwaggerExtensions
+public static class SwaggerDependencies
 {
     public static IServiceCollection AddSwagger(this IServiceCollection services)
     {

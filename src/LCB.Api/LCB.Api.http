@@ -1,5 +1,16 @@
 @LCB.Api_HostAddress = https://localhost:7274
 
+### Login com Sucesso
+POST {{ LCB.Api_HostAddress }}/auth/login
+Accept: application/json
+Content-Type: application/json
+
+{
+    "email": "teste@teste.com",
+    "password": "1234"
+}
+
+### Login com Erro
 POST {{ LCB.Api_HostAddress }}/auth/login
 Accept: application/json
 Content-Type: application/json
@@ -8,6 +19,6 @@ Content-Type: application/json
     "email": "teste1@teste.com",
     "password": "1234"
 }
-###
 
+### Documentação Swagger
 GET {{ LCB.Api_HostAddress }}/swagger/v1/swagger.json

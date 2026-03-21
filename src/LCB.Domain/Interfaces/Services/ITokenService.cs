@@ -1,6 +1,6 @@
 using LCB.Domain.Entities;
 
-namespace LCB.Application.Interfaces;
+namespace LCB.Domain.Interfaces.Services;
 
 public interface ITokenService
 {
