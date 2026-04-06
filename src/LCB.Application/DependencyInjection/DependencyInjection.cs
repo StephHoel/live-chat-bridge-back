@@ -1,8 +1,8 @@
 using LCB.Application.Commands.Login;
+using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
-using LCB.Domain.Repositories;
-using LCB.Infrastructure.Auth;
 using LCB.Infrastructure.Repositories;
+using LCB.Infrastructure.Services.Auth;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LCB.Application.DependencyInjection;

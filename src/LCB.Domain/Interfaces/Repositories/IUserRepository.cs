@@ -1,6 +1,6 @@
 using LCB.Domain.Entities;
 
-namespace LCB.Domain.Repositories;
+namespace LCB.Domain.Interfaces.Repositories;
 
 public interface IUserRepository
 {

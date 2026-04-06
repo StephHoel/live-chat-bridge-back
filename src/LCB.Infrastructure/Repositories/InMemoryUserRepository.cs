@@ -1,5 +1,5 @@
 using LCB.Domain.Entities;
-using LCB.Domain.Repositories;
+using LCB.Domain.Interfaces.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Infrastructure.Repositories;

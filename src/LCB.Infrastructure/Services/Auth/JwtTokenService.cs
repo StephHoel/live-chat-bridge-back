@@ -7,7 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 
-namespace LCB.Infrastructure.Auth;
+namespace LCB.Infrastructure.Services.Auth;
 
 public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenService> logger) : ITokenService
 {

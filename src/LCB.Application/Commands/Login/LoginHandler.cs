@@ -1,7 +1,7 @@
 using System.Net;
+using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Objects;
-using LCB.Domain.Repositories;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Application.Commands.Login;
@@ -10,10 +10,10 @@ public class LoginHandler(IUserRepository repository, ITokenService tokenService
 {
     public async Task<Result<LoginResponse>> Handle(LoginRequest request)
     {
-        logger.LogInformation("Starting login attempt for email {Email}", [request.Email]);
-
         try
         {
+            logger.LogInformation("Starting login attempt for email {Email}", [request.Email]);
+
             var user = await repository.GetByEmail(request.Email);
 
             if (user is null)
