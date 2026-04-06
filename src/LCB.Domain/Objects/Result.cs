@@ -16,4 +16,7 @@ public class Result<T>
 
     public static Result<T> Fail(string error, HttpStatusCode type)
         => new() { Success = false, Error = error, ErrorType = type };
+
+    public static Result<T> Fail(string error, T data, HttpStatusCode type)
+        => new() { Success = false, Error = error, Data = data, ErrorType = type };
 }
