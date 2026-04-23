@@ -22,3 +22,14 @@ Content-Type: application/json
 
 ### Documentação Swagger
 GET {{ LCB.Api_HostAddress }}/swagger/v1/swagger.json
+
+### Ingest TikTok message (entra na fila)
+POST {{ LCB.Api_HostAddress }}/messages/ingest
+Content-Type: application/json
+
+{
+	"provider": 0,
+	"author": "testUser",
+	"text": "!fila",
+	"timestamp": "2026-04-06 14:00:00"
+}

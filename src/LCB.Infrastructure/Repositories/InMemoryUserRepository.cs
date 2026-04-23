@@ -1,52 +1,34 @@
 using LCB.Domain.Entities;
 using LCB.Domain.Interfaces.Repositories;
+using LCB.Infrastructure.Repositories.Base;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Infrastructure.Repositories;
 
-public class InMemoryUserRepository(ILogger<InMemoryUserRepository> logger) : IUserRepository
+public class InMemoryUserRepository(ILogger<InMemoryUserRepository> Logger)
+    : InMemoryRepositoryBase<User>(Logger), IUserRepository
 {
-    private readonly List<User> _users = [];
+    #region Public Methods
 
-    public async Task Add(User user)
-    {
-        try
-        {
-            logger.LogInformation("[{method}] Starting...", [nameof(Add)]);
+    public Task<bool> CreateAsync(IEnumerable<User> users)
+        => Write(Create(users), nameof(CreateAsync));
 
-            _users.Add(user);
+    public Task<User?> GetByEmailAsync(string email)
+        => Read(GetByEmail(email), nameof(GetByEmailAsync));
 
-            return;
-        }
-        catch
-        {
-            logger.LogError("[{method}] Error on register", [nameof(Add)]);
-            return;
-        }
-        finally
-        {
-            logger.LogInformation("[{method}] Finishing...", [nameof(Add)]);
-        }
-    }
+    #endregion Public Methods
 
-    public async Task<User?> GetByEmail(string email)
-    {
-        try
-        {
-            logger.LogInformation("[{method}] Starting...", [nameof(GetByEmail)]);
+    #region Private Methods
 
-            await Add(User.Create("teste@teste.com", "1234"));
+    private static Func<List<User>, bool> Create(IEnumerable<User> users)
+        => list => { list.AddRange([.. users]); return true; };
 
-            return _users.FirstOrDefault(x => x.Email == email);
-        }
-        catch
-        {
-            logger.LogError("[{method}] Error on get user", [nameof(GetByEmail)]);
-            return null;
-        }
-        finally
-        {
-            logger.LogInformation("[{method}] Finishing...", [nameof(GetByEmail)]);
-        }
-    }
+    private static Func<IReadOnlyList<User>, User?> GetByEmail(string email)
+        => list =>
+            {
+                Create([User.Create("teste@teste.com", "1234")]);
+                return list.FirstOrDefault(m => m.Email.Equals(email));
+            };
+
+    #endregion Private Methods
 }

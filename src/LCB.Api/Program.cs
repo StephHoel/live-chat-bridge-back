@@ -1,6 +1,7 @@
 using LCB.Api.DependencyInjection;
 using LCB.Api.Endpoints;
 using LCB.Api.Extensions;
+using LCB.Api.Json;
 using LCB.Api.Middleware;
 using LCB.Application.DependencyInjection;
 
@@ -24,6 +25,12 @@ public class Program
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
 
+        // Permissive DateTime converter for inbound JSON bodies (accepts ISO strings, epoch numbers, empty strings)
+        builder.Services.ConfigureHttpJsonOptions(opts =>
+        {
+            opts.SerializerOptions.Converters.Add(new PermissiveDateTimeConverter());
+        });
+
         var app = builder.Build();
 
         app.UseMiddleware<CorrelationIdMiddleware>();
@@ -34,6 +41,7 @@ public class Program
         app.UseDevelopSwagger();
 
         app.MapAuthEndpoints();
+        app.MapMessageEndpoints();
 
         app.Run();
     }

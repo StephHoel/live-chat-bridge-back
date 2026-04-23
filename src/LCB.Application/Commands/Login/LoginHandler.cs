@@ -14,7 +14,7 @@ public class LoginHandler(IUserRepository repository, ITokenService tokenService
         {
             logger.LogInformation("Starting login attempt for email {Email}", [request.Email]);
 
-            var user = await repository.GetByEmail(request.Email);
+            var user = await repository.GetByEmailAsync(request.Email);
 
             if (user is null)
             {
