@@ -2,6 +2,7 @@ using System.Net;
 using LCB.Api.Extensions;
 using LCB.Application.Commands.Message.Ingest;
 using LCB.Domain.Objects;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LCB.Api.Endpoints;
 
@@ -9,7 +10,7 @@ public static class MessageEndpoints
 {
     public static WebApplication MapMessageEndpoints(this WebApplication app)
     {
-        app.MapPost("/messages/ingest", async (MessageIngestRequest request, MessageIngestHandler handler) =>
+        app.MapPost("/messages/ingest", async (MessageIngestRequest request, [FromServices] MessageIngestHandler handler) =>
         {
             var result = await handler.Handle(request);
 

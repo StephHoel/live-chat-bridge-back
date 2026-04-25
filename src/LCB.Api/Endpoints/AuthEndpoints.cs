@@ -2,6 +2,7 @@ using System.Net;
 using LCB.Api.Extensions;
 using LCB.Application.Commands.Login;
 using LCB.Domain.Objects;
+using Microsoft.AspNetCore.Mvc;
 
 namespace LCB.Api.Endpoints;
 
@@ -9,7 +10,7 @@ public static class AuthEndpoints
 {
     public static WebApplication MapAuthEndpoints(this WebApplication app)
     {
-        app.MapPost("/auth/login", async (LoginRequest request, LoginHandler handler) =>
+        app.MapPost("/auth/login", async (LoginRequest request, [FromServices] LoginHandler handler) =>
         {
             var result = await handler.Handle(request);
 

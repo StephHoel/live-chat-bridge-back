@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -15,7 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCB.Infrastructure", "src\L
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2369317F-A67A-4D6F-AF48-EEE70E9A7A21}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCB.Infrastructure.Tests", "test\LCB.Infrastructure.Tests\LCB.Infrastructure.Tests.csproj", "{624D47B0-B832-4B39-9C4D-01A8F3E5E79B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LCB.UnitTest", "test\LCB.UnitTest\LCB.UnitTest.csproj", "{624D47B0-B832-4B39-9C4D-01A8F3E5E79B}"
+EndProject
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
