@@ -1,0 +1,97 @@
+name: Weekly Package Update Check
+
+on:
+  schedule:
+    # Every Monday at 08:00 UTC
+    - cron: "0 8 * * 1"
+  workflow_dispatch:
+    inputs:
+      fail_on_updates:
+        description: "Fail workflow when outdated packages are found"
+        required: false
+        default: "false"
+        type: choice
+        options:
+          - "false"
+          - "true"
+
+permissions:
+  contents: read
+
+jobs:
+  check-outdated-packages:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore solution
+        run: dotnet restore LCB.sln
+
+      - name: Scan outdated packages
+        id: scan
+        shell: pwsh
+        run: |
+          dotnet list LCB.sln package --outdated --include-transitive | Tee-Object -FilePath outdated.txt
+          dotnet list LCB.sln package --outdated --include-transitive --format json | Out-File -Encoding utf8 outdated.json
+
+          $raw = Get-Content outdated.json -Raw
+          $report = $raw | ConvertFrom-Json
+
+          $count = 0
+
+          foreach ($project in $report.projects) {
+            foreach ($framework in $project.frameworks) {
+              if ($framework.topLevelPackages) {
+                $count += @($framework.topLevelPackages).Count
+              }
+              if ($framework.transitivePackages) {
+                $count += @($framework.transitivePackages).Count
+              }
+            }
+          }
+
+          $hasUpdates = if ($count -gt 0) { 'true' } else { 'false' }
+
+          "outdated_count=$count" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "has_updates=$hasUpdates" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
+      - name: Publish summary
+        shell: pwsh
+        run: |
+          $count = "${{ steps.scan.outputs.outdated_count }}"
+          $hasUpdates = "${{ steps.scan.outputs.has_updates }}"
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Package Update Check"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Solution: `LCB.sln`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Outdated packages found: **$count**"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+
+          if ($hasUpdates -eq 'true') {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "> Outdated packages were detected. See workflow artifacts (`outdated.txt`, `outdated.json`)."
+          }
+          else {
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "> No outdated packages found."
+          }
+
+      - name: Upload report artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: package-update-report
+          path: |
+            outdated.txt
+            outdated.json
+          if-no-files-found: error
+
+      - name: Fail when updates are found (scheduled or requested)
+        if: steps.scan.outputs.has_updates == 'true' && (github.event_name == 'schedule' || github.event.inputs.fail_on_updates == 'true')
+        run: |
+          echo "Outdated packages found. Review artifact package-update-report."
+          exit 1
