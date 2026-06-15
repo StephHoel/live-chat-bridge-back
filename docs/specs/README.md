@@ -18,6 +18,7 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### Planejadas (ordem de prioridade)
 
+- [13 - Refatoração transversal de observabilidade e tratamento de erros](docs/specs/planned/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [03 - Persistência durável para repositórios](docs/specs/planned/03-persistencia-duravel-repositorios.md)
 - [12 - Registro de conta](docs/specs/planned/12-registro-de-conta.md)
 - [02 - Autenticação com validação de senha](docs/specs/planned/02-autenticacao-com-senha.md)
