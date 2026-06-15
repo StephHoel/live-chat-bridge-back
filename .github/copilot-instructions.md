@@ -32,6 +32,7 @@ Adicionalmente aos passos acima:
 
 - Atualizar README **somente quando a informação for útil para usuários ou contribuidores** — mudança de API não justifica automaticamente atualização de README.
 - Nunca executar `git commit` (nem variações como `git commit --amend`) sem que o usuário solicite explicitamente. Editar arquivos e fazer stage são permitidos; o commit final depende sempre de pedido explícito.
+- Sempre que for abrir Pull Request, usar obrigatoriamente o template em `.github/pull_request_template.md`, preenchendo todas as seções aplicáveis no corpo do PR.
 
 ## Ao finalizar qualquer implementação
 
