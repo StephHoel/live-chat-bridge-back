@@ -1,19 +1,21 @@
 {
     "version": "0.2.0",
     "configurations": [
-        {
-            "name": "C#: LCB.Api [http]",
-            "type": "dotnet",
-            "request": "launch",
-            "projectPath": "${workspaceFolder}\\src\\LCB.Api\\LCB.Api.csproj",
-            "launchConfigurationId": "TargetFramework=;http"
-        },
+        // {
+        //     "name": "C#: LCB.Api [http]",
+        //     "type": "dotnet",
+        //     "request": "launch",
+        //     "projectPath": "${workspaceFolder}\\src\\LCB.Api\\LCB.Api.csproj",
+        //     "launchConfigurationId": "TargetFramework=;http",
+        //     "requireExactSource": false
+        // },
         {
             "name": "C#: LCB.Api [https]",
             "type": "dotnet",
             "request": "launch",
             "projectPath": "${workspaceFolder}\\src\\LCB.Api\\LCB.Api.csproj",
-            "launchConfigurationId": "TargetFramework=;https"
+            "launchConfigurationId": "TargetFramework=;https",
+            "requireExactSource": false
         }
     ]
 }
