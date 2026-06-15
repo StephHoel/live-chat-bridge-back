@@ -22,8 +22,7 @@ public static class JwtExtensions
         }
         catch (Exception)
         {
-            // TODO o que fazer?
-            throw;
+            return null;
         }
     }
 }

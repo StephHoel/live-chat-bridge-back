@@ -17,10 +17,12 @@ public class Program
 
         builder.Services.ConfigureLogging();
         builder.Services.AddJwtAuthentication(builder.Configuration);
+        builder.Services.AddConfiguration(builder.Configuration);
         builder.Services.AddHandlers();
         builder.Services.AddRepositories();
         builder.Services.AddServices();
         builder.Services.AddSwagger();
+        builder.Services.AddWorkers();
 
         builder.Services.AddAuthorization();
         builder.Services.AddControllers();
