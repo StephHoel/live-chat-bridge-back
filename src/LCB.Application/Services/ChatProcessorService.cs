@@ -15,7 +15,9 @@ public class ChatProcessorService(ChannelReader<ChatMessage> Reader,
         {
             // TODO lógica aqui
             // Ex: Salvar no banco, enviar para o frontend via SignalR, etc.
-            Console.WriteLine($"[{message.Platform}] [{message.CreatedAt}] {message.User}: {message.Text}");
+            Logger.LogInformation(
+                "[{Platform}] [{CreatedAt}] {User}: {Text}",
+                message.Platform, message.CreatedAt, message.User, message.Text);
         }
 
         Logger.LogInformation("Finishing {service}", nameof(ChatProcessorService));
