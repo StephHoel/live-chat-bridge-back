@@ -27,6 +27,45 @@ Status: planejado
 - Definir estratégia de migração da base atual (cold start ou seed controlado).
 - Definir índices mínimos: e-mail de usuário, chave de idempotência, usuário em fila.
 
+### Decisão arquitetural planejada
+
+- Adotar a **opção C (híbrida)**: `Entity Framework Core` para mapeamento/migrations e repositórios como camada explícita de acesso no projeto `Infrastructure`.
+- Manter `Application` dependente apenas de contratos do `Domain`; a troca de provider de banco deve ocorrer por configuração e DI.
+- Evitar SQL acoplado nos handlers; consultas específicas devem ficar nos repositórios.
+
+### Estratégia de banco local e online
+
+- **Fase 1 (local, desenvolvimento):** SQLite com arquivo `.db` local.
+- **Fase 2 (online, produção):** PostgreSQL em servidor gerenciado, sem mudança de contrato de aplicação. (_Implementação em spec futura; provider definido para orientar decisions de tipos e migrations desde já._)
+- Definir `ConnectionStrings` com seleção de provider por configuração (`Database:Provider`) para permitir troca sem alteração de regra de negócio.
+
+### Planejamento de schema relacional (pré-implementação)
+
+- Tabelas seguem o nome das entidades do domínio: `Users`, `Queues`, `ChatMessages`.
+- Chaves e restrições:
+  - `Users.Email` único.
+  - `Queues.UserId` único (um usuário por fila ativa).
+  - `ChatMessages.IdempotencyKey` único.
+- Índices mínimos:
+  - `Users(Email)`.
+  - `Queues(UserId)`.
+  - `ChatMessages(IdempotencyKey)`.
+  - `ChatMessages(Processed, CreatedAt)` para consultas operacionais.
+- Auditoria mínima: `CreatedAt` e `UpdatedAt` nas entidades persistidas.
+
+### Estratégia de migração entre ambientes
+
+- Migrations versionadas no repositório (EF Core) como fonte única de evolução do schema.
+- Ambiente local inicia com `dotnet ef database update` sobre SQLite.
+- Ambiente online aplica as mesmas migrations no provider escolhido, validando compatibilidade de tipos e índices.
+- Seeds devem ser controlados e idempotentes, sem dados de teste fixos em repositório de produção.
+
+### Compatibilidade e riscos conhecidos
+
+- Diferenças de tipo entre SQLite e banco online (ex.: precisão de data/hora e collation) devem ser cobertas por testes de integração.
+- Consultas críticas de idempotência e fila precisam de validação de desempenho após criação de índices.
+- Operações de ingestão devem permanecer transacionais para evitar estado parcial em falhas.
+
 ## Contratos de API
 
 - Request: sem mudanças obrigatórias.
@@ -49,6 +88,8 @@ Status: planejado
 - Testes de integração para CRUD básico de usuários, fila e mensagens.
 - Teste de reinicialização validando durabilidade.
 - Testes de erro de infraestrutura com fallback de resposta.
+- Testes de integração rodando ao menos em SQLite (local) e em um provider online alvo (pipeline/ambiente controlado).
+- Testes de migrations: banco vazio -> última migration aplicada com sucesso.
 
 ## Fora de escopo
 
