@@ -1,0 +1,63 @@
+name: PR Restore Test Coverage
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  validate-pr:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "9.0.x"
+
+      - name: Restore solution
+        run: dotnet restore LCB.sln
+
+      - name: Run tests with coverage
+        run: |
+          dotnet test LCB.sln \
+            --configuration Release \
+            --no-restore \
+            --collect:"XPlat Code Coverage;Format=cobertura" \
+            --results-directory ./TestResults
+
+      - name: Enforce minimum 80% line coverage
+        shell: pwsh
+        run: |
+          $files = Get-ChildItem -Path ./TestResults -Recurse -Filter coverage.cobertura.xml
+
+          if (-not $files) {
+            Write-Error "Coverage report not found."
+            exit 1
+          }
+
+          [xml]$coverage = Get-Content $files[0].FullName
+          $lineRate = [double]$coverage.coverage.'line-rate'
+          $lineCoveragePercent = [math]::Round($lineRate * 100, 2)
+          $minimum = 80
+
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Coverage Gate"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Required minimum: **$minimum%**"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Current line coverage: **$lineCoveragePercent%**"
+
+          if ($lineCoveragePercent -lt $minimum) {
+            Write-Error "Coverage gate failed: $lineCoveragePercent% is below $minimum%."
+            exit 1
+          }
+
+          Write-Host "Coverage gate passed: $lineCoveragePercent% >= $minimum%."

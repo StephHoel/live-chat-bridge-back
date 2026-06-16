@@ -8,7 +8,7 @@ using LCB.Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace LCB.Infrastructure.Tests.Repositories;
+namespace LCB.UnitTest.Repositories;
 
 public class InMemoryQueueRepositoryTests
 {
