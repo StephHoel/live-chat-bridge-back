@@ -1,4 +1,5 @@
 using System.Net;
+using LCB.Application.Helpers;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Objects;
@@ -8,42 +9,29 @@ namespace LCB.Application.Commands.Login;
 
 public class LoginHandler(IUserRepository repository, ITokenService tokenService, ILogger<LoginHandler> logger)
 {
-    public async Task<Result<LoginResponse>> Handle(LoginRequest request)
+    public Task<Result<LoginResponse>> Handle(LoginRequest request)
+        => OperationExecutor.ExecuteAsync(logger, nameof(LoginHandler), () => ExecuteAsync(request));
+
+    private async Task<Result<LoginResponse>> ExecuteAsync(LoginRequest request)
     {
-        try
+        var user = await repository.GetByEmailAsync(request.Email);
+
+        if (user is null)
         {
-            logger.LogInformation("Starting login attempt for email {Email}", [request.Email]);
-
-            var user = await repository.GetByEmailAsync(request.Email);
-
-            if (user is null)
-            {
-                logger.LogWarning("User not found for email {Email}", [request.Email]);
-                return Result<LoginResponse>.Fail("User not found", HttpStatusCode.NotFound);
-            }
-
-            var token = tokenService.GenerateToken(user);
-
-            if (token is null)
-            {
-                logger.LogWarning("Token not generated");
-                return Result<LoginResponse>.Fail("Fail on JWT generation", HttpStatusCode.InternalServerError);
-            }
-
-            logger.LogInformation("User authenticated successfully");
-
-            var response = new LoginResponse(token);
-
-            return Result<LoginResponse>.Ok(response);
+            logger.LogWarning("User not found for email {Email}", request.Email);
+            return Result<LoginResponse>.Fail("User not found", HttpStatusCode.NotFound);
         }
-        catch (Exception e)
+
+        var token = tokenService.GenerateToken(user);
+
+        if (token is null)
         {
-            logger.LogError("Error unexpected | Message: {Message} | StackTrace: {Stack}", [e.Message, e.StackTrace]);
-            return Result<LoginResponse>.Fail("Error unexpected", HttpStatusCode.InternalServerError);
+            logger.LogWarning("Token generation failed");
+            return Result<LoginResponse>.Fail("Fail on JWT generation", HttpStatusCode.InternalServerError);
         }
-        finally
-        {
-            logger.LogInformation("Finishing login attempt for email {Email}", [request.Email]);
-        }
+
+        logger.LogInformation("User authenticated successfully");
+
+        return Result<LoginResponse>.Ok(new LoginResponse(token));
     }
 }

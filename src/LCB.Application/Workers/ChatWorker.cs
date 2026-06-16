@@ -1,3 +1,4 @@
+using LCB.Application.Helpers;
 using LCB.Application.Services;
 using LCB.Domain.Models.Config;
 using LCB.Infrastructure.Providers;
@@ -15,46 +16,36 @@ public class ChatWorker(TikTokChatProvider TikTok,
 {
     private readonly LiveConfig Config = Options.CurrentValue;
 
-    protected override async Task ExecuteAsync(CancellationToken cancellationToken)
+    protected override Task ExecuteAsync(CancellationToken cancellationToken)
+        => OperationExecutor.ExecuteAsync(Logger, nameof(ChatWorker), () => RunAsync(cancellationToken));
+
+    private async Task RunAsync(CancellationToken cancellationToken)
     {
-        try
+        var processorTask = Service.ProcessMessagesAsync(cancellationToken);
+
+        var tiktokUsername = Config.Tiktok.Replace("@", "").Trim();
+        if (string.IsNullOrEmpty(tiktokUsername))
         {
-            Logger.LogInformation("Starting Worker");
+            Logger.LogWarning("Usuario do TikTok nao informado");
+            return;
+        }
 
-            var processorTask = Service.ProcessMessagesAsync(cancellationToken);
-
-            var tiktokUsername = Config.Tiktok.Replace("@", "").Trim();
-            if (string.IsNullOrEmpty(tiktokUsername))
+        var tiktokTask = Task.Factory.StartNew(() =>
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
-                Logger.LogWarning("Usuario do TikTok nao informado");
-                return;
-            }
-
-            var tiktokTask = Task.Factory.StartNew(() =>
-            {
-                while (!cancellationToken.IsCancellationRequested)
+                try
                 {
-                    try
-                    {
-                        TikTok.Connect(tiktokUsername, cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.LogError(ex, "Erro na conexão TikTok");
-                        Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
-                    }
+                    TikTok.Connect(tiktokUsername, cancellationToken);
                 }
-            }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "Erro na conexão TikTok");
+                    Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                }
+            }
+        }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
 
-            await Task.WhenAll(processorTask, tiktokTask);
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError(ex, $"Erro inesperado | Mensagem: {ex.Message}");
-        }
-        finally
-        {
-            Logger.LogInformation("Finishing Worker");
-        }
+        await Task.WhenAll(processorTask, tiktokTask);
     }
 }

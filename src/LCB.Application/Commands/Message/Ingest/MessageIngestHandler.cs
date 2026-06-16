@@ -1,4 +1,5 @@
 using System.Net;
+using LCB.Application.Helpers;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
@@ -11,52 +12,45 @@ namespace LCB.Application.Commands.Message.Ingest;
 
 public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRepository queueRepository, IAdapterService adapterService, ILogger<MessageIngestHandler> logger)
 {
-    public async Task<Result<MessageIngestResponse>> Handle(MessageIngestRequest request)
+    public Task<Result<MessageIngestResponse>> Handle(MessageIngestRequest request)
+        => OperationExecutor.ExecuteAsync(logger,
+                                          nameof(MessageIngestHandler),
+                                          () => ExecuteAsync(request));
+
+    private async Task<Result<MessageIngestResponse>> ExecuteAsync(MessageIngestRequest request)
     {
-        try
+        var message = request.ToChatMessage();
+
+        var existing = await messageRepository.GetByIdempotencyKeyAsync(message.IdempotencyKey);
+
+        if (existing?.Processed == true)
+            return Result<MessageIngestResponse>.Fail("Invalid payload",
+                                                      new(StatusResultEnum.Duplicate, existing, null),
+                                                      HttpStatusCode.BadRequest);
+
+        var shouldJoinQueue = message.ShouldJoinQueue();
+
+        if (shouldJoinQueue)
         {
-            logger.LogInformation("Starting ingest message by {author}", request.Author);
+            var existingQueueEntry = await queueRepository.GetByUserAsync(message.Author);
 
-            var message = request.ToChatMessage();
+            var entry = new Queue(existingQueueEntry?.Id ?? Guid.NewGuid(),
+                                  message.Provider,
+                                  message.Author,
+                                  existingQueueEntry?.Selected ?? false,
+                                  existingQueueEntry?.JoinedAt ?? DateTime.UtcNow);
 
-            var existing = await messageRepository.GetByIdempotencyKeyAsync(message.IdempotencyKey);
-
-            if (existing?.Processed == true)
-                return Result<MessageIngestResponse>.Fail("Invalid payload", new(StatusResultEnum.Duplicate, existing, null), HttpStatusCode.BadRequest);
-
-            var shouldJoinQueue = message.ShouldJoinQueue();
-
-            if (shouldJoinQueue)
-            {
-                var existingQueueEntry = await queueRepository.GetByUserAsync(message.Author);
-
-                var entry = new Queue(existingQueueEntry?.Id ?? Guid.NewGuid(),
-                                      message.Provider,
-                                      message.Author,
-                                      existingQueueEntry?.Selected ?? false,
-                                      existingQueueEntry?.JoinedAt ?? DateTime.UtcNow);
-
-                await queueRepository.UpdateAsync([entry]);
-            }
-
-            var commandResult = await adapterService.ParseAndDispatch(message);
-
-            message.Processed = true;
-
-            var isMessageSaved = await messageRepository.CreateAsync([message]);
-
-            var status = isMessageSaved ? StatusResultEnum.Processed : StatusResultEnum.Error;
-
-            return Result<MessageIngestResponse>.Ok(new(status, message, commandResult));
+            await queueRepository.UpdateAsync([entry]);
         }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error unexpected | Message: {Message} | StackTrace: {Stack}", [ex.Message, ex.StackTrace]);
-            return Result<MessageIngestResponse>.Fail("Error unexpected", HttpStatusCode.InternalServerError);
-        }
-        finally
-        {
-            logger.LogInformation("Finishing ingest message by {author}", request.Author);
-        }
+
+        var commandResult = await adapterService.ParseAndDispatch(message);
+
+        message.Processed = true;
+
+        var isMessageSaved = await messageRepository.CreateAsync([message]);
+
+        var status = isMessageSaved ? StatusResultEnum.Processed : StatusResultEnum.Error;
+
+        return Result<MessageIngestResponse>.Ok(new(status, message, commandResult));
     }
 }

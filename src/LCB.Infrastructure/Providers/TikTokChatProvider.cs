@@ -69,9 +69,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessage> Writer,
         var amount = args.Amount; // Quantidade (ex: 1 rosa, 5 rosas)
 
         // TODO ajustar aqui
-        Console.ForegroundColor = ConsoleColor.Yellow;
-        Console.WriteLine($"[TIKTOK] PRESENTE: {userName} enviou {amount}x {giftName}");
-        Console.ResetColor();
+        Logger.LogInformation("[TIKTOK] PRESENTE: {UserName} enviou {Amount}x {GiftName}", userName, amount, giftName);
     }
 
     private void OnLike(TikTokLiveClient _, Like args)
@@ -81,9 +79,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessage> Writer,
         var userName = args.Sender?.UniqueId ?? "Alguém";
 
         // TODO ajustar aqui
-        Console.ForegroundColor = ConsoleColor.Magenta;
-        Console.WriteLine($"[TIKTOK] LIKE: {userName} curtiu {count} vezes (Total da Live: {total})");
-        Console.ResetColor();
+        Logger.LogInformation("[TIKTOK] LIKE: {UserName} curtiu {Count} vezes (Total da Live: {Total})", userName, count, total);
     }
 
     private void OnException(object? _, Exception args)
