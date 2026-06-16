@@ -14,9 +14,9 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### Implementadas
 
-### Ativas/Em andamento
+- [13 - Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 
-- [13 - Refatoração transversal de observabilidade e tratamento de erros](active/13-refatoracao-observabilidade-e-tratamento-erros.md)
+### Ativas/Em andamento
 
 ### Planejadas (ordem de prioridade)
 
