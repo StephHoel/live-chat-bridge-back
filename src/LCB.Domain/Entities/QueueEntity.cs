@@ -24,4 +24,11 @@ public class QueueEntity
     public string User { get; set; } = string.Empty;
     public bool Selected { get; set; }
     public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+
+    public void TouchUpdatedAt()
+    {
+        UpdatedAt = DateTime.UtcNow;
+    }
 }

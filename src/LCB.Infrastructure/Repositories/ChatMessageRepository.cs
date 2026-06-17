@@ -50,9 +50,20 @@ public class ChatMessageRepository(LcbDbContext context,
                 var existing = await context.ChatMessages.FirstOrDefaultAsync(x => x.Id == message.Id);
 
                 if (existing is null)
+                {
+                    message.TouchUpdatedAt();
                     await context.ChatMessages.AddAsync(message);
+                }
                 else
-                    context.Entry(existing).CurrentValues.SetValues(message);
+                {
+                    existing.Provider = message.Provider;
+                    existing.Author = message.Author;
+                    existing.Text = message.Text;
+                    existing.Timestamp = message.Timestamp;
+                    existing.Processed = message.Processed;
+                    existing.IdempotencyKey = message.IdempotencyKey;
+                    existing.TouchUpdatedAt();
+                }
             }
 
             return await context.SaveChangesAsync() > 0;

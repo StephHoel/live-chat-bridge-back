@@ -27,9 +27,18 @@ public class QueueRepository(LcbDbContext context,
                 var existing = await context.Queues.FirstOrDefaultAsync(x => x.Id == queue.Id);
 
                 if (existing is null)
+                {
+                    queue.TouchUpdatedAt();
                     await context.Queues.AddAsync(queue);
+                }
                 else
-                    context.Entry(existing).CurrentValues.SetValues(queue);
+                {
+                    existing.Provider = queue.Provider;
+                    existing.User = queue.User;
+                    existing.Selected = queue.Selected;
+                    existing.JoinedAt = queue.JoinedAt;
+                    existing.TouchUpdatedAt();
+                }
             }
 
             return await context.SaveChangesAsync() > 0;

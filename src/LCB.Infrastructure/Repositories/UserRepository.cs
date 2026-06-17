@@ -20,7 +20,12 @@ public class UserRepository(LcbDbContext context,
     public async Task<bool> CreateAsync(IEnumerable<UserEntity> users)
         => await ExecuteAsync(async () =>
         {
-            await context.Users.AddRangeAsync(users);
+            var list = users.ToList();
+
+            foreach (var user in list)
+                user.TouchUpdatedAt();
+
+            await context.Users.AddRangeAsync(list);
             return await context.SaveChangesAsync() > 0;
         }, nameof(CreateAsync));
 }

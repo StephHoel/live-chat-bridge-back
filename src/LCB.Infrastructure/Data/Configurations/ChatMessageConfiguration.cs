@@ -37,6 +37,14 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageEnti
             .IsRequired()
             .HasMaxLength(255);
 
+        builder.Property(x => x.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
         builder.HasIndex(x => x.IdempotencyKey)
             .IsUnique();
 
