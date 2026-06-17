@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using LCB.Application.Services;
 using LCB.Application.Workers;
+using LCB.Domain.Models;
 using LCB.Domain.Models.Config;
 using LCB.Infrastructure.Providers;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -18,7 +19,7 @@ public class ChatWorkerTests
     [Fact]
     public async Task ExecuteAsync_Returns_WhenTikTokUsernameIsMissing()
     {
-        var channel = Channel.CreateUnbounded<Domain.Models.ChatMessageModel>();
+        var channel = Channel.CreateUnbounded<ChatMessageModel>();
         channel.Writer.Complete();
 
         var worker = new ChatWorker(
