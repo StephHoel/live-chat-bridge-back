@@ -1,5 +1,8 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace LCB.Domain.Entities;
 
+[ExcludeFromCodeCoverage]
 public class UserEntity
 {
     public Guid Id { get; private set; } = Guid.NewGuid();

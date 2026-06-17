@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
 using LCB.Application.Services;
 using LCB.Application.Workers;
@@ -7,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LCB.Application.DependencyInjection;
 
+[ExcludeFromCodeCoverage]
 public static class WorkerDI
 {
     public static IServiceCollection AddWorkers(this IServiceCollection services)

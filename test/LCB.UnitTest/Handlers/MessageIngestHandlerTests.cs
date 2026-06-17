@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using LCB.Application.Commands.Message.Ingest;
@@ -9,10 +8,8 @@ using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
-using LCB.Domain.Objects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using QueueEntity = LCB.Domain.Entities.QueueEntity;
 
 namespace LCB.UnitTest.Handlers;
 

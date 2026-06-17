@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using LCB.Domain.Enums;
 
 namespace LCB.Domain.Entities;
 
+[ExcludeFromCodeCoverage]
 public class ChatMessageEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();

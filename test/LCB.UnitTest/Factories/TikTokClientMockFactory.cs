@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using TikTokLiveSharp.Client;
 
-namespace LCB.UnitTest.Helpers;
+namespace LCB.UnitTest.Factories;
 
 internal static class TikTokClientMockFactory
 {

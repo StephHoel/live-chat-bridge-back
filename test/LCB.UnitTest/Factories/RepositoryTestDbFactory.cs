@@ -3,7 +3,7 @@ using LCB.Infrastructure.Data;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
-namespace LCB.UnitTest.Repositories;
+namespace LCB.UnitTest.Factories;
 
 internal static class RepositoryTestDbFactory
 {

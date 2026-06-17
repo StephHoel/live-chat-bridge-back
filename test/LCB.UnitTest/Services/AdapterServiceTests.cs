@@ -3,7 +3,7 @@ using LCB.Domain.Entities;
 using LCB.Infrastructure.Services.Adapter;
 using Xunit;
 
-namespace LCB.UnitTest.Coverage;
+namespace LCB.UnitTest.Services;
 
 public class AdapterServiceTests
 {
