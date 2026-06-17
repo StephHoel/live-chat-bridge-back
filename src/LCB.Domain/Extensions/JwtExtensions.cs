@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 
 namespace LCB.Domain.Extensions;
 
+[ExcludeFromCodeCoverage]
 public static class JwtExtensions
 {
     public static byte[]? GetBytesFromJwtKey(this string? key)

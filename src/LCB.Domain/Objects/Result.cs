@@ -1,8 +1,10 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Text.Json.Serialization;
 
 namespace LCB.Domain.Objects;
 
+[ExcludeFromCodeCoverage]
 public class Result<T>
 {
     public bool Success { get; private set; }

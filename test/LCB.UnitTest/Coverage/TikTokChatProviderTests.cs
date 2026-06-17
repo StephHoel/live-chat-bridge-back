@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using LCB.Infrastructure.Providers;
+using LCB.UnitTest.Factories;
 using LCB.UnitTest.Helpers;
 using Microsoft.Extensions.Logging.Abstractions;
 using TikTokLiveSharp.Events;

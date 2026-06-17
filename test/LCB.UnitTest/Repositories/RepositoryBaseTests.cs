@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
-namespace LCB.UnitTest.Coverage;
+namespace LCB.UnitTest.Repositories;
 
 public class RepositoryBaseTests
 {
