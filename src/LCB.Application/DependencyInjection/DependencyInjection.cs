@@ -31,9 +31,9 @@ public static class DependencyInjection
             options.UseSqlite(connectionString);
         });
 
-        services.AddScoped<IUserRepository, PersistentUserRepository>();
-        services.AddScoped<IMessageRepository, PersistentMessageRepository>();
-        services.AddScoped<IQueueRepository, PersistentQueueRepository>();
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IMessageRepository, ChatMessageRepository>();
+        services.AddScoped<IQueueRepository, QueueRepository>();
 
         return services;
     }
