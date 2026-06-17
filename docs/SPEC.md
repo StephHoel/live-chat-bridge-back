@@ -95,7 +95,7 @@ Próximas frentes identificadas a partir do estado atual do código:
 ### Worker de Live
 
 1. `ChatWorker` inicia `ChatProcessorService` e conexão com `TikTokChatProvider`.
-2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessage>`.
+2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageEntity>`.
 3. `ChatProcessorService` consome o `ChannelReader` e hoje apenas escreve no console.
 
 ## 7. Configuração e Ambiente
@@ -129,7 +129,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 | `LCB.Domain.DTO` | **Transporte interno entre camadas.** Usado por handlers, serviços e workers para trocar dados sem expor a entidade completa. Pode ser ajustado livremente conforme a necessidade de cada caso de uso. | Nunca retornar diretamente em endpoints de API. Não persiste. |
 | `LCB.Domain.Models` | **Response de API.** Representa o contrato de saída dos endpoints — é o que o cliente externo recebe. | Nunca usar como modelo de persistência. A conversão de `Entity → Model` deve acontecer nos handlers (`Application`), nunca em `Infrastructure` ou nos endpoints diretamente. |
 
-**Observação sobre `LCB.Domain.Models.ChatMessage`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a DTO nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessageEntity` deve ocorrer em `ChatProcessorService` antes de qualquer persistência ou lógica de negócio.
+**Observação sobre `LCB.Domain.Models.ChatMessageEntity`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a DTO nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessageEntity` deve ocorrer em `ChatProcessorService` antes de qualquer persistência ou lógica de negócio.
 
 ### Contratos atuais
 

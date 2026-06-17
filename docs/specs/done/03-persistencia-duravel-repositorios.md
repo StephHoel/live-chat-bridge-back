@@ -44,13 +44,13 @@ Status: concluída
 - Tabelas seguem o nome das entidades do domínio: `Users`, `Queues`, `ChatMessages`.
 - Chaves e restrições:
   - `Users.Email` único.
-  - `Queues.UserId` único (um usuário por fila ativa).
+  - `Queues.User` único (um usuário por fila ativa).
   - `ChatMessages.IdempotencyKey` único.
 - Índices mínimos:
   - `Users(Email)`.
-  - `Queues(UserId)`.
+  - `Queues(User)`.
   - `ChatMessages(IdempotencyKey)`.
-  - `ChatMessages(Processed, CreatedAt)` para consultas operacionais.
+  - `ChatMessages(Processed, Timestamp)` para consultas operacionais.
 - Auditoria mínima: `CreatedAt` e `UpdatedAt` nas entidades persistidas.
 
 ### Estratégia de migração entre ambientes
