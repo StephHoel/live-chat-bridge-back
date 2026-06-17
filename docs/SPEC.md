@@ -15,17 +15,17 @@ Hoje existem dois eixos principais no produto:
 
 O objetivo é servir como ponte entre provedores de live chat e uma camada de automação, fila, comando e distribuição para frontend.
 
-O sistema ainda está em fase inicial/prototipal: a persistência é toda em memória, há comandos de chat simples, e parte do fluxo assíncrono está preparada mas ainda com lógica pendente.
+O sistema ainda está em fase inicial/prototipal: já possui persistência local durável via SQLite/EF Core, há comandos de chat simples, e parte do fluxo assíncrono está preparada mas ainda com lógica pendente.
 
 ## 2. Funcionalidades Existentes
 
-- Login por e-mail via `POST /auth/login`, com emissão de JWT quando o usuário é encontrado no repositório em memória.
-- Ingestão de mensagens via `POST /messages/ingest`, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessage`.
+- Login por e-mail via `POST /auth/login`, com emissão de JWT quando o usuário é encontrado em repositório persistente.
+- Ingestão de mensagens via `POST /messages/ingest`, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
-- Atualização de fila em memória para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
-- Persistência durável para `User`, `Queue` e `ChatMessage` via EF Core com SQLite local.
+- Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
+- Persistência durável para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local.
 - Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
 - Conversor JSON tolerante para `DateTime` nas entradas HTTP.
@@ -42,7 +42,6 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 Próximas frentes identificadas a partir do estado atual do código:
 
 - corrigir idempotência de mensagens (ver comportamento esperado na seção 10);
-- substituir repositórios em memória por persistência durável;
 - consolidar o modelo de mensagem entre fluxo HTTP e fluxo do worker (ver seção 9);
 - implementar a lógica real de processamento em `ChatProcessorService`;
 - ampliar autenticação para validar senha (ver nota na seção 6);
@@ -68,8 +67,8 @@ Próximas frentes identificadas a partir do estado atual do código:
 - `src/LCB.Api`: entrypoint HTTP, DI, endpoints, middleware, logging e extensões de API.
 - `src/LCB.Application`: handlers de caso de uso, configuração, serviços de processamento e workers.
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
-- `src/LCB.Infrastructure`: repositórios em memória, handlers de comando, provedores externos e serviços concretos.
-- `test/LCB.UnitTest`: testes unitários atuais do repositório de usuários em memória.
+- `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos e migrations.
+- `test/LCB.UnitTest`: testes unitários de handlers, serviços, workers e repositórios persistentes.
 
 ## 6. Fluxos Principais
 
@@ -87,7 +86,7 @@ Próximas frentes identificadas a partir do estado atual do código:
 ### Ingestão HTTP de Mensagens
 
 1. `MessageEndpoints` recebe `POST /messages/ingest`.
-2. `MessageIngestHandler` converte o request para `LCB.Domain.Entities.ChatMessage`.
+2. `MessageIngestHandler` converte o request para `LCB.Domain.Entities.ChatMessageEntity`.
 3. O handler tenta verificar duplicidade por `IdempotencyKey`.
 4. Se a mensagem indicar entrada em fila, o usuário é inserido/atualizado em `IQueueRepository`.
 5. O texto é parseado e despachado pelo `AdapterService`.
@@ -103,6 +102,7 @@ Próximas frentes identificadas a partir do estado atual do código:
 
 - `appsettings.json` define `JWT_KEY` e a seção `Usernames` com `Tiktok`, `Twitch` e `Youtube`.
 - `appsettings.Development.json` já contém uma chave JWT de desenvolvimento e um username de TikTok preenchido.
+- `ConnectionStrings:DefaultConnection` define o banco SQLite local.
 - `LiveConfig.SectionName` aponta para `Usernames`.
 - O Swagger só é exposto em ambiente de desenvolvimento.
 - A autenticação JWT depende de `JWT_KEY` com pelo menos 32 bytes; caso contrário, o helper retorna `null`.
@@ -129,13 +129,13 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 | `LCB.Domain.DTO` | **Transporte interno entre camadas.** Usado por handlers, serviços e workers para trocar dados sem expor a entidade completa. Pode ser ajustado livremente conforme a necessidade de cada caso de uso. | Nunca retornar diretamente em endpoints de API. Não persiste. |
 | `LCB.Domain.Models` | **Response de API.** Representa o contrato de saída dos endpoints — é o que o cliente externo recebe. | Nunca usar como modelo de persistência. A conversão de `Entity → Model` deve acontecer nos handlers (`Application`), nunca em `Infrastructure` ou nos endpoints diretamente. |
 
-**Observação sobre `LCB.Domain.Models.ChatMessage`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a DTO nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessage` deve ocorrer em `ChatProcessorService` antes de qualquer persistência ou lógica de negócio.
+**Observação sobre `LCB.Domain.Models.ChatMessage`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a DTO nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessageEntity` deve ocorrer em `ChatProcessorService` antes de qualquer persistência ou lógica de negócio.
 
 ### Contratos atuais
 
-- `LCB.Domain.Entities.ChatMessage`: entidade de mensagem; usada em persistência e lógica de negócio no fluxo HTTP.
-- `LCB.Domain.Entities.Queue`: entrada de usuário na fila; identidade por `Id` (Guid), indexado por `User`.
-- `LCB.Domain.Entities.User`: usuário autenticável; `Email` como identificador único, `PasswordHash` para validação futura de senha.
+- `LCB.Domain.Entities.ChatMessageEntity`: entidade de mensagem; usada em persistência e lógica de negócio no fluxo HTTP.
+- `LCB.Domain.Entities.QueueEntity`: entrada de usuário na fila; identidade por `Id` (Guid), indexado por `User`.
+- `LCB.Domain.Entities.UserEntity`: usuário autenticável; `Email` como identificador único, `PasswordHash` para validação futura de senha.
 - `LCB.Domain.Objects.Result<T>`: envelope padrão para retorno de handlers; sempre use `Result<T>.Ok()` ou `Result<T>.Fail()` — nunca lance exceção para erros de negócio esperados.
 - `LCB.Domain.DTO.CommandDTO` / `ParsedCommandDTO`: transporte de resultado de comando e de comando parseado, respectivamente.
 
@@ -154,7 +154,6 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 ### Autenticação (provisório)
 
 - Login não valida senha. Detalhes na seção 6. Aguarda mini-spec.
-- `InMemoryUserRepository` injeta o usuário `teste@teste.com` com senha `1234` dentro do próprio método de leitura (`GetByEmail`), o que mascara o estado real do repositório e impede testes isolados realistas.
 
 ### Persistência
 
@@ -169,9 +168,9 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 
 ## 11. Testes e Cobertura Atual
 
-- Há cobertura unitária explícita apenas para `InMemoryUserRepository`.
-- Os testes atuais validam criação, busca por e-mail e escrita concorrente no repositório de usuários.
-- Não há testes visíveis para login, ingestão de mensagens, fila, parsing de comandos, JWT ou worker.
+- Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
+- Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`) possuem testes com SQLite em memória.
+- Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
 
 ## 12. Convenções Observadas
 
@@ -179,13 +178,13 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 - Endpoints minimalistas delegando a handlers de aplicação.
 - Uso de `Result<T>` para padronizar retornos de sucesso/erro.
 - Logging com mensagens de início/fim de método em vários componentes.
-- Repositórios em memória com base compartilhada para lock, snapshot e logging.
+- Repositórios usam `RepositoryBase` para padronizar logging e tratamento de exceções.
 
 ## 13. Pendências de Documentação
 
 - A estrutura `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/` já existe no repositório.
-- Criar mini-spec `01-idempotencia-de-mensagens.md` em `docs/specs/planned/` antes de corrigir a chave de idempotência.
-- Criar mini-spec `02-autenticacao-com-senha.md` em `docs/specs/planned/` antes de implementar validação de senha.
+- Manter mini-spec `01-idempotencia-de-mensagens.md` atualizada antes de corrigir a chave de idempotência.
+- Manter mini-spec `02-autenticacao-com-senha.md` atualizada antes de implementar validação de senha.
 - Atualizar README quando o fluxo de autenticação ou de ingestão mudar de forma material.
 
 ## 14. Prioridades Técnicas Evidentes
@@ -271,7 +270,7 @@ Status: planejado
 
 ## Dados e persistência
 - <campos novos ou alterados nas entidades>
-- <impacto nos repositórios em memória ou futura persistência durável>
+- <impacto nos repositórios persistentes atuais e na futura migração de provider>
 - <compatibilidade com dados existentes>
 
 ## Contratos de API

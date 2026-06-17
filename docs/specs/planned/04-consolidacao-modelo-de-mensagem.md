@@ -23,7 +23,7 @@ Status: planejado
 
 ## Dados e persistência
 
-- Definir mapeamento explícito entre tipo de entrada do worker e `LCB.Domain.Entities.ChatMessage`.
+- Definir mapeamento explícito entre tipo de entrada do worker e `LCB.Domain.Entities.ChatMessageEntity`.
 - Garantir compatibilidade com chave de idempotência e regras de fila.
 - Evitar persistir tipos destinados apenas a transporte/response.
 

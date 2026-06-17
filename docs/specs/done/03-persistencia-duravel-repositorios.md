@@ -1,7 +1,7 @@
 # Mini-spec: Persistência durável para repositórios
 
 Número: 03
-Status: implementado
+Status: concluída
 
 ## Problema
 
@@ -19,7 +19,7 @@ Status: implementado
 - Endpoints: `POST /auth/login`, `POST /messages/ingest` e demais que dependam de repositórios.
 - Handlers: `LoginHandler`, `MessageIngestHandler` e handlers que acessam repositórios.
 - Workers/Provedores: impactados indiretamente quando persistirem mensagens.
-- Integrações externas: banco de dados a definir.
+- Integrações externas: SQLite (implementado) com estratégia futura para PostgreSQL.
 
 ## Dados e persistência
 
@@ -95,3 +95,10 @@ Status: implementado
 
 - Estratégias avançadas de replicação/alta disponibilidade.
 - Dashboard administrativo.
+
+## Resultado da implementação
+
+- Repositórios em memória removidos da runtime.
+- `UserRepository`, `QueueRepository` e `ChatMessageRepository` implementados sobre EF Core.
+- Migrations versionadas adicionadas em `src/LCB.Infrastructure/Data/Migrations`.
+- Aplicação de migrations no startup da API para manter schema alinhado no ambiente local.
