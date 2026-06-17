@@ -16,7 +16,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_ReturnsToken_WhenUserExists()
     {
-        var repository = new FakeUserRepository(User.Create("alice@example.com", "hash"));
+        var repository = new FakeUserRepository(UserEntity.Create("alice@example.com", "hash"));
         var tokenService = new FakeTokenService("token-123");
         var handler = new LoginHandler(repository, tokenService, NullLogger<LoginHandler>.Instance);
 
@@ -53,7 +53,7 @@ public class LoginHandlerTests
     [Fact]
     public async Task Handle_ReturnsInternalServerError_WhenTokenGenerationFails()
     {
-        var repository = new FakeUserRepository(User.Create("alice@example.com", "hash"));
+        var repository = new FakeUserRepository(UserEntity.Create("alice@example.com", "hash"));
         var handler = new LoginHandler(repository, new FakeTokenService(null), NullLogger<LoginHandler>.Instance);
 
         var result = await handler.Handle(new LoginRequest("alice@example.com", "pwd"));
@@ -63,9 +63,9 @@ public class LoginHandlerTests
         Assert.Equal("Fail on JWT generation", result.Error);
     }
 
-    private sealed class FakeUserRepository(User? user, bool throwOnRead = false) : IUserRepository
+    private sealed class FakeUserRepository(UserEntity user, bool throwOnRead = false) : IUserRepository
     {
-        public Task<User?> GetByEmailAsync(string email)
+        public Task<UserEntity> GetByEmailAsync(string email)
         {
             if (throwOnRead)
                 throw new InvalidOperationException("boom");
@@ -73,13 +73,13 @@ public class LoginHandlerTests
             return Task.FromResult(user);
         }
 
-        public Task<bool> CreateAsync(IEnumerable<User> users)
+        public Task<bool> CreateAsync(IEnumerable<UserEntity> users)
             => Task.FromResult(true);
     }
 
-    private sealed class FakeTokenService(string? token) : ITokenService
+    private sealed class FakeTokenService(string token) : ITokenService
     {
-        public string GenerateToken(User user)
+        public string GenerateToken(UserEntity user)
             => token!;
     }
 }

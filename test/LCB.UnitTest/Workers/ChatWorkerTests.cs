@@ -18,7 +18,7 @@ public class ChatWorkerTests
     [Fact]
     public async Task ExecuteAsync_Returns_WhenTikTokUsernameIsMissing()
     {
-        var channel = Channel.CreateUnbounded<LCB.Domain.Models.ChatMessage>();
+        var channel = Channel.CreateUnbounded<Domain.Models.ChatMessageModel>();
         channel.Writer.Complete();
 
         var worker = new ChatWorker(
@@ -38,10 +38,10 @@ public class ChatWorkerTests
     {
         public LiveConfig CurrentValue { get; } = value;
 
-        public LiveConfig Get(string? name)
+        public LiveConfig Get(string name)
             => CurrentValue;
 
-        public IDisposable OnChange(Action<LiveConfig, string?> listener)
+        public IDisposable OnChange(Action<LiveConfig, string> listener)
             => NullDisposable.Instance;
     }
 

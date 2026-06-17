@@ -11,10 +11,11 @@ public class DomainRecordsTests
     [Fact]
     public void Records_ExposeConstructorValues()
     {
+        var expected = new[] { "a", "b" };
         var payload = new PayloadDTO("msg", ["x"]);
         var command = new CommandDTO(TypeResultEnum.Error, payload, "corr");
         var parsed = new ParsedCommandDTO("!x", ["a", "b"], "!x a b");
-        var model = new LCB.Domain.Models.ChatMessage("user", "text", "TikTok", new DateTime(2026, 1, 1));
+        var model = new Domain.Models.ChatMessageModel("user", "text", "TikTok", new DateTime(2026, 1, 1));
         var config = new LiveConfig { Tiktok = "tk", Twitch = "tw", Youtube = "yt" };
 
         Assert.Equal(TypeResultEnum.Error, command.Type);
@@ -23,7 +24,7 @@ public class DomainRecordsTests
 
         Assert.Equal("!x", parsed.Name);
         Assert.Equal("!x a b", parsed.Raw);
-        Assert.Equal(new[] { "a", "b" }, parsed.Args);
+        Assert.Equal(expected, parsed.Args);
 
         Assert.Equal("user", model.User);
         Assert.Equal("text", model.Text);

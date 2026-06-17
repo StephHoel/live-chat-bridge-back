@@ -12,8 +12,8 @@ public class AdapterServiceTests
     {
         var service = new AdapterService();
 
-        var first = await service.ParseAndDispatch(new ChatMessage { Text = "!comando arg1 arg2" });
-        var second = await service.ParseAndDispatch(new ChatMessage { Text = "/!fila um" });
+        var first = await service.ParseAndDispatch(new ChatMessageEntity { Text = "!comando arg1 arg2" });
+        var second = await service.ParseAndDispatch(new ChatMessageEntity { Text = "/!fila um" });
 
         Assert.NotNull(first);
         Assert.Equal("comando de teste executado", first!.Payload!.Message);
@@ -29,8 +29,8 @@ public class AdapterServiceTests
     {
         var service = new AdapterService();
 
-        var empty = await service.ParseAndDispatch(new ChatMessage { Text = "   " });
-        var unknown = await service.ParseAndDispatch(new ChatMessage { Text = "!naoexiste x" });
+        var empty = await service.ParseAndDispatch(new ChatMessageEntity { Text = "   " });
+        var unknown = await service.ParseAndDispatch(new ChatMessageEntity { Text = "!naoexiste x" });
 
         Assert.Null(empty);
         Assert.Null(unknown);

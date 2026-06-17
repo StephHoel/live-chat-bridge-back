@@ -15,8 +15,8 @@ public class InMemoryRepositoryBaseTests
     {
         var repo = new ProbeRepo(new NullLogger<ProbeRepo>());
 
-        var readOk = await repo.ReadProbe<int>(items => items.Count, "ReadOk");
-        var writeOk = await repo.WriteProbe<bool>(items =>
+        var readOk = await repo.ReadProbe(items => items.Count, "ReadOk");
+        var writeOk = await repo.WriteProbe(items =>
         {
             items.Add(1);
             return true;

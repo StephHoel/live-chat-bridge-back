@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace LCB.Application.Services;
 
-public class ChatProcessorService(ChannelReader<ChatMessage> Reader,
+public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
                                   ILogger<ChatProcessorService> Logger)
 {
     public async Task ProcessMessagesAsync(CancellationToken cancellationToken)

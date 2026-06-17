@@ -5,11 +5,11 @@ namespace LCB.Domain.Interfaces.Repositories;
 
 public interface IMessageRepository
 {
-    Task<bool> CreateAsync(IEnumerable<ChatMessage> messages);
-    Task<ChatMessage?> GetByIdempotencyKeyAsync(string idempotencyKey);
-    Task<IEnumerable<ChatMessage>> GetAllAsync();
-    Task<IEnumerable<ChatMessage>> GetByProviderAsync(ProviderTypeEnum provider);
-    Task<bool> UpdateAsync(IEnumerable<ChatMessage> messages);
-    Task<bool> DeleteAsync(ChatMessage message);
+    Task<bool> CreateAsync(IEnumerable<ChatMessageEntity> messages);
+    Task<ChatMessageEntity?> GetByIdempotencyKeyAsync(string idempotencyKey);
+    Task<IEnumerable<ChatMessageEntity>> GetAllAsync();
+    Task<IEnumerable<ChatMessageEntity>> GetByProviderAsync(ProviderTypeEnum provider);
+    Task<bool> UpdateAsync(IEnumerable<ChatMessageEntity> messages);
+    Task<bool> DeleteAsync(ChatMessageEntity message);
     Task<bool> DeleteAllAsync();
 }

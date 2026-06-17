@@ -18,7 +18,7 @@ public class QueuePolicyTests
     [InlineData(ProviderTypeEnum.TWITCH, "fila", false)]
     public void ShouldJoinQueue_RespectsProviderRules(ProviderTypeEnum provider, string text, bool expected)
     {
-        var message = new ChatMessage { Provider = provider, Text = text };
+        var message = new ChatMessageEntity { Provider = provider, Text = text };
 
         Assert.Equal(expected, message.ShouldJoinQueue());
     }
@@ -26,7 +26,7 @@ public class QueuePolicyTests
     [Fact]
     public void ShouldJoinQueue_ReturnsFalse_ForUnknownProvider()
     {
-        var message = new ChatMessage { Provider = (ProviderTypeEnum)999, Text = "!fila" };
+        var message = new ChatMessageEntity { Provider = (ProviderTypeEnum)999, Text = "!fila" };
 
         Assert.False(message.ShouldJoinQueue());
     }

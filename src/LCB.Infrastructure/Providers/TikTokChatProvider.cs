@@ -9,7 +9,7 @@ using TikTokLiveSharp.Events.Objects;
 
 namespace LCB.Infrastructure.Providers;
 
-public class TikTokChatProvider(ChannelWriter<ChatMessage> Writer,
+public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
                                 ILogger<TikTokChatProvider> Logger)
 {
     private TikTokLiveClient? Client;
@@ -49,7 +49,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessage> Writer,
 
     private void OnChatMessage(TikTokLiveClient _, Chat args)
     {
-        var message = new ChatMessage(
+        var message = new ChatMessageModel(
             args.Sender.UniqueId,
             args.Message,
             "TikTok",

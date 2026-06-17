@@ -4,5 +4,5 @@ namespace LCB.Domain.Interfaces.Services;
 
 public interface ITokenService
 {
-    string GenerateToken(User user);
+    string GenerateToken(UserEntity user);
 }

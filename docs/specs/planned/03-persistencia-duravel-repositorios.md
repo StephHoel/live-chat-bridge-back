@@ -1,7 +1,7 @@
 # Mini-spec: Persistência durável para repositórios
 
 Número: 03
-Status: planejado
+Status: implementado
 
 ## Problema
 

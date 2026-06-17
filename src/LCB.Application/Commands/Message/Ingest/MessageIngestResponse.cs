@@ -4,4 +4,4 @@ using LCB.Domain.Enums;
 
 namespace LCB.Application.Commands.Message.Ingest;
 
-public record MessageIngestResponse(StatusResultEnum Status, ChatMessage? Message, CommandDTO? CommandResult);
+public record MessageIngestResponse(StatusResultEnum Status, ChatMessageEntity? Message, CommandDTO? CommandResult);

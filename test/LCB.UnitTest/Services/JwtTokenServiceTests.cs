@@ -19,7 +19,7 @@ public class JwtTokenServiceTests
             .Build();
 
         var service = new JwtTokenService(cfg, new NullLogger<JwtTokenService>());
-        var user = Domain.Entities.User.Create("alice@example.com", "hash");
+        var user = Domain.Entities.UserEntity.Create("alice@example.com", "hash");
 
         var token = service.GenerateToken(user);
 
@@ -37,7 +37,7 @@ public class JwtTokenServiceTests
             .Build();
 
         var service = new JwtTokenService(cfg, new NullLogger<JwtTokenService>());
-        var user = Domain.Entities.User.Create("bob@example.com", "hash");
+        var user = Domain.Entities.UserEntity.Create("bob@example.com", "hash");
 
         var token = service.GenerateToken(user);
 

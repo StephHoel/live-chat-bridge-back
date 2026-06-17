@@ -14,7 +14,7 @@ public class InMemoryUserRepositoryAdvancedTests
     {
         var repo = new InMemoryUserRepository(new NullLogger<InMemoryUserRepository>());
 
-        var created = await repo.CreateAsync([User.Create("alice@example.com", "hash-a")]);
+        var created = await repo.CreateAsync([UserEntity.Create("alice@example.com", "hash-a")]);
         var found = await repo.GetByEmailAsync("alice@example.com");
         var missing = await repo.GetByEmailAsync("missing@example.com");
 
@@ -29,8 +29,8 @@ public class InMemoryUserRepositoryAdvancedTests
     {
         var repo = new InMemoryUserRepository(new NullLogger<InMemoryUserRepository>());
 
-        var first = await repo.CreateAsync([User.Create("u1@example.com", "h1")]);
-        var second = await repo.CreateAsync([User.Create("u2@example.com", "h2"), User.Create("u3@example.com", "h3")]);
+        var first = await repo.CreateAsync([UserEntity.Create("u1@example.com", "h1")]);
+        var second = await repo.CreateAsync([UserEntity.Create("u2@example.com", "h2"), UserEntity.Create("u3@example.com", "h3")]);
 
         Assert.True(first);
         Assert.True(second);

@@ -11,7 +11,7 @@ public static class WorkerDI
 {
     public static IServiceCollection AddWorkers(this IServiceCollection services)
     {
-        var chatChannel = Channel.CreateBounded<ChatMessage>(new BoundedChannelOptions(5000)
+        var chatChannel = Channel.CreateBounded<ChatMessageModel>(new BoundedChannelOptions(5000)
         {
             FullMode = BoundedChannelFullMode.Wait
         });

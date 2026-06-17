@@ -12,8 +12,8 @@ public class InMemoryUserRepositoryTests
     private static InMemoryUserRepository CreateRepo()
         => new(new NullLogger<InMemoryUserRepository>());
 
-    private static User NewUser(string email, string passwordHash = "h")
-        => User.Create(email, passwordHash);
+    private static UserEntity NewUser(string email, string passwordHash = "h")
+        => UserEntity.Create(email, passwordHash);
 
     [Fact]
     public async Task Create_And_GetByEmail_Works()

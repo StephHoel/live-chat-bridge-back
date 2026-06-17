@@ -15,9 +15,9 @@ public class InMemoryMessageRepositoryTests
     private static InMemoryMessageRepository CreateRepo()
         => new(new NullLogger<InMemoryMessageRepository>());
 
-    private static ChatMessage NewMessage(ProviderTypeEnum provider, string author = "a")
+    private static ChatMessageEntity NewMessage(ProviderTypeEnum provider, string author = "a")
     {
-        return new ChatMessage
+        return new ChatMessageEntity
         {
             Provider = provider,
             Author = author,
