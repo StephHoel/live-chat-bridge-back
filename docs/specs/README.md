@@ -32,3 +32,4 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
 - [Segurança básica do ingest por token em header](planned/11-seguranca-basica-ingest-token-header.md)
+- [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
