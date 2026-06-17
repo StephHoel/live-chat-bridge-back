@@ -2,9 +2,12 @@ using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Message.Ingest;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
+using LCB.Infrastructure.Data;
 using LCB.Infrastructure.Repositories;
 using LCB.Infrastructure.Services.Adapter;
 using LCB.Infrastructure.Services.Auth;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LCB.Application.DependencyInjection;
@@ -21,9 +24,16 @@ public static class DependencyInjection
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
     {
-        services.AddScoped<IUserRepository, InMemoryUserRepository>();
-        services.AddScoped<IMessageRepository, InMemoryMessageRepository>();
-        services.AddScoped<IQueueRepository, InMemoryQueueRepository>();
+        services.AddDbContext<LcbDbContext>((sp, options) =>
+        {
+            var configuration = sp.GetRequiredService<IConfiguration>();
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=lcb.db";
+            options.UseSqlite(connectionString);
+        });
+
+        services.AddScoped<IUserRepository, PersistentUserRepository>();
+        services.AddScoped<IMessageRepository, PersistentMessageRepository>();
+        services.AddScoped<IQueueRepository, PersistentQueueRepository>();
 
         return services;
     }

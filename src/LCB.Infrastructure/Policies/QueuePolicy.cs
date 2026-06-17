@@ -5,7 +5,7 @@ namespace LCB.Infrastructure.Policies;
 
 public static class QueuePolicy
 {
-    public static bool ShouldJoinQueue(this ChatMessage message)
+    public static bool ShouldJoinQueue(this ChatMessageEntity message)
     {
         var messageNormalized = message.Text.Trim().ToLowerInvariant();
 

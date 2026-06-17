@@ -34,7 +34,7 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
         {
             var existingQueueEntry = await queueRepository.GetByUserAsync(message.Author);
 
-            var entry = new Queue(existingQueueEntry?.Id ?? Guid.NewGuid(),
+            var entry = new QueueEntity(existingQueueEntry?.Id ?? Guid.NewGuid(),
                                   message.Provider,
                                   message.Author,
                                   existingQueueEntry?.Selected ?? false,

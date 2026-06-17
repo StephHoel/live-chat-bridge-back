@@ -4,6 +4,8 @@ using LCB.Api.Extensions;
 using LCB.Api.Json;
 using LCB.Api.Middleware;
 using LCB.Application.DependencyInjection;
+using LCB.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace LCB.Api;
 
@@ -34,6 +36,12 @@ public class Program
         });
 
         var app = builder.Build();
+
+        using (var scope = app.Services.CreateScope())
+        {
+            var dbContext = scope.ServiceProvider.GetRequiredService<LcbDbContext>();
+            dbContext.Database.Migrate();
+        }
 
         app.UseMiddleware<CorrelationIdMiddleware>();
 

@@ -25,6 +25,7 @@ O sistema ainda está em fase inicial/prototipal: a persistência é toda em mem
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
 - Atualização de fila em memória para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
+- Persistência durável para `User`, `Queue` e `ChatMessage` via EF Core com SQLite local.
 - Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
 - Conversor JSON tolerante para `DateTime` nas entradas HTTP.
@@ -58,7 +59,7 @@ Próximas frentes identificadas a partir do estado atual do código:
 - Comunicação assíncrona interna com `System.Threading.Channels`.
 - Integração com TikTok Live por `TikTokLive_Sharp`.
 - Testes unitários com xUnit.
-- Persistência atual exclusivamente em memória, usando repositórios protegidos por `lock`.
+- Persistência atual via EF Core com SQLite local e migrations versionadas.
 
 ## 5. Estrutura de Pastas
 
@@ -157,8 +158,9 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 
 ### Persistência
 
-- Toda persistência é em memória. Reinício da aplicação apaga mensagens, fila e usuários criados em runtime.
-- Não há mecanismo de backup, replay ou snapshot.
+- Persistência local agora usa SQLite em arquivo `.db` com schema gerenciado por migrations.
+- Estratégia de banco online (PostgreSQL) permanece planejada para spec futura.
+- Ainda não há mecanismo de backup, replay ou snapshot.
 
 ### Processamento
 

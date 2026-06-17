@@ -14,7 +14,7 @@ public class JwtTokenServiceAdvancedTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("small")]
-    public void GetBytesFromJwtKey_ReturnsNull_WhenKeyIsInvalid(string? key)
+    public void GetBytesFromJwtKey_ReturnsNull_WhenKeyIsInvalid(string key)
     {
         Assert.Null(key.GetBytesFromJwtKey());
     }
@@ -36,7 +36,7 @@ public class JwtTokenServiceAdvancedTests
             .Build();
 
         var service = new JwtTokenService(cfg, new NullLogger<JwtTokenService>());
-        var user = User.Create("alice@example.com", "hash");
+        var user = UserEntity.Create("alice@example.com", "hash");
 
         var token = service.GenerateToken(user);
 

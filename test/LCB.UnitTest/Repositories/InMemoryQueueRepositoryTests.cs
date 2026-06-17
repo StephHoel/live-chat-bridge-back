@@ -15,7 +15,7 @@ public class InMemoryQueueRepositoryTests
     private static InMemoryQueueRepository CreateRepo()
         => new(new NullLogger<InMemoryQueueRepository>());
 
-    private static Queue NewQueue(ProviderTypeEnum provider, string user = "u")
+    private static QueueEntity NewQueue(ProviderTypeEnum provider, string user = "u")
         => new(null, provider, user, false, DateTime.UtcNow);
 
     [Fact]

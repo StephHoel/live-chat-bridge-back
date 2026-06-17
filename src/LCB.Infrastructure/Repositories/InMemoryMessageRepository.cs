@@ -7,26 +7,26 @@ using Microsoft.Extensions.Logging;
 namespace LCB.Infrastructure.Repositories;
 
 public class InMemoryMessageRepository(ILogger<InMemoryMessageRepository> Logger)
-    : InMemoryRepositoryBase<ChatMessage>(Logger), IMessageRepository
+    : InMemoryRepositoryBase<ChatMessageEntity>(Logger), IMessageRepository
 {
     #region Public Methods
 
-    public Task<bool> CreateAsync(IEnumerable<ChatMessage> messages)
+    public Task<bool> CreateAsync(IEnumerable<ChatMessageEntity> messages)
         => Write(Create(messages), nameof(CreateAsync));
 
-    public Task<ChatMessage?> GetByIdempotencyKeyAsync(string idempotencyKey)
+    public Task<ChatMessageEntity?> GetByIdempotencyKeyAsync(string idempotencyKey)
         => Read(GetByIdempotencyKey(idempotencyKey), nameof(GetByIdempotencyKeyAsync));
 
-    public Task<IEnumerable<ChatMessage>> GetAllAsync()
+    public Task<IEnumerable<ChatMessageEntity>> GetAllAsync()
         => Read(GetAll(), nameof(GetAllAsync));
 
-    public Task<IEnumerable<ChatMessage>> GetByProviderAsync(ProviderTypeEnum provider)
+    public Task<IEnumerable<ChatMessageEntity>> GetByProviderAsync(ProviderTypeEnum provider)
         => Read(GetByProvider(provider), nameof(GetByProviderAsync));
 
-    public Task<bool> UpdateAsync(IEnumerable<ChatMessage> messages)
+    public Task<bool> UpdateAsync(IEnumerable<ChatMessageEntity> messages)
         => Write(Update(messages), nameof(UpdateAsync));
 
-    public Task<bool> DeleteAsync(ChatMessage message)
+    public Task<bool> DeleteAsync(ChatMessageEntity message)
         => Write(Delete(message), nameof(DeleteAsync));
 
     public Task<bool> DeleteAllAsync()
@@ -36,19 +36,19 @@ public class InMemoryMessageRepository(ILogger<InMemoryMessageRepository> Logger
 
     #region Private Methods
 
-    private static Func<List<ChatMessage>, bool> Create(IEnumerable<ChatMessage> messages)
+    private static Func<List<ChatMessageEntity>, bool> Create(IEnumerable<ChatMessageEntity> messages)
         => list => { list.AddRange([.. messages]); return true; };
 
-    private static Func<IReadOnlyList<ChatMessage>, ChatMessage?> GetByIdempotencyKey(string idempotencyKey)
+    private static Func<IReadOnlyList<ChatMessageEntity>, ChatMessageEntity?> GetByIdempotencyKey(string idempotencyKey)
         => list => list.FirstOrDefault(m => m.IdempotencyKey == idempotencyKey);
 
-    private static Func<IReadOnlyList<ChatMessage>, IEnumerable<ChatMessage>> GetAll()
+    private static Func<IReadOnlyList<ChatMessageEntity>, IEnumerable<ChatMessageEntity>> GetAll()
         => list => list.ToList().AsReadOnly().AsEnumerable();
 
-    private static Func<IReadOnlyList<ChatMessage>, IEnumerable<ChatMessage>> GetByProvider(ProviderTypeEnum provider)
+    private static Func<IReadOnlyList<ChatMessageEntity>, IEnumerable<ChatMessageEntity>> GetByProvider(ProviderTypeEnum provider)
         => list => list.Where(m => m.Provider == provider).ToList().AsReadOnly().AsEnumerable();
 
-    private static Func<List<ChatMessage>, bool> Update(IEnumerable<ChatMessage> messages)
+    private static Func<List<ChatMessageEntity>, bool> Update(IEnumerable<ChatMessageEntity> messages)
         => list =>
             {
                 var l = messages.ToList();
@@ -57,10 +57,10 @@ public class InMemoryMessageRepository(ILogger<InMemoryMessageRepository> Logger
                 return true;
             };
 
-    private static Func<List<ChatMessage>, bool> Delete(ChatMessage message)
+    private static Func<List<ChatMessageEntity>, bool> Delete(ChatMessageEntity message)
         => list => list.RemoveAll(x => x.Id == message.Id) > 0;
 
-    private static Func<List<ChatMessage>, bool> DeleteAll()
+    private static Func<List<ChatMessageEntity>, bool> DeleteAll()
         => list => { list.Clear(); return true; };
 
     #endregion Private Methods

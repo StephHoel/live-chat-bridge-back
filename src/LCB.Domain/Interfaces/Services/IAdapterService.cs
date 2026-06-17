@@ -5,5 +5,5 @@ namespace LCB.Domain.Interfaces.Services;
 
 public interface IAdapterService
 {
-    Task<CommandDTO?> ParseAndDispatch(ChatMessage message);
+    Task<CommandDTO?> ParseAndDispatch(ChatMessageEntity message);
 }

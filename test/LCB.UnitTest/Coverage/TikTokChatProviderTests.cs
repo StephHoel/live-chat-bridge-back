@@ -18,7 +18,7 @@ public class TikTokChatProviderTests
     [Fact]
     public void PrivateHandlers_AreExercised_UsingMockClient()
     {
-        var channel = Channel.CreateUnbounded<LCB.Domain.Models.ChatMessage>();
+        var channel = Channel.CreateUnbounded<Domain.Models.ChatMessageModel>();
         var provider = new TikTokChatProvider(channel.Writer, new NullLogger<TikTokChatProvider>());
         var mockClient = TikTokClientMockFactory.CreateMockClient();
 
@@ -71,7 +71,7 @@ public class TikTokChatProviderTests
     [Fact]
     public async Task Connect_DoesNotThrow_WhenAlreadyCancelled()
     {
-        var channel = Channel.CreateUnbounded<LCB.Domain.Models.ChatMessage>();
+        var channel = Channel.CreateUnbounded<Domain.Models.ChatMessageModel>();
         var provider = new TikTokChatProvider(channel.Writer, new NullLogger<TikTokChatProvider>());
 
         using var cts = new CancellationTokenSource();
@@ -89,7 +89,7 @@ public class TikTokChatProviderTests
     [Fact]
     public async Task Connect_CanBeStopped_IfClientStarts()
     {
-        var channel = Channel.CreateUnbounded<LCB.Domain.Models.ChatMessage>();
+        var channel = Channel.CreateUnbounded<Domain.Models.ChatMessageModel>();
         var provider = new TikTokChatProvider(channel.Writer, new NullLogger<TikTokChatProvider>());
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));

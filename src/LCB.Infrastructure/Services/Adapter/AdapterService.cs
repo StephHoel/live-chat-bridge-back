@@ -25,7 +25,7 @@ public class AdapterService : IAdapterService
         return new(token, args, text);
     }
 
-    public async Task<CommandDTO?> ParseAndDispatch(ChatMessage message)
+    public async Task<CommandDTO?> ParseAndDispatch(ChatMessageEntity message)
     {
         var command = Parser(message.Text);
 

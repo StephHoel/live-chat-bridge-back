@@ -11,7 +11,7 @@ public class DomainEntitiesTests
     public void ChatMessage_ExposesDefaults_AndIdempotencyKey()
     {
         var timestamp = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
-        var message = new ChatMessage
+        var message = new ChatMessageEntity
         {
             Provider = ProviderTypeEnum.TIKTOK,
             Author = "alice",
@@ -29,7 +29,7 @@ public class DomainEntitiesTests
     {
         var before = DateTime.UtcNow;
         var id = Guid.NewGuid();
-        var queue = new Queue(id, ProviderTypeEnum.YOUTUBE, "bob", null, null);
+        var queue = new QueueEntity(id, ProviderTypeEnum.YOUTUBE, "bob", null, null);
 
         Assert.Equal(id, queue.Id);
         Assert.Equal(ProviderTypeEnum.YOUTUBE, queue.Provider);
@@ -41,7 +41,7 @@ public class DomainEntitiesTests
     [Fact]
     public void User_Create_PreservesValues()
     {
-        var user = User.Create("alice@example.com", "hash");
+        var user = UserEntity.Create("alice@example.com", "hash");
 
         Assert.NotEqual(Guid.Empty, user.Id);
         Assert.Equal("alice@example.com", user.Email);

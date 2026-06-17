@@ -13,7 +13,7 @@ public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenServi
 {
     private readonly byte[]? _keyBytes = configuration["JWT_KEY"].GetBytesFromJwtKey();
 
-    public string GenerateToken(User user)
+    public string GenerateToken(UserEntity user)
     {
         try
         {

@@ -14,12 +14,12 @@ public class ChatProcessorServiceTests
     [Fact]
     public async Task ProcessMessagesAsync_ReadsMessagesUntilChannelCompletes()
     {
-        var channel = Channel.CreateUnbounded<ChatMessage>();
+        var channel = Channel.CreateUnbounded<ChatMessageModel>();
         var service = new ChatProcessorService(channel.Reader, NullLogger<ChatProcessorService>.Instance);
         var writerTask = Task.Run(async () =>
         {
-            await channel.Writer.WriteAsync(new ChatMessage("user1", "hello", "TikTok", new DateTime(2026, 1, 1)));
-            await channel.Writer.WriteAsync(new ChatMessage("user2", "world", "YouTube", new DateTime(2026, 1, 2)));
+            await channel.Writer.WriteAsync(new ChatMessageModel("user1", "hello", "TikTok", new DateTime(2026, 1, 1)));
+            await channel.Writer.WriteAsync(new ChatMessageModel("user2", "world", "YouTube", new DateTime(2026, 1, 2)));
             channel.Writer.Complete();
         });
 
@@ -32,7 +32,7 @@ public class ChatProcessorServiceTests
     [Fact]
     public async Task ProcessMessagesAsync_Stops_WhenCancellationIsRequestedBeforeRead()
     {
-        var channel = Channel.CreateUnbounded<ChatMessage>();
+        var channel = Channel.CreateUnbounded<ChatMessageModel>();
         var service = new ChatProcessorService(channel.Reader, NullLogger<ChatProcessorService>.Instance);
 
         using var cts = new CancellationTokenSource();

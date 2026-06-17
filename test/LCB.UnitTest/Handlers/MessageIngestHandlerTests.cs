@@ -12,7 +12,7 @@ using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Objects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
-using QueueEntity = LCB.Domain.Entities.Queue;
+using QueueEntity = LCB.Domain.Entities.QueueEntity;
 
 namespace LCB.UnitTest.Handlers;
 
@@ -63,7 +63,7 @@ public class MessageIngestHandlerTests
     [Fact]
     public async Task Handle_ReturnsDuplicateError_WhenExistingMessageWasProcessed()
     {
-        var existing = new ChatMessage { Provider = ProviderTypeEnum.TIKTOK, Author = "alice", Text = "hello", Timestamp = DateTime.UtcNow, Processed = true };
+        var existing = new ChatMessageEntity { Provider = ProviderTypeEnum.TIKTOK, Author = "alice", Text = "hello", Timestamp = DateTime.UtcNow, Processed = true };
         var messageRepository = new FakeMessageRepository(existing);
         var queueRepository = new FakeQueueRepository();
         var adapterService = new FakeAdapterService(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-3"));
@@ -126,37 +126,37 @@ public class MessageIngestHandlerTests
         Assert.True((DateTime.UtcNow - message.Timestamp).TotalSeconds < 5);
     }
 
-    private sealed class FakeMessageRepository(ChatMessage? existing = null, bool createResult = true) : IMessageRepository
+    private sealed class FakeMessageRepository(ChatMessageEntity existing = null, bool createResult = true) : IMessageRepository
     {
         public int CreateCalls { get; private set; }
         public bool CreateResult { get; set; } = createResult;
 
-        public Task<ChatMessage?> GetByIdempotencyKeyAsync(string idempotencyKey)
+        public Task<ChatMessageEntity> GetByIdempotencyKeyAsync(string idempotencyKey)
             => Task.FromResult(existing);
 
-        public Task<bool> CreateAsync(IEnumerable<ChatMessage> messages)
+        public Task<bool> CreateAsync(IEnumerable<ChatMessageEntity> messages)
         {
             CreateCalls++;
             return Task.FromResult(CreateResult);
         }
 
-        public Task<IEnumerable<ChatMessage>> GetAllAsync()
-            => Task.FromResult<IEnumerable<ChatMessage>>([]);
+        public Task<IEnumerable<ChatMessageEntity>> GetAllAsync()
+            => Task.FromResult<IEnumerable<ChatMessageEntity>>([]);
 
-        public Task<IEnumerable<ChatMessage>> GetByProviderAsync(ProviderTypeEnum provider)
-            => Task.FromResult<IEnumerable<ChatMessage>>([]);
+        public Task<IEnumerable<ChatMessageEntity>> GetByProviderAsync(ProviderTypeEnum provider)
+            => Task.FromResult<IEnumerable<ChatMessageEntity>>([]);
 
-        public Task<bool> UpdateAsync(IEnumerable<ChatMessage> messages)
+        public Task<bool> UpdateAsync(IEnumerable<ChatMessageEntity> messages)
             => Task.FromResult(true);
 
-        public Task<bool> DeleteAsync(ChatMessage message)
+        public Task<bool> DeleteAsync(ChatMessageEntity message)
             => Task.FromResult(false);
 
         public Task<bool> DeleteAllAsync()
             => Task.FromResult(true);
     }
 
-    private sealed class FakeQueueRepository(QueueEntity? existing = null) : IQueueRepository
+    private sealed class FakeQueueRepository(QueueEntity existing = null) : IQueueRepository
     {
         public int UpdateCalls { get; private set; }
         public List<QueueEntity> UpdatedQueues { get; } = [];
@@ -164,7 +164,7 @@ public class MessageIngestHandlerTests
         public Task<IEnumerable<QueueEntity>> GetAllAsync()
             => Task.FromResult<IEnumerable<QueueEntity>>([]);
 
-        public Task<QueueEntity?> GetByUserAsync(string user)
+        public Task<QueueEntity> GetByUserAsync(string user)
             => Task.FromResult(existing);
 
         public Task<bool> UpdateAsync(IEnumerable<QueueEntity> queues)
@@ -184,11 +184,11 @@ public class MessageIngestHandlerTests
             => Task.FromResult(true);
     }
 
-    private sealed class FakeAdapterService(CommandDTO? result, bool throwOnParse = false) : IAdapterService
+    private sealed class FakeAdapterService(CommandDTO result, bool throwOnParse = false) : IAdapterService
     {
         public int Calls { get; private set; }
 
-        public Task<CommandDTO?> ParseAndDispatch(ChatMessage message)
+        public Task<CommandDTO> ParseAndDispatch(ChatMessageEntity message)
         {
             Calls++;
 
