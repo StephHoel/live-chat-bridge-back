@@ -26,9 +26,9 @@ Origem: [Issue #44](https://github.com/StephHoel/live-chat-bridge/issues/44)
 
 ## Dados e persistência
 
-- Atualizar cálculo de `IdempotencyKey` em `LCB.Domain.Entities.ChatMessage`.
+- Atualizar cálculo de `IdempotencyKey` em `LCB.Domain.Entities.ChatMessageEntity`.
 - Garantir consulta por chave no `IMessageRepository` e implementação concreta.
-- Não quebrar mensagens já armazenadas em memória na sessão atual.
+- Não quebrar mensagens já armazenadas no banco local atual.
 - Adicionar normalizador de payload para preencher IDs ausentes (`messageId` e `userId`) com fallback determinístico.
 
 ## Contratos de API

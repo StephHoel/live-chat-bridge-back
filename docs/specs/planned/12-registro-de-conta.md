@@ -6,7 +6,7 @@ Status: planejado
 ## Problema
 
 - O backend não possui fluxo de criação de conta para novos usuários.
-- Sem endpoint de registro, o sistema depende de usuários pré-carregados em memória.
+- Sem endpoint de registro, o sistema depende de seed/manual para inserir usuários na base persistente.
 - A ausência de cadastro bloqueia o ciclo completo de autenticação para uso real.
 
 ## Comportamento esperado
@@ -25,9 +25,9 @@ Status: planejado
 
 ## Dados e persistência
 
-- Entidade `User` deve ser criada com `Email` único e `PasswordHash`.
+- Entidade `UserEntity` deve ser criada com `Email` único e `PasswordHash`.
 - Repositório de usuários deve oferecer operação de criação com validação de duplicidade.
-- Compatível com repositório em memória no estado atual e com migração futura para persistência durável.
+- Compatível com a persistência durável atual (EF Core + SQLite) e preparada para PostgreSQL em fase futura.
 
 ## Contratos de API
 

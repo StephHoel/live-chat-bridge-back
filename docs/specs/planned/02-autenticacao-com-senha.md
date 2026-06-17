@@ -23,9 +23,9 @@ Status: planejado
 
 ## Dados e persistência
 
-- Usar `User.PasswordHash` como base para comparação.
+- Usar `UserEntity.PasswordHash` como base para comparação.
 - Ajustar `IUserRepository`/implementação para não injetar usuário fake durante leitura.
-- Preservar compatibilidade com armazenamento atual em memória até migração de persistência.
+- Preservar compatibilidade com persistência atual (EF Core + SQLite) e futura troca de provider para PostgreSQL.
 
 ## Contratos de API
 
