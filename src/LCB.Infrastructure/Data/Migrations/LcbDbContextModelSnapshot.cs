@@ -15,9 +15,9 @@ namespace LCB.Infrastructure.Data.Migrations
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.17");
 
-            modelBuilder.Entity("LCB.Domain.Entities.ChatMessage", b =>
+            modelBuilder.Entity("LCB.Domain.Entities.ChatMessageEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
@@ -26,6 +26,11 @@ namespace LCB.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("IdempotencyKey")
                         .IsRequired()
@@ -48,6 +53,11 @@ namespace LCB.Infrastructure.Data.Migrations
                     b.Property<DateTime>("Timestamp")
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
                     b.HasKey("Id");
 
                     b.HasIndex("IdempotencyKey")
@@ -58,10 +68,15 @@ namespace LCB.Infrastructure.Data.Migrations
                     b.ToTable("ChatMessages", (string)null);
                 });
 
-            modelBuilder.Entity("LCB.Domain.Entities.Queue", b =>
+            modelBuilder.Entity("LCB.Domain.Entities.QueueEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<DateTime>("JoinedAt")
                         .HasColumnType("TEXT");
@@ -73,6 +88,11 @@ namespace LCB.Infrastructure.Data.Migrations
 
                     b.Property<bool>("Selected")
                         .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("User")
                         .IsRequired()
@@ -87,10 +107,15 @@ namespace LCB.Infrastructure.Data.Migrations
                     b.ToTable("Queues", (string)null);
                 });
 
-            modelBuilder.Entity("LCB.Domain.Entities.User", b =>
+            modelBuilder.Entity("LCB.Domain.Entities.UserEntity", b =>
                 {
                     b.Property<Guid>("Id")
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -101,6 +126,11 @@ namespace LCB.Infrastructure.Data.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
                     b.HasKey("Id");
 

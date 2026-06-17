@@ -21,7 +21,9 @@ namespace LCB.Infrastructure.Data.Migrations
                     Author = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     Text = table.Column<string>(type: "TEXT", maxLength: 2048, nullable: false),
                     Timestamp = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    Processed = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Processed = table.Column<bool>(type: "INTEGER", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -36,7 +38,9 @@ namespace LCB.Infrastructure.Data.Migrations
                     Provider = table.Column<string>(type: "TEXT", maxLength: 32, nullable: false),
                     User = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     Selected = table.Column<bool>(type: "INTEGER", nullable: false),
-                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false)
+                    JoinedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {
@@ -49,7 +53,9 @@ namespace LCB.Infrastructure.Data.Migrations
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Email = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
-                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false)
+                    PasswordHash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP"),
+                    UpdatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "CURRENT_TIMESTAMP")
                 },
                 constraints: table =>
                 {

@@ -30,6 +30,14 @@ public class QueueConfiguration : IEntityTypeConfiguration<QueueEntity>
         builder.Property(x => x.JoinedAt)
             .IsRequired();
 
+        builder.Property(x => x.CreatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+        builder.Property(x => x.UpdatedAt)
+            .IsRequired()
+            .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
         builder.HasIndex(x => x.User)
             .IsUnique();
     }

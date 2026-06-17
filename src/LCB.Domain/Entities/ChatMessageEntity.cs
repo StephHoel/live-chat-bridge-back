@@ -13,6 +13,8 @@ public class ChatMessageEntity
     public string Text { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; } = DateTime.Now;
     public bool Processed { get; set; } = false;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public void EnsureIdempotencyKey()
     {
@@ -20,5 +22,10 @@ public class ChatMessageEntity
             return;
 
         IdempotencyKey = $"{Provider}:{Timestamp:yyyyMMddHHmmss}:{Id}";
+    }
+
+    public void TouchUpdatedAt()
+    {
+        UpdatedAt = DateTime.UtcNow;
     }
 }
