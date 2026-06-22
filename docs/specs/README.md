@@ -12,18 +12,22 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ## Status das mini-specs
 
-### Implementadas
+### ✅ Implementadas (ordem de implementação)
 
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [Persistência durável para repositórios](done/03-persistencia-duravel-repositorios.md)
 
-### Ativas/Em andamento
+### 🔄 Ativas/Em andamento
 
-### Planejadas (ordem de prioridade)
+_Nenhuma no momento._
 
+### 📋 Planejadas (ordem de prioridade)
+
+**Recomendação técnica:** implementar nessa ordem para solidificar a base (idempotência → autenticação → modelo unificado → processamento real).
+
+- [Idempotência de mensagens](planned/01-idempotencia-de-mensagens.md)
 - [Registro de conta](planned/12-registro-de-conta.md)
 - [Autenticação com validação de senha](planned/02-autenticacao-com-senha.md)
-- [Idempotência de mensagens](planned/01-idempotencia-de-mensagens.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](planned/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](planned/05-processamento-real-chat-worker.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
@@ -33,3 +37,5 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
 - [Segurança básica do ingest por token em header](planned/11-seguranca-basica-ingest-token-header.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
+
+**Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.

@@ -25,11 +25,13 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
 - Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
-- Persistência durável para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local.
+- **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
+- **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
 - Conversor JSON tolerante para `DateTime` nas entradas HTTP.
-- Logging customizado com `TemplateLoggerProvider` e middleware de correlação por request.
+- **Logging padronizado** com `TemplateLoggerProvider`, middleware de correlação por request e `OperationExecutor` (Spec 13 ✅).
+- Tratamento centralizado de erros com logs estruturados e sem exposição de dados sensíveis.
 
 ## 3. Funcionalidades Planejadas
 
@@ -39,13 +41,20 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 **Fallback enquanto não houver mini-spec formal:** se a pasta `docs/specs/planned/` não contiver um arquivo para a funcionalidade solicitada, a IA deve propor um rascunho de mini-spec ao usuário antes de escrever qualquer código, e aguardar confirmação.
 
-Próximas frentes identificadas a partir do estado atual do código:
+### Status Atual de Planejamento
 
-- corrigir idempotência de mensagens (ver comportamento esperado na seção 10);
-- consolidar o modelo de mensagem entre fluxo HTTP e fluxo do worker (ver seção 9);
-- implementar a lógica real de processamento em `ChatProcessorService`;
-- ampliar autenticação para validar senha (ver nota na seção 6);
-- criar mini-specs formais antes de qualquer mudança estrutural nessas áreas.
+- **Ativas:** Nenhuma (pasta `active/` vazia)
+- **Planejadas:** 13 specs em `docs/specs/planned/`
+- **Concluídas:** 2 specs em `docs/specs/done/` (03 - Persistência; 13 - Observabilidade)
+
+### Próximas Prioridades Sugeridas
+
+1. **Spec 01** - Corrigir idempotência de mensagens (aceita chaves únicas corretas)
+2. **Spec 02** - Autenticação com validação de senha
+3. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
+4. **Spec 05** - Processamento real em `ChatProcessorService`
+
+Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
 ## 4. Stack Real do Projeto
 
@@ -141,11 +150,16 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ## 10. Limitações e Riscos Conhecidos
 
+### Status de Specs Completadas
+
+- ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
+- ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
+
 ### Idempotência (defeito ativo)
 
 A implementação atual está incorreta: `IdempotencyKey` é definido como `{Provider}:{Timestamp}:{Id}`, onde `Id` é sempre um `Guid.NewGuid()` novo. Isso torna todas as mensagens únicas independentemente do conteúdo, o que quebra a garantia de não duplicar mensagens.
 
-**Comportamento esperado (a implementar via mini-spec):**
+**Comportamento esperado (a implementar via Spec 01 em planejamento):**
 
 - A chave de idempotência deve ser derivada de `Provider + Author + Timestamp`, sem incluir `Id`.
 - Se uma mensagem com a mesma chave já tiver sido processada (`Processed == true`), a API deve retornar `400 Bad Request` com `StatusResultEnum.Duplicate` — comportamento já parcialmente implementado no `MessageIngestHandler`, aguardando apenas a correção da chave.
@@ -153,18 +167,19 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 
 ### Autenticação (provisório)
 
-- Login não valida senha. Detalhes na seção 6. Aguarda mini-spec.
+- Login não valida senha. Detalhes na seção 6. Spec 02 planejada para implementar validação.
 
 ### Persistência
 
 - Persistência local agora usa SQLite em arquivo `.db` com schema gerenciado por migrations.
-- Estratégia de banco online (PostgreSQL) permanece planejada para spec futura.
+- Estratégia de banco online (PostgreSQL) permanece planejada para Spec 14.
 - Ainda não há mecanismo de backup, replay ou snapshot.
 
 ### Processamento
 
 - `ChatProcessorService` não implementa lógica de negócio real; apenas imprime no console.
-- `TikTokChatProvider` usa `Console.WriteLine` diretamente em handlers de presentes e likes, misturando responsabilidade de integração com saída de depuração.
+- Consolidação de modelo entre fluxo HTTP e worker planejada para Spec 04.
+- Lógica real de processamento prevista para Spec 05.
 
 ## 11. Testes e Cobertura Atual
 
