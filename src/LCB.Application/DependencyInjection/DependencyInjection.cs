@@ -7,9 +7,11 @@ using LCB.Infrastructure.Data;
 using LCB.Infrastructure.Repositories;
 using LCB.Infrastructure.Services.Adapter;
 using LCB.Infrastructure.Services.Auth;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace LCB.Application.DependencyInjection;
 
@@ -29,8 +31,20 @@ public static class DependencyInjection
         services.AddDbContext<LcbDbContext>((sp, options) =>
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
+            var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
             var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=lcb.db";
-            options.UseSqlite(connectionString);
+            var sqliteConnection = new SqliteConnectionStringBuilder(connectionString);
+
+            if (!Path.IsPathRooted(sqliteConnection.DataSource))
+            {
+                var srcRootPath = Directory.GetParent(hostEnvironment.ContentRootPath)?.FullName
+                                  ?? hostEnvironment.ContentRootPath;
+
+                sqliteConnection.DataSource = Path.GetFullPath(
+                    Path.Combine(srcRootPath, sqliteConnection.DataSource));
+            }
+
+            options.UseSqlite(sqliteConnection.ToString());
         });
 
         services.AddScoped<IUserRepository, UserRepository>();
