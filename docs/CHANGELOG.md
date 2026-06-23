@@ -1,5 +1,30 @@
 # CHANGELOG
 
+## [v0.4.0] - 2026-06-23
+
+### ✨ Funcionalidades
+
+- **Autenticação com validação de senha** (Spec 02) - Login seguro com validação de credenciais
+  - `IPasswordHasher` contrato para serviços de hashing de senha
+  - `PasswordHasher` implementado com PBKDF2-SHA256, 10.000 iterações e salt aleatório
+  - Constant-time comparison para prevenir timing attacks
+  - Resposta de erro unificada para não expor se email existe ou não
+  - Código HTTP mudou de `404 Not Found` para `401 Unauthorized`
+
+### 🧪 Testes
+
+- Testes de `LoginHandler` expandidos: cenários de senha correta, incorreta e usuário inexistente
+- Novos testes unitários em `PasswordHasherTests.cs`:
+  - Geração de diferentes hashes para mesma senha (salts aleatórios)
+  - Verificação correta de senha com hash correspondente
+  - Edge cases: empty/null password/hash
+  - Exceptions para entrada inválida
+
+### 🏗️ Mudanças Arquiteturais
+
+- Adição de `IPasswordHasher` à injeção de dependência em `DependencyInjection.cs`
+- `LoginHandler` agora injeta `IPasswordHasher` como terceiro parâmetro
+
 ## [v0.3.0] - 2026-06-23
 
 ### ✨ Funcionalidades
