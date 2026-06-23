@@ -6,12 +6,17 @@ public static class MessageIngestMapper
 {
     public static ChatMessageEntity ToChatMessage(this MessageIngestRequest request)
     {
+        var normalizedTimestamp = request.Timestamp ?? DateTime.UtcNow;
+        normalizedTimestamp = normalizedTimestamp.Kind == DateTimeKind.Utc
+            ? normalizedTimestamp
+            : normalizedTimestamp.ToUniversalTime();
+
         var message = new ChatMessageEntity
         {
             Provider = request.Provider,
-            Author = request.Author,
+            Author = request.Author.Trim(),
             Text = request.Text,
-            Timestamp = request.Timestamp ?? DateTime.UtcNow,
+            Timestamp = normalizedTimestamp,
         };
 
         message.EnsureIdempotencyKey();

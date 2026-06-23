@@ -32,6 +32,7 @@ public class MessageIngestMapperTests
         Assert.Equal(ProviderTypeEnum.TIKTOK, message.Provider);
         Assert.Equal("alice", message.Author);
         Assert.Equal("hello", message.Text);
-        Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
+        Assert.NotNull(message.Timestamp);
+        Assert.InRange(message.Timestamp.Value, before.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
     }
 }
