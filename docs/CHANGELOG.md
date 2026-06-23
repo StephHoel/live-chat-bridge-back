@@ -1,5 +1,26 @@
 # CHANGELOG
 
+## [v0.3.0] - 2026-06-23
+
+### ✨ Funcionalidades
+
+- **Idempotência de mensagens** (Spec 01) - Correção da chave de idempotência e fluxo de reprocessamento
+  - `IdempotencyKey` agora derivada de `Provider + Author + Timestamp` normalizado em UTC (sem `Guid`)
+  - Mensagem com mesma chave e `Processed == true` retorna `400 Bad Request` com `StatusResultEnum.Duplicate`
+  - Mensagem com mesma chave e `Processed == false` é reprocessada via `UpdateAsync` em vez de criar duplicata
+  - Normalização de `Author` (trim) e `Timestamp` (conversão para UTC) antes do cálculo da chave
+  - Campo `Timestamp` em `ChatMessageEntity` alterado para `DateTime?` para suportar payloads sem timestamp
+
+### 🧪 Testes
+
+- Novos testes unitários para semântica de `IdempotencyKey` em `ChatMessageEntityTests`
+- Testes de handler ampliados: cenário de reprocessamento (`Processed == false`) e normalização de Author/Timestamp
+- `FakeMessageRepository` em `MessageIngestHandlerTests` agora filtra por chave corretamente e rastreia `UpdateCalls`
+
+### 🐛 Correções
+
+- Chave de idempotência não incluía mais `Guid` por mensagem — todas as mensagens eram únicas mesmo sendo duplicatas
+
 ## [v0.2.0] - 2026-06-22
 
 ### ✨ Funcionalidades
