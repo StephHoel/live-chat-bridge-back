@@ -32,6 +32,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Conversor JSON tolerante para `DateTime` nas entradas HTTP.
 - **Logging padronizado** com `TemplateLoggerProvider`, middleware de correlação por request e `OperationExecutor` (Spec 13 ✅).
 - Tratamento centralizado de erros com logs estruturados e sem exposição de dados sensíveis.
+- **Idempotência de mensagens** (Spec 01 ✅): chave derivada de `Provider + Author + Timestamp` normalizado; reprocessamento de mensagens não processadas via `UpdateAsync`; duplicatas já processadas retornam `400 Duplicate`.
 
 ## 3. Funcionalidades Planejadas
 
@@ -43,13 +44,13 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 13 specs em `docs/specs/planned/`
+- **Ativas:** 1 spec em `docs/specs/active/` (Spec 01 - em andamento, implementação parcial feita)
+- **Planejadas:** 11 specs em `docs/specs/planned/`
 - **Concluídas:** 2 specs em `docs/specs/done/` (03 - Persistência; 13 - Observabilidade)
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 01** - Corrigir idempotência de mensagens (aceita chaves únicas corretas)
+1. **Spec 01** - Concluir e mover para `done/` após merge
 2. **Spec 02** - Autenticação com validação de senha
 3. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
 4. **Spec 05** - Processamento real em `ChatProcessorService`
@@ -155,15 +156,13 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
 
-### Idempotência (defeito ativo)
+### Idempotência (implementada — Spec 01 ✅)
 
-A implementação atual está incorreta: `IdempotencyKey` é definido como `{Provider}:{Timestamp}:{Id}`, onde `Id` é sempre um `Guid.NewGuid()` novo. Isso torna todas as mensagens únicas independentemente do conteúdo, o que quebra a garantia de não duplicar mensagens.
+`IdempotencyKey` é derivada de `Provider + Author + Timestamp` (UTC, formato ISO 8601). O campo `Timestamp` em `ChatMessageEntity` é `DateTime?`; quando ausente no payload, o mapper usa `DateTime.UtcNow`.
 
-**Comportamento esperado (a implementar via Spec 01 em planejamento):**
-
-- A chave de idempotência deve ser derivada de `Provider + Author + Timestamp`, sem incluir `Id`.
-- Se uma mensagem com a mesma chave já tiver sido processada (`Processed == true`), a API deve retornar `400 Bad Request` com `StatusResultEnum.Duplicate` — comportamento já parcialmente implementado no `MessageIngestHandler`, aguardando apenas a correção da chave.
-- Se a mensagem existir mas ainda não processada, deve ser tratada como nova tentativa e reprocessada normalmente.
+- Mensagem com mesma chave e `Processed == true`: retorna `400 Bad Request` com `StatusResultEnum.Duplicate`.
+- Mensagem com mesma chave e `Processed == false`: reprocessada com `UpdateAsync` (nova tentativa permitida).
+- `Author` é normalizado com trim antes do cálculo; `Timestamp` é convertido para UTC quando necessário.
 
 ### Autenticação (provisório)
 
@@ -186,6 +185,8 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
 - Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`) possuem testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
+- Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
+- Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
 
 ## 12. Convenções Observadas
 
@@ -198,7 +199,7 @@ A implementação atual está incorreta: `IdempotencyKey` é definido como `{Pro
 ## 13. Pendências de Documentação
 
 - A estrutura `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/` já existe no repositório.
-- Manter mini-spec `01-idempotencia-de-mensagens.md` atualizada antes de corrigir a chave de idempotência.
+- Mini-spec `01-idempotencia-de-mensagens.md` está em `active/`; mover para `done/` após merge da branch.
 - Manter mini-spec `02-autenticacao-com-senha.md` atualizada antes de implementar validação de senha.
 - Atualizar README quando o fluxo de autenticação ou de ingestão mudar de forma material.
 

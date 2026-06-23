@@ -1,7 +1,7 @@
 # Mini-spec: Idempotência de mensagens
 
 Número: 01
-Status: em andamento
+Status: em andamento (implementação concluída; aguardando merge)
 Origem: [Issue #44](https://github.com/StephHoel/live-chat-bridge/issues/44)
 
 ## Problema
@@ -59,7 +59,16 @@ Origem: [Issue #44](https://github.com/StephHoel/live-chat-bridge/issues/44)
 - Teste de handler para cenário de reprocessamento (`Processed == false`).
 - Teste unitário para normalização de `messageId`/`userId` com fallback.
 
+## Decisões tomadas durante a implementação
+
+- `Timestamp` em `ChatMessageEntity` foi alterado para `DateTime?` para suportar payloads sem timestamp explícito.
+- Normalização de `Author` (trim) e `Timestamp` (conversão para UTC) ocorre no mapper antes do cálculo da chave.
+- Reprocessamento usa `UpdateAsync` no repositório existente em vez de criar novo registro.
+- `messageId`/`userId` descartados do escopo desta spec; não há necessidade no contrato atual.
+- Chave usa formato ISO 8601 (`ToString("O")`) para máxima precisão e portabilidade.
+
 ## Fora de escopo
 
 - Mudança para persistência durável.
 - Alteração de contrato público da rota de ingestão.
+- Normalização de `messageId`/`userId` externos (descartada — não há esses campos no contrato atual).
