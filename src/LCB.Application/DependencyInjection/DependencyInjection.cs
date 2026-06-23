@@ -5,6 +5,7 @@ using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Infrastructure.Data;
 using LCB.Infrastructure.Repositories;
+using LCB.Infrastructure.Services;
 using LCB.Infrastructure.Services.Adapter;
 using LCB.Infrastructure.Services.Auth;
 using Microsoft.Data.Sqlite;
@@ -56,6 +57,8 @@ public static class DependencyInjection
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddScoped<IPasswordHasher, PasswordHasher>();
+
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAdapterService, AdapterService>();
 
