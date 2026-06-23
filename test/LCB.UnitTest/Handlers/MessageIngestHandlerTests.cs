@@ -144,7 +144,7 @@ public class MessageIngestHandlerTests
         Assert.Equal(ProviderTypeEnum.TWITCH, message.Provider);
         Assert.Equal("user", message.Author);
         Assert.Equal("text", message.Text);
-        Assert.True((DateTime.UtcNow - message.Timestamp)?.TotalSeconds < 5);
+        Assert.True((DateTime.UtcNow - message.Timestamp).TotalSeconds < 5);
     }
 
     [Fact]
@@ -156,7 +156,7 @@ public class MessageIngestHandlerTests
         var message = request.ToChatMessage();
 
         Assert.Equal("user", message.Author);
-        Assert.Equal(DateTimeKind.Utc, message.Timestamp?.Kind);
+        Assert.Equal(DateTimeKind.Utc, message.Timestamp.Kind);
     }
 
     private sealed class FakeMessageRepository(ChatMessageEntity existing = null, bool createResult = true) : IMessageRepository
