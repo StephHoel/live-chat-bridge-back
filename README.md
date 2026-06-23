@@ -59,10 +59,6 @@ docs/
 
 - `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos
 
-### Status
-
-- `GET /health` - Health check
-
 ## 🏗️ Arquitetura
 
 - **Padrão:** Arquitetura em camadas (API → Application → Domain ← Infrastructure)
