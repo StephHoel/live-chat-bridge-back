@@ -1,7 +1,7 @@
 # Mini-spec: Idempotência de mensagens
 
 Número: 01
-Status: em andamento (implementação concluída; aguardando merge)
+Status: concluído
 Origem: [Issue #44](https://github.com/StephHoel/live-chat-bridge/issues/44)
 
 ## Problema
