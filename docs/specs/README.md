@@ -16,10 +16,11 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [Persistência durável para repositórios](done/03-persistencia-duravel-repositorios.md)
+- [Idempotência de mensagens](done/01-idempotencia-de-mensagens.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Idempotência de mensagens](active/01-idempotencia-de-mensagens.md)
+_Nenhuma no momento._
 
 ### 📋 Planejadas (ordem de prioridade)
 

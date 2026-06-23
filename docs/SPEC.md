@@ -44,16 +44,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Ativas:** 1 spec em `docs/specs/active/` (Spec 01 - em andamento, implementação parcial feita)
+- **Ativas:** Nenhuma (pasta `active/` vazia)
 - **Planejadas:** 11 specs em `docs/specs/planned/`
-- **Concluídas:** 2 specs em `docs/specs/done/` (03 - Persistência; 13 - Observabilidade)
+- **Concluídas:** 3 specs em `docs/specs/done/` (01 - Idempotência; 03 - Persistência; 13 - Observabilidade)
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 01** - Concluir e mover para `done/` após merge
-2. **Spec 02** - Autenticação com validação de senha
-3. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
-4. **Spec 05** - Processamento real em `ChatProcessorService`
+1. **Spec 02** - Autenticação com validação de senha
+2. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
+3. **Spec 05** - Processamento real em `ChatProcessorService`
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -199,7 +198,6 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ## 13. Pendências de Documentação
 
 - A estrutura `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/` já existe no repositório.
-- Mini-spec `01-idempotencia-de-mensagens.md` está em `active/`; mover para `done/` após merge da branch.
 - Manter mini-spec `02-autenticacao-com-senha.md` atualizada antes de implementar validação de senha.
 - Atualizar README quando o fluxo de autenticação ou de ingestão mudar de forma material.
 
