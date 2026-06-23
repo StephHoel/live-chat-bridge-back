@@ -19,13 +19,12 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### 🔄 Ativas/Em andamento
 
-_Nenhuma no momento._
+- [Idempotência de mensagens](active/01-idempotencia-de-mensagens.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** implementar nessa ordem para solidificar a base (idempotência → autenticação → modelo unificado → processamento real).
 
-- [Idempotência de mensagens](planned/01-idempotencia-de-mensagens.md)
 - [Registro de conta](planned/12-registro-de-conta.md)
 - [Autenticação com validação de senha](planned/02-autenticacao-com-senha.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](planned/04-consolidacao-modelo-de-mensagem.md)

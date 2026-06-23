@@ -28,6 +28,17 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
                                                       new(StatusResultEnum.Duplicate, existing, null),
                                                       HttpStatusCode.BadRequest);
 
+        var messageToPersist = existing ?? message;
+
+        if (existing is not null)
+        {
+            messageToPersist.Provider = message.Provider;
+            messageToPersist.Author = message.Author;
+            messageToPersist.Text = message.Text;
+            messageToPersist.Timestamp = message.Timestamp;
+            messageToPersist.IdempotencyKey = message.IdempotencyKey;
+        }
+
         var shouldJoinQueue = message.ShouldJoinQueue();
 
         if (shouldJoinQueue)
@@ -45,12 +56,14 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
 
         var commandResult = await adapterService.ParseAndDispatch(message);
 
-        message.Processed = true;
+        messageToPersist.Processed = true;
 
-        var isMessageSaved = await messageRepository.CreateAsync([message]);
+        var isMessageSaved = existing is null
+            ? await messageRepository.CreateAsync([messageToPersist])
+            : await messageRepository.UpdateAsync([messageToPersist]);
 
         var status = isMessageSaved ? StatusResultEnum.Processed : StatusResultEnum.Error;
 
-        return Result<MessageIngestResponse>.Ok(new(status, message, commandResult));
+        return Result<MessageIngestResponse>.Ok(new(status, messageToPersist, commandResult));
     }
 }
