@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.3.0 (Specs 01, 03, 13 concluídas)
+> **Versão do Projeto:** v0.4.0
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -34,6 +34,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Logging padronizado** com `TemplateLoggerProvider`, middleware de correlação por request e `OperationExecutor` (Spec 13 ✅).
 - Tratamento centralizado de erros com logs estruturados e sem exposição de dados sensíveis.
 - **Idempotência de mensagens** (Spec 01 ✅): chave derivada de `Provider + Author + Timestamp` normalizado; reprocessamento de mensagens não processadas via `UpdateAsync`; duplicatas já processadas retornam `400 Duplicate`.
+- **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
 
 ## 3. Funcionalidades Planejadas
 
@@ -46,14 +47,14 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 11 specs em `docs/specs/planned/`
-- **Concluídas:** 3 specs em `docs/specs/done/` (01 - Idempotência; 03 - Persistência; 13 - Observabilidade)
+- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Concluídas:** 4 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 02** - Autenticação com validação de senha
-2. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
-3. **Spec 05** - Processamento real em `ChatProcessorService`
+1. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
+2. **Spec 05** - Processamento real em `ChatProcessorService`
+3. **Spec 06** - Endpoint auth recover
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -84,14 +85,18 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 
 ### Login
 
-> **Estado atual: provisório.** Este fluxo deve ser substituído por uma implementação com validação real de senha. Uma mini-spec deverá criada antes de qualquer mudança nessa área.
-
-1. `AuthEndpoints` recebe `POST /auth/login`.
+1. `AuthEndpoints` recebe `POST /auth/login` com `email` e `password`.
 2. `LoginHandler` busca usuário por e-mail em `IUserRepository`.
-3. Se encontrado (independentemente da senha fornecida), `JwtTokenService` gera token com `NameIdentifier` e `Email`.
-4. A resposta é convertida por `ResultExtensions.ToMinimalResult()`.
+3. Se não encontrado ou senha inválida, retorna `401 Unauthorized` com mensagem genérica `"Invalid email or password"` (evita enumeration).
+4. Se encontrado e senha válida, `JwtTokenService` gera token com `NameIdentifier` e `Email`.
+5. Token é retornado em resposta `200 OK`.
+6. A resposta é convertida por `ResultExtensions.ToMinimalResult()`.
 
-**Comportamento esperado (não implementado):** a autenticação deve comparar o hash da senha fornecida com o `PasswordHash` armazenado na entidade `User` antes de emitir o token.
+**Implementação de segurança:**
+
+- Validação de senha via `IPasswordHasher.Verify()` com constant-time comparison
+- PBKDF2-SHA256 com 10.000 iterações, 128-bit salt aleatório, 256-bit hash
+- Mensagens de erro genéricas para não expor se email existe ou não
 
 ### Ingestão HTTP de Mensagens
 
@@ -145,7 +150,8 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 - `LCB.Domain.Entities.ChatMessageEntity`: entidade de mensagem; usada em persistência e lógica de negócio no fluxo HTTP.
 - `LCB.Domain.Entities.QueueEntity`: entrada de usuário na fila; identidade por `Id` (Guid), indexado por `User`.
-- `LCB.Domain.Entities.UserEntity`: usuário autenticável; `Email` como identificador único, `PasswordHash` para validação futura de senha.
+- `LCB.Domain.Entities.UserEntity`: usuário autenticável; `Email` como identificador único, `PasswordHash` para validação de senha (armazenado como PBKDF2 hash).
+- `LCB.Domain.Interfaces.Services.IPasswordHasher`: contrato para serviços de hashing seguro de senha com métodos `Hash(string)` e `Verify(string, string)`.
 - `LCB.Domain.Objects.Result<T>`: envelope padrão para retorno de handlers; sempre use `Result<T>.Ok()` ou `Result<T>.Fail()` — nunca lance exceção para erros de negócio esperados.
 - `LCB.Domain.DTO.CommandDTO` / `ParsedCommandDTO`: transporte de resultado de comando e de comando parseado, respectivamente.
 

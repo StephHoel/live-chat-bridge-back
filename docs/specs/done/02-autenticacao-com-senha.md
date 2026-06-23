@@ -1,7 +1,7 @@
 # Mini-spec: Autenticação com validação de senha
 
 Número: 02
-Status: planejado
+Status: concluído
 
 ## Problema
 
@@ -58,3 +58,26 @@ Status: planejado
 - Cadastro de usuário.
 - Refresh token.
 - MFA e provedores externos de identidade.
+
+---
+
+## Decisões tomadas durante a implementação
+
+- Criado `IPasswordHasher` em `LCB.Domain.Interfaces.Services` como contrato.
+- Implementação concreta `PasswordHasher` em `LCB.Infrastructure.Services` usando PBKDF2 com SHA256.
+  - **Algoritmo:** PBKDF2 com 10.000 iterações e SHA256
+  - **Salt:** 128 bits (16 bytes) gerado aleatoriamente
+  - **Hash size:** 256 bits (32 bytes)
+  - **Comparação:** Constant-time comparison para prevenir timing attacks
+- Resposta de erro unificada: `"Invalid email or password"` em ambos os casos (usuário não encontrado ou senha incorreta) para evitar enumeration attacks.
+- Código HTTP mudou de `404 Not Found` para `401 Unauthorized`.
+- `LoginHandler` agora recebe `IPasswordHasher` como dependência injetada.
+- Testes expandidos com cenários específicos de validação de senha:
+  - `Handle_ReturnsToken_WhenCredentialsAreValid`
+  - `Handle_ReturnsUnauthorized_WhenPasswordIsInvalid`
+  - `Handle_ReturnsUnauthorized_WhenUserDoesNotExist`
+- Novos testes unitários para `PasswordHasher` em `PasswordHasherTests.cs` com cobertura de:
+  - Hash production e diferentes hashes para mesma senha (salts aleatórios)
+  - Verify com senha correta e incorreta
+  - Edge cases: empty/null password e hash
+  - Exceptions para entrada inválida
