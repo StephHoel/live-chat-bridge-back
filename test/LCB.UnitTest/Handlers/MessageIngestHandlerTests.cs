@@ -8,21 +8,57 @@ using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
-using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Xunit;
 
 namespace LCB.UnitTest.Handlers;
 
 public class MessageIngestHandlerTests
 {
+    private readonly MessageIngestHandler handler;
+    private readonly Mock<IMessageRepository> messageRepository;
+    private readonly Mock<IQueueRepository> queueRepository;
+    private readonly Mock<IAdapterService> adapterService;
+    private readonly Mock<ILogger<MessageIngestHandler>> logger;
+
+    public MessageIngestHandlerTests()
+    {
+        messageRepository = new Mock<IMessageRepository>();
+        queueRepository = new Mock<IQueueRepository>();
+        adapterService = new Mock<IAdapterService>();
+        logger = new Mock<ILogger<MessageIngestHandler>>();
+
+        messageRepository
+            .Setup(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()))
+            .ReturnsAsync((ChatMessageEntity)null);
+        messageRepository
+            .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .ReturnsAsync(true);
+        messageRepository
+            .Setup(r => r.UpdateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .ReturnsAsync(true);
+        queueRepository
+            .Setup(r => r.GetByUserAsync(It.IsAny<string>()))
+            .ReturnsAsync((QueueEntity)null);
+        queueRepository
+            .Setup(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()))
+            .ReturnsAsync(true);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-default"));
+
+        handler = new MessageIngestHandler(messageRepository.Object, queueRepository.Object, adapterService.Object, logger.Object);
+    }
+
     [Fact]
     public async Task Handle_ReturnsProcessedResult_WhenMessageIsNewAndDoesNotJoinQueue()
     {
-        var messageRepository = new FakeMessageRepository();
-        var queueRepository = new FakeQueueRepository();
         var commandResult = new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-1");
-        var adapterService = new FakeAdapterService(commandResult);
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(commandResult);
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)));
 
@@ -30,9 +66,9 @@ public class MessageIngestHandlerTests
         Assert.Equal(StatusResultEnum.Processed, result.Data!.Status);
         Assert.True(result.Data.Message!.Processed);
         Assert.Same(commandResult, result.Data.CommandResult);
-        Assert.Equal(1, messageRepository.CreateCalls);
-        Assert.Equal(1, adapterService.Calls);
-        Assert.Equal(0, queueRepository.UpdateCalls);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
+        adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Once);
+        queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Never);
     }
 
     [Fact]
@@ -40,16 +76,24 @@ public class MessageIngestHandlerTests
     {
         var joinedAt = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc);
         var existingQueue = new QueueEntity(Guid.Parse("11111111-1111-1111-1111-111111111111"), ProviderTypeEnum.YOUTUBE, "alice", true, joinedAt);
-        var messageRepository = new FakeMessageRepository();
-        var queueRepository = new FakeQueueRepository(existingQueue);
-        var adapterService = new FakeAdapterService(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-2"));
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+        List<QueueEntity> updatedQueues = [];
+
+        queueRepository
+            .Setup(r => r.GetByUserAsync(It.IsAny<string>()))
+            .ReturnsAsync(existingQueue);
+        queueRepository
+            .Setup(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()))
+            .Callback<IEnumerable<QueueEntity>>(queues => updatedQueues.AddRange(queues))
+            .ReturnsAsync(true);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-2"));
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTime.UtcNow));
 
         Assert.True(result.Success);
-        Assert.Equal(1, queueRepository.UpdateCalls);
-        var updated = Assert.Single(queueRepository.UpdatedQueues);
+        queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Once);
+        var updated = Assert.Single(updatedQueues);
         Assert.Equal(existingQueue.Id, updated.Id);
         Assert.Equal(existingQueue.Provider, updated.Provider);
         Assert.Equal(existingQueue.User, updated.User);
@@ -63,10 +107,13 @@ public class MessageIngestHandlerTests
         var timestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         var existing = new ChatMessageEntity { Provider = ProviderTypeEnum.TIKTOK, Author = "alice", Text = "hello", Timestamp = timestamp, Processed = true };
         existing.EnsureIdempotencyKey();
-        var messageRepository = new FakeMessageRepository(existing);
-        var queueRepository = new FakeQueueRepository();
-        var adapterService = new FakeAdapterService(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-3"));
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+
+        messageRepository
+            .Setup(r => r.GetByIdempotencyKeyAsync(existing.IdempotencyKey))
+            .ReturnsAsync(existing);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-3"));
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", timestamp));
 
@@ -75,9 +122,9 @@ public class MessageIngestHandlerTests
         Assert.Equal(HttpStatusCode.BadRequest, result.ErrorType);
         Assert.Equal(StatusResultEnum.Duplicate, result.Data!.Status);
         Assert.Same(existing, result.Data.Message);
-        Assert.Equal(0, adapterService.Calls);
-        Assert.Equal(0, queueRepository.UpdateCalls);
-        Assert.Equal(0, messageRepository.CreateCalls);
+        adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
+        queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Never);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
     }
 
     [Fact]
@@ -87,10 +134,12 @@ public class MessageIngestHandlerTests
         var existing = new ChatMessageEntity { Provider = ProviderTypeEnum.TIKTOK, Author = "alice", Text = "old", Timestamp = timestamp, Processed = false };
         existing.EnsureIdempotencyKey();
 
-        var messageRepository = new FakeMessageRepository(existing);
-        var queueRepository = new FakeQueueRepository();
-        var adapterService = new FakeAdapterService(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-retry"));
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+        messageRepository
+            .Setup(r => r.GetByIdempotencyKeyAsync(existing.IdempotencyKey))
+            .ReturnsAsync(existing);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-retry"));
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "new text", timestamp));
 
@@ -98,40 +147,41 @@ public class MessageIngestHandlerTests
         Assert.Equal(StatusResultEnum.Processed, result.Data!.Status);
         Assert.True(result.Data.Message!.Processed);
         Assert.Equal("new text", result.Data.Message.Text);
-        Assert.Equal(0, messageRepository.CreateCalls);
-        Assert.Equal(1, messageRepository.UpdateCalls);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
+        messageRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ReturnsProcessedStatusError_WhenSaveFails()
     {
-        var messageRepository = new FakeMessageRepository { CreateResult = false };
-        var queueRepository = new FakeQueueRepository();
-        var adapterService = new FakeAdapterService(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-4"));
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-4"));
+        messageRepository
+            .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .ReturnsAsync(false);
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow));
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Error, result.Data!.Status);
-        Assert.Equal(1, messageRepository.CreateCalls);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
     }
 
     [Fact]
     public async Task Handle_ReturnsInternalServerError_WhenAdapterThrows()
     {
-        var messageRepository = new FakeMessageRepository();
-        var queueRepository = new FakeQueueRepository();
-        var adapterService = new FakeAdapterService(null, throwOnParse: true);
-        var handler = new MessageIngestHandler(messageRepository, queueRepository, adapterService, NullLogger<MessageIngestHandler>.Instance);
+        adapterService
+            .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
+            .ThrowsAsync(new InvalidOperationException("boom"));
 
         var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow));
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
         Assert.Equal(HttpStatusCode.InternalServerError, result.ErrorType);
-        Assert.Equal(1, adapterService.Calls);
-        Assert.Equal(0, messageRepository.CreateCalls);
+        adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Once);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
     }
 
     [Fact]
@@ -157,87 +207,5 @@ public class MessageIngestHandlerTests
 
         Assert.Equal("user", message.Author);
         Assert.Equal(DateTimeKind.Utc, message.Timestamp.Kind);
-    }
-
-    private sealed class FakeMessageRepository(ChatMessageEntity existing = null, bool createResult = true) : IMessageRepository
-    {
-        public int CreateCalls { get; private set; }
-        public int UpdateCalls { get; private set; }
-        public bool CreateResult { get; set; } = createResult;
-
-        public Task<ChatMessageEntity> GetByIdempotencyKeyAsync(string idempotencyKey)
-        {
-            if (existing is null)
-                return Task.FromResult<ChatMessageEntity>(null);
-
-            return Task.FromResult(existing.IdempotencyKey == idempotencyKey ? existing : null);
-        }
-
-        public Task<bool> CreateAsync(IEnumerable<ChatMessageEntity> messages)
-        {
-            CreateCalls++;
-            return Task.FromResult(CreateResult);
-        }
-
-        public Task<IEnumerable<ChatMessageEntity>> GetAllAsync()
-            => Task.FromResult<IEnumerable<ChatMessageEntity>>([]);
-
-        public Task<IEnumerable<ChatMessageEntity>> GetByProviderAsync(ProviderTypeEnum provider)
-            => Task.FromResult<IEnumerable<ChatMessageEntity>>([]);
-
-        public Task<bool> UpdateAsync(IEnumerable<ChatMessageEntity> messages)
-        {
-            UpdateCalls++;
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> DeleteAsync(ChatMessageEntity message)
-            => Task.FromResult(false);
-
-        public Task<bool> DeleteAllAsync()
-            => Task.FromResult(true);
-    }
-
-    private sealed class FakeQueueRepository(QueueEntity existing = null) : IQueueRepository
-    {
-        public int UpdateCalls { get; private set; }
-        public List<QueueEntity> UpdatedQueues { get; } = [];
-
-        public Task<IEnumerable<QueueEntity>> GetAllAsync()
-            => Task.FromResult<IEnumerable<QueueEntity>>([]);
-
-        public Task<QueueEntity> GetByUserAsync(string user)
-            => Task.FromResult(existing);
-
-        public Task<bool> UpdateAsync(IEnumerable<QueueEntity> queues)
-        {
-            UpdateCalls++;
-            UpdatedQueues.AddRange(queues);
-            return Task.FromResult(true);
-        }
-
-        public Task<bool> UserExistsAsync(string user)
-            => Task.FromResult(false);
-
-        public Task<bool> DeleteAsync(QueueEntity queue)
-            => Task.FromResult(false);
-
-        public Task<bool> DeleteAllAsync()
-            => Task.FromResult(true);
-    }
-
-    private sealed class FakeAdapterService(CommandDTO result, bool throwOnParse = false) : IAdapterService
-    {
-        public int Calls { get; private set; }
-
-        public Task<CommandDTO> ParseAndDispatch(ChatMessageEntity message)
-        {
-            Calls++;
-
-            if (throwOnParse)
-                throw new InvalidOperationException("boom");
-
-            return Task.FromResult(result);
-        }
     }
 }
