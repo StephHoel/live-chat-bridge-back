@@ -24,6 +24,7 @@
 
 - Adição de `IPasswordHasher` à injeção de dependência em `DependencyInjection.cs`
 - `LoginHandler` agora injeta `IPasswordHasher` como terceiro parâmetro
+- Testes de handlers (`LoginHandlerTests`, `MessageIngestHandlerTests`) migrados de fakes manuais para `Moq` com `It.IsAny` onde aplicável
 
 ## [v0.3.0] - 2026-06-23
 
@@ -40,7 +41,6 @@
 
 - Novos testes unitários para semântica de `IdempotencyKey` em `ChatMessageEntityTests`
 - Testes de handler ampliados: cenário de reprocessamento (`Processed == false`) e normalização de Author/Timestamp
-- `FakeMessageRepository` em `MessageIngestHandlerTests` agora filtra por chave corretamente e rastreia `UpdateCalls`
 
 ### 🐛 Correções
 
