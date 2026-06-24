@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using LCB.Infrastructure.Repositories;
 using LCB.UnitTest.Factories;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -13,7 +14,7 @@ namespace LCB.UnitTest.Repositories;
 public class QueueRepositoryTests
 {
     private static QueueEntity NewQueue(ProviderTypeEnum provider, string user)
-        => new(null, provider, user, false, DateTime.UtcNow);
+        => new(null, provider, user, false, DateTimeExtensions.NowUtcMinus3());
 
     [Fact]
     public async Task Update_Get_Delete_Flow_Works()

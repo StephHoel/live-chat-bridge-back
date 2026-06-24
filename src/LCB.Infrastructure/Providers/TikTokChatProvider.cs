@@ -1,8 +1,7 @@
+using System.Threading.Channels;
+using LCB.Domain.Extensions;
 using LCB.Domain.Models;
 using Microsoft.Extensions.Logging;
-using System.Globalization;
-using System.Text.Json;
-using System.Threading.Channels;
 using TikTokLiveSharp.Client;
 using TikTokLiveSharp.Events;
 using TikTokLiveSharp.Events.Objects;
@@ -53,14 +52,11 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
             args.Sender.UniqueId,
             args.Message,
             "TikTok",
-            DateTime(args.TimeStamp)
+            args.TimeStamp.ToDateTime()
         );
 
         Writer.TryWrite(message);
     }
-
-    private DateTime DateTime(long timeStamp)
-        => DateTimeOffset.FromUnixTimeMilliseconds(timeStamp).LocalDateTime;
 
     private void OnGift(TikTokLiveClient _, TikTokGift args)
     {

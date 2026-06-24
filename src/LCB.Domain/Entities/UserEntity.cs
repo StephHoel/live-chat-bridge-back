@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using LCB.Domain.Extensions;
 
 namespace LCB.Domain.Entities;
 
@@ -8,8 +9,8 @@ public class UserEntity
     public Guid Id { get; private set; } = Guid.NewGuid();
     public string Email { get; private set; } = string.Empty;
     public string PasswordHash { get; private set; } = string.Empty;
-    public DateTime CreatedAt { get; private set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; private set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; private set; } = DateTimeExtensions.NowUtcMinus3();
+    public DateTime UpdatedAt { get; private set; } = DateTimeExtensions.NowUtcMinus3();
 
     public static UserEntity Create(string email, string passwordHash)
     {
@@ -17,13 +18,13 @@ public class UserEntity
         {
             Email = email,
             PasswordHash = passwordHash,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            CreatedAt = DateTimeExtensions.NowUtcMinus3(),
+            UpdatedAt = DateTimeExtensions.NowUtcMinus3()
         };
     }
 
     public void TouchUpdatedAt()
     {
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTimeExtensions.NowUtcMinus3();
     }
 }

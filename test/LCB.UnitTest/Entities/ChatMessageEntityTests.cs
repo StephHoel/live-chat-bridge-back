@@ -1,6 +1,7 @@
 using System;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using Xunit;
 
 namespace LCB.UnitTest.Entities;
@@ -50,5 +51,23 @@ public class ChatMessageEntityTests
         message.EnsureIdempotencyKey();
 
         Assert.Equal("custom-key", message.IdempotencyKey);
+    }
+
+    [Fact]
+    public void EnsureIdempotencyKey_NormalizesTimestampToUtcMinus3()
+    {
+        var message = new ChatMessageEntity
+        {
+            Provider = ProviderTypeEnum.TIKTOK,
+            Author = "alice",
+            Text = "hello",
+            Timestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+        };
+
+        message.EnsureIdempotencyKey();
+
+        Assert.Equal(new DateTime(2026, 1, 1, 9, 0, 0), message.Timestamp);
+        Assert.Contains("-03:00", message.IdempotencyKey, StringComparison.Ordinal);
+        Assert.Equal(message.Timestamp, message.Timestamp.NormalizeToUtcMinus3());
     }
 }

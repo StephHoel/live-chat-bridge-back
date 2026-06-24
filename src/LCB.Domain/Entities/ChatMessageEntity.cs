@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 
 namespace LCB.Domain.Entities;
 
@@ -12,7 +13,7 @@ public class ChatMessageEntity
     public ProviderTypeEnum Provider { get; set; }
     public string Author { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    public DateTime Timestamp { get; set; } = DateTimeExtensions.NowUtcMinus3();
     public bool Processed { get; set; } = false;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
@@ -23,8 +24,8 @@ public class ChatMessageEntity
             return;
 
         Author = Author.Trim();
-        Timestamp = Timestamp.Kind == DateTimeKind.Utc ? Timestamp : Timestamp.ToUniversalTime();
-        IdempotencyKey = $"{Provider}:{Author}:{Timestamp.ToString("O", CultureInfo.InvariantCulture)}";
+        Timestamp = Timestamp.NormalizeToUtcMinus3();
+        IdempotencyKey = $"{Provider}:{Author}:{Timestamp.AsUtcMinus3Offset().ToString("O", CultureInfo.InvariantCulture)}";
     }
 
     public void TouchUpdatedAt()

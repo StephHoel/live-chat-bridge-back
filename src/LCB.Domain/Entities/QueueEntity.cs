@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 
 namespace LCB.Domain.Entities;
 
@@ -16,19 +17,19 @@ public class QueueEntity
         Provider = provider;
         User = user;
         Selected = selected ?? false;
-        JoinedAt = joinedAt ?? DateTime.UtcNow;
+        JoinedAt = (joinedAt ?? DateTimeExtensions.NowUtcMinus3()).NormalizeToUtcMinus3();
     }
 
     public Guid Id { get; set; } = Guid.NewGuid();
     public ProviderTypeEnum Provider { get; set; }
     public string User { get; set; } = string.Empty;
     public bool Selected { get; set; }
-    public DateTime JoinedAt { get; set; } = DateTime.UtcNow;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime JoinedAt { get; set; } = DateTimeExtensions.NowUtcMinus3();
+    public DateTime CreatedAt { get; set; } = DateTimeExtensions.NowUtcMinus3();
+    public DateTime UpdatedAt { get; set; } = DateTimeExtensions.NowUtcMinus3();
 
     public void TouchUpdatedAt()
     {
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTimeExtensions.NowUtcMinus3();
     }
 }
