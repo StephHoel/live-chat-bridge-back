@@ -7,11 +7,10 @@ public static class ResultExtensions
 {
     public static IResult ToMinimalResult<T>(this Result<T> result)
     {
-        if (result.Success)
-            return Results.Ok(result.Data);
-
-        return result.ErrorType switch
+        return result.StatusCode switch
         {
+            HttpStatusCode.OK => Results.Ok(result.Data),
+            HttpStatusCode.Created => Results.Created(null as string, result.Data),
             HttpStatusCode.BadRequest => Results.BadRequest(result),
             HttpStatusCode.NotFound => Results.NotFound(result),
             HttpStatusCode.Unauthorized => Results.Unauthorized(),

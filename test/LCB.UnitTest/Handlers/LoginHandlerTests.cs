@@ -66,7 +66,7 @@ public class LoginHandlerTests
         var result = await handler.Handle(new LoginRequest("alice@example.com", "wrong_password"));
 
         Assert.False(result.Success);
-        Assert.Equal(HttpStatusCode.Unauthorized, result.ErrorType);
+        Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
         Assert.Equal("Invalid email or password", result.Error);
     }
 
@@ -80,7 +80,7 @@ public class LoginHandlerTests
         var result = await handler.Handle(new LoginRequest("missing@example.com", "any_password"));
 
         Assert.False(result.Success);
-        Assert.Equal(HttpStatusCode.Unauthorized, result.ErrorType);
+        Assert.Equal(HttpStatusCode.Unauthorized, result.StatusCode);
         Assert.Equal("Invalid email or password", result.Error);
     }
 
@@ -94,7 +94,7 @@ public class LoginHandlerTests
         var result = await handler.Handle(new LoginRequest("boom@example.com", "pwd"));
 
         Assert.False(result.Success);
-        Assert.Equal(HttpStatusCode.InternalServerError, result.ErrorType);
+        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
         Assert.Equal("Erro inesperado", result.Error);
     }
 
@@ -116,7 +116,7 @@ public class LoginHandlerTests
         var result = await handler.Handle(new LoginRequest("alice@example.com", "correct_password"));
 
         Assert.False(result.Success);
-        Assert.Equal(HttpStatusCode.InternalServerError, result.ErrorType);
+        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
         Assert.Equal("Fail on JWT generation", result.Error);
     }
 }

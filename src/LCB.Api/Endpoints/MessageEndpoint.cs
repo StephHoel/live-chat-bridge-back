@@ -13,12 +13,11 @@ public static class MessageEndpoints
         app.MapPost("/messages/ingest", async (MessageIngestRequest request, [FromServices] MessageIngestHandler handler) =>
         {
             var result = await handler.Handle(request);
-
             return result.ToMinimalResult();
         })
         .WithTags("Messages")
-        .Produces((int)HttpStatusCode.OK, typeof(Result<MessageIngestResponse>))
-        .Produces((int)HttpStatusCode.NotFound, typeof(Result<MessageIngestResponse>))
+        .Produces((int)HttpStatusCode.OK, typeof(MessageIngestResponse))
+        .Produces((int)HttpStatusCode.BadRequest, typeof(Result<MessageIngestResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<MessageIngestResponse>));
 
         return app;

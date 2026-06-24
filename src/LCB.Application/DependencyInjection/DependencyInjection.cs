@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Message.Ingest;
+using LCB.Application.Commands.Register;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Infrastructure.Data;
@@ -22,6 +23,7 @@ public static class DependencyInjection
     public static IServiceCollection AddHandlers(this IServiceCollection services)
     {
         services.AddScoped<LoginHandler>();
+        services.AddScoped<RegisterHandler>();
         services.AddScoped<MessageIngestHandler>();
 
         return services;

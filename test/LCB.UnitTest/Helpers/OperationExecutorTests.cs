@@ -35,7 +35,7 @@ public class OperationExecutorTests
 
         Assert.False(result.Success);
         Assert.Equal("business error", result.Error);
-        Assert.Equal(HttpStatusCode.BadRequest, result.ErrorType);
+        Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
     }
 
     [Fact]
@@ -48,7 +48,7 @@ public class OperationExecutorTests
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
-        Assert.Equal(HttpStatusCode.InternalServerError, result.ErrorType);
+        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
     }
 
     [Fact]
@@ -100,6 +100,6 @@ public class OperationExecutorTests
 
         Assert.NotNull(captured);
         Assert.False(result.Success);
-        Assert.Equal(HttpStatusCode.NotFound, result.ErrorType);
+        Assert.Equal(HttpStatusCode.NotFound, result.StatusCode);
     }
 }
