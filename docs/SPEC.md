@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.5.0
+> **Versão do Projeto:** v0.6.0
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -48,14 +48,14 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 9 specs em `docs/specs/planned/`
-- **Concluídas:** 5 specs em `docs/specs/done/`
+- **Planejadas:** 8 specs em `docs/specs/planned/`
+- **Concluídas:** 6 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 04** - Consolidação modelo de mensagem entre fluxo HTTP e worker
-2. **Spec 05** - Processamento real em `ChatProcessorService`
-3. **Spec 06** - Endpoint auth recover
+1. **Spec 05** - Processamento real em `ChatProcessorService`
+2. **Spec 06** - Endpoint auth recover
+3. **Spec 07** - Endpoint HTTP para bootstrap da fila
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -175,6 +175,8 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
 - ✅ **Spec 12 - Registro de conta** (feita): Endpoint `POST /auth/register` com política de senha configurável, confirmação obrigatória e prevenção de e-mail duplicado.
+- ✅ **Spec 04 - Consolidação de modelo de mensagem** (feita): tipo de canal explicitado como `ChatMessageModel` (`WorkerInput`), mapeador dedicado `WorkerInput -> ChatMessageEntity`, normalização temporal unificada em UTC-3 e resposta de ingestão migrada para `Model` de API.
+- ✅ **Ajuste transversal de timezone (pós-Spec 04)**: entidades de domínio relacionadas (`ChatMessageEntity`, `QueueEntity`, `UserEntity`) e serialização JSON de `DateTime` padronizadas para UTC-3.
 
 ### Idempotência (implementada — Spec 01 ✅)
 
@@ -198,11 +200,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ### Processamento
 
 - `ChatProcessorService` não implementa lógica de negócio real; apenas imprime no console.
-- Consolidação de modelo entre fluxo HTTP e worker planejada para Spec 04, incluindo:
-  - tipo atual do canal explicitado como `ChatMessageModel` (`WorkerInput`);
-  - mapeador dedicado `WorkerInput -> ChatMessageEntity` no fluxo assíncrono;
-  - normalização temporal única em UTC-3 para todas as entradas;
-  - migração do retorno de ingestão para `Model` de API (sem expor `Entity` de persistência).
+- Consolidação de modelo entre fluxo HTTP e worker implementada na Spec 04, com conversões explícitas por camada e contrato de API sem exposição de entidade de persistência.
 - Lógica real de processamento prevista para Spec 05.
 
 ## 11. Testes e Cobertura Atual
@@ -232,7 +230,6 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- consolidar modelo de mensagem entre fluxo HTTP e worker (Spec 04);
 - implementar processamento real no `ChatProcessorService` (Spec 05);
 - ampliar cobertura de testes nas rotas e handlers centrais.
 
