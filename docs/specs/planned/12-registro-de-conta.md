@@ -1,7 +1,7 @@
 # Mini-spec: Registro de conta
 
 Número: 12
-Status: planejado
+Status: em andamento
 
 ## Problema
 
@@ -18,7 +18,7 @@ Status: planejado
 
 ## Superfícies afetadas
 
-- Endpoints: novo `POST /register`.
+- Endpoints: novo `POST /auth/register`.
 - Handlers: novo handler/use case de registro.
 - Workers/Provedores: sem impacto direto.
 - Integrações externas: sem obrigatoriedade nesta fase.
@@ -31,7 +31,7 @@ Status: planejado
 
 ## Contratos de API
 
-- Endpoint: `POST /register`.
+- Endpoint: `POST /auth/register`.
 - Request: `email`, `password`, `confirmPassword` (obrigatório).
 - Response: confirmação de conta criada (sem retornar senha/hash/token).
 - Códigos HTTP:

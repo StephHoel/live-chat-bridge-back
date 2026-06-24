@@ -130,6 +130,7 @@ Ao trabalhar neste projeto, a IA deve:
 - manter contratos no `Domain` e implementações concretas fora dele;
 - evitar introduzir dependência direta de infraestrutura dentro de endpoints;
 - manter handlers pequenos, com regras de orquestração e retorno por `Result<T>`;
+- manter responses de API sempre envelopados em `Result<T>` (sucesso e erro), com metadados de endpoint (`Produces`) refletindo o mesmo contrato;
 - preferir mudanças incrementais, porque há partes ainda prototipais e não totalmente consolidadas;
 - adicionar ou atualizar testes ao mexer em repositórios, parsing de comandos, autenticação ou idempotência;
 - documentar no spec qualquer mudança que altere fluxo de ingestão, autenticação, processamento ou persistência.
