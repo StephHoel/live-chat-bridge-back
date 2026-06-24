@@ -17,7 +17,7 @@ public static class AuthEndpoints
             return result.ToMinimalResult();
         })
         .WithTags("Auth")
-        .Produces((int)HttpStatusCode.OK, typeof(LoginResponse))
+        .Produces((int)HttpStatusCode.OK, typeof(Result<LoginResponse>))
         .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<LoginResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<LoginResponse>));
 
@@ -27,7 +27,7 @@ public static class AuthEndpoints
             return result.ToMinimalResult();
         })
         .WithTags("Auth")
-        .Produces((int)HttpStatusCode.Created, typeof(RegisterResponse))
+        .Produces((int)HttpStatusCode.Created, typeof(Result<RegisterResponse>))
         .Produces((int)HttpStatusCode.BadRequest, typeof(Result<RegisterResponse>))
         .Produces((int)HttpStatusCode.Conflict, typeof(Result<RegisterResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<RegisterResponse>));

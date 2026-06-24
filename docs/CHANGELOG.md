@@ -20,6 +20,13 @@
   - `RequireSpecialCharacter`
 - `RegisterHandler` passou a usar `PasswordValidator` com `PasswordPolicy` injetada por DI
 
+### 🔧 Melhorias Técnicas
+
+- Contrato HTTP de `Result<T>` reforçado em todos os status dos endpoints de Auth e Messages:
+  - `ResultExtensions` agora retorna envelope completo também em respostas de sucesso (`200`/`201`)
+  - Respostas `401` e `403` passam a incluir payload padronizado de erro com `Result<T>`
+  - Metadados `Produces(...)` alinhados ao envelope em todos os códigos documentados
+
 ### 🧪 Testes
 
 - `RegisterHandlerTests` atualizado para cenários reais (sem mock de repositório/hasher)

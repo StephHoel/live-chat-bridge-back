@@ -9,12 +9,12 @@ public static class ResultExtensions
     {
         return result.StatusCode switch
         {
-            HttpStatusCode.OK => Results.Ok(result.Data),
-            HttpStatusCode.Created => Results.Created(null as string, result.Data),
+            HttpStatusCode.OK => Results.Ok(result),
+            HttpStatusCode.Created => Results.Created(null as string, result),
             HttpStatusCode.BadRequest => Results.BadRequest(result),
             HttpStatusCode.NotFound => Results.NotFound(result),
-            HttpStatusCode.Unauthorized => Results.Unauthorized(),
-            HttpStatusCode.Forbidden => Results.Forbid(),
+            HttpStatusCode.Unauthorized => Results.Json(result, statusCode: (int)HttpStatusCode.Unauthorized),
+            HttpStatusCode.Forbidden => Results.Json(result, statusCode: (int)HttpStatusCode.Forbidden),
             HttpStatusCode.Conflict => Results.Conflict(result),
             _ => Results.InternalServerError(result)
         };
