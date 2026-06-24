@@ -22,7 +22,7 @@ public class Program
         builder.Services.AddConfiguration(builder.Configuration);
         builder.Services.AddHandlers();
         builder.Services.AddRepositories();
-        builder.Services.AddServices();
+        builder.Services.AddServices(builder.Configuration);
         builder.Services.AddSwagger();
         builder.Services.AddWorkers();
 

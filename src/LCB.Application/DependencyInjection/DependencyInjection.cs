@@ -4,6 +4,8 @@ using LCB.Application.Commands.Message.Ingest;
 using LCB.Application.Commands.Register;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
+using LCB.Domain.Models.Config;
+using LCB.Domain.Services;
 using LCB.Infrastructure.Data;
 using LCB.Infrastructure.Repositories;
 using LCB.Infrastructure.Services;
@@ -14,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace LCB.Application.DependencyInjection;
 
@@ -57,8 +60,16 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddServices(this IServiceCollection services)
+    public static IServiceCollection AddServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.Configure<PasswordPolicy>(configuration.GetSection(nameof(PasswordPolicy)));
+
+        services.AddScoped(sp =>
+        {
+            var passwordPolicy = sp.GetRequiredService<IOptions<PasswordPolicy>>().Value;
+            return new PasswordValidator(passwordPolicy);
+        });
+
         services.AddScoped<IPasswordHasher, PasswordHasher>();
 
         services.AddScoped<ITokenService, JwtTokenService>();
