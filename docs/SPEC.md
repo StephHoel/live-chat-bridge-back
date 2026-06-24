@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.4.0
+> **Versão do Projeto:** v0.5.0
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -20,7 +20,8 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 ## 2. Funcionalidades Existentes
 
-- Login por e-mail via `POST /auth/login`, com emissão de JWT quando o usuário é encontrado em repositório persistente.
+- Login por e-mail via `POST /auth/login`, com validação de senha e emissão de JWT.
+- Registro de conta via `POST /auth/register`, com validação de e-mail, confirmação de senha e política configurável.
 - Ingestão de mensagens via `POST /messages/ingest`, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
@@ -47,8 +48,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 10 specs em `docs/specs/planned/`
-- **Concluídas:** 4 specs em `docs/specs/done/`
+- **Planejadas:** 9 specs em `docs/specs/planned/`
+- **Concluídas:** 5 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
@@ -98,6 +99,16 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - PBKDF2-SHA256 com 10.000 iterações, 128-bit salt aleatório, 256-bit hash
 - Mensagens de erro genéricas para não expor se email existe ou não
 
+### Registro
+
+1. `AuthEndpoints` recebe `POST /auth/register` com `email`, `password` e `confirmPassword`.
+2. `RegisterHandler` normaliza e valida e-mail.
+3. A senha é validada por `PasswordValidator` com política carregada de `PasswordPolicy` no `appsettings`.
+4. `confirmPassword` é obrigatória e deve ser igual a `password`.
+5. O handler verifica duplicidade de e-mail em `IUserRepository`.
+6. Em sucesso, persiste `UserEntity` com hash de senha (`IPasswordHasher`) e retorna `201 Created`.
+7. A resposta é convertida por `ResultExtensions.ToMinimalResult()` mantendo envelope `Result<T>`.
+
 ### Ingestão HTTP de Mensagens
 
 1. `MessageEndpoints` recebe `POST /messages/ingest`.
@@ -115,10 +126,11 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 
 ## 7. Configuração e Ambiente
 
-- `appsettings.json` define `JWT_KEY` e a seção `Usernames` com `Tiktok`, `Twitch` e `Youtube`.
+- `appsettings.json` define `JWT_KEY`, a seção `Usernames` com `Tiktok`, `Twitch` e `Youtube`, e a seção `PasswordPolicy`.
 - `appsettings.Development.json` já contém uma chave JWT de desenvolvimento e um username de TikTok preenchido.
 - `ConnectionStrings:DefaultConnection` define o banco SQLite local.
 - `LiveConfig.SectionName` aponta para `Usernames`.
+- `PasswordPolicy` define requisitos mínimos de senha (`MinLength`, `RequireUppercase`, `RequireLowercase`, `RequireDigit`, `RequireSpecialCharacter`).
 - O Swagger só é exposto em ambiente de desenvolvimento.
 - A autenticação JWT depende de `JWT_KEY` com pelo menos 32 bytes; caso contrário, o helper retorna `null`.
 
@@ -162,6 +174,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 - ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
+- ✅ **Spec 12 - Registro de conta** (feita): Endpoint `POST /auth/register` com política de senha configurável, confirmação obrigatória e prevenção de e-mail duplicado.
 
 ### Idempotência (implementada — Spec 01 ✅)
 
@@ -171,9 +184,10 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Mensagem com mesma chave e `Processed == false`: reprocessada com `UpdateAsync` (nova tentativa permitida).
 - `Author` é normalizado com trim antes do cálculo; `Timestamp` é convertido para UTC quando necessário.
 
-### Autenticação (provisório)
+### Autenticação
 
-- Login não valida senha. Detalhes na seção 6. Spec 02 planejada para implementar validação.
+- Login valida senha com `IPasswordHasher.Verify()` e retorna `401 Unauthorized` para credenciais inválidas.
+- Registro de conta retorna `409 Conflict` para e-mail duplicado e `400 Bad Request` para payload inválido.
 
 ### Persistência
 
@@ -190,6 +204,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ## 11. Testes e Cobertura Atual
 
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
+- Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
 - Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`) possuem testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
@@ -206,15 +221,15 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ## 13. Pendências de Documentação
 
 - A estrutura `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/` já existe no repositório.
-- Manter mini-spec `02-autenticacao-com-senha.md` atualizada antes de implementar validação de senha.
+- Manter mini-specs planejadas atualizadas com mudanças de contrato, incluindo em qual spec já implementada está a versão anterior do contrato.
 - Atualizar README quando o fluxo de autenticação ou de ingestão mudar de forma material.
 
 ## 14. Prioridades Técnicas Evidentes
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- corrigir idempotência antes de expandir integrações de entrada;
-- definir persistência real antes de depender de fila/mensagens entre reinícios;
+- consolidar modelo de mensagem entre fluxo HTTP e worker (Spec 04);
+- implementar processamento real no `ChatProcessorService` (Spec 05);
 - ampliar cobertura de testes nas rotas e handlers centrais.
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto

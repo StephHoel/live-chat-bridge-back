@@ -7,12 +7,13 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 **Fase atual:** Prototipal funcional com persistência durável.
 
 - ✅ API REST com autenticação JWT
+- ✅ Registro de conta com política de senha configurável
 - ✅ Ingestão de mensagens com detecção de comandos
 - ✅ Fila de usuários
 - ✅ Worker background para provedores de live (TikTok)
 - ✅ Persistência durável com SQLite/EF Core
 - 🔄 Lógica de processamento em desenvolvimento
-- 📋 13 specs planejadas para evolução
+- 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 
 ## 🚀 Quick Start
 
@@ -53,7 +54,8 @@ docs/
 
 ### Autenticação
 
-- `POST /auth/login` - Login por email (provisório, sem validação de senha)
+- `POST /auth/login` - Login por email com validação de senha
+- `POST /auth/register` - Registro de conta com validações de email e senha
 
 ### Mensagens
 
@@ -66,6 +68,18 @@ docs/
 - **Async:** `System.Threading.Channels` para comunicação entre worker e processador
 - **Testes:** xUnit com padrão de fábrica para fixtures
 - **Logging:** Logger customizado com middleware de correlação por request
+
+## ⚙️ Configuração
+
+- `JWT_KEY`: chave usada para assinatura de JWT
+- `ConnectionStrings:DefaultConnection`: conexão do banco SQLite
+- `Usernames`: configurações de usernames de live (`Tiktok`, `Twitch`, `Youtube`)
+- `PasswordPolicy`: política de senha para registro
+  - `MinLength`
+  - `RequireUppercase`
+  - `RequireLowercase`
+  - `RequireDigit`
+  - `RequireSpecialCharacter`
 
 ## 📚 Documentação
 

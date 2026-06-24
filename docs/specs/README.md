@@ -15,18 +15,19 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 ### ✅ Implementadas (ordem de implementação)
 
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
+- [Registro de conta](done/12-registro-de-conta.md)
 - [Persistência durável para repositórios](done/03-persistencia-duravel-repositorios.md)
+- [Autenticação com validação de senha](done/02-autenticacao-com-senha.md)
 - [Idempotência de mensagens](done/01-idempotencia-de-mensagens.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Registro de conta](planned/12-registro-de-conta.md)
+- Nenhuma no momento.
 
 ### 📋 Planejadas (ordem de prioridade)
 
-**Recomendação técnica:** implementar nessa ordem para solidificar a base (idempotência → autenticação → modelo unificado → processamento real).
+**Recomendação técnica:** priorizar consolidação de modelo e processamento real antes de novas expansões de domínio.
 
-- [Autenticação com validação de senha](planned/02-autenticacao-com-senha.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](planned/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](planned/05-processamento-real-chat-worker.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
