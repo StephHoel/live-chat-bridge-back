@@ -14,6 +14,7 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### ✅ Implementadas (ordem de implementação)
 
+- [Consolidação do modelo de mensagem entre HTTP e worker](done/04-consolidacao-modelo-de-mensagem.md)
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [Registro de conta](done/12-registro-de-conta.md)
 - [Persistência durável para repositórios](done/03-persistencia-duravel-repositorios.md)
@@ -28,7 +29,6 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 **Recomendação técnica:** priorizar consolidação de modelo e processamento real antes de novas expansões de domínio.
 
-- [Consolidação do modelo de mensagem entre HTTP e worker](planned/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](planned/05-processamento-real-chat-worker.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
 - [Endpoint HTTP para bootstrap da fila](planned/07-endpoint-http-fila-bootstrap.md)
