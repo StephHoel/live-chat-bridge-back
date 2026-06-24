@@ -1,5 +1,37 @@
 # CHANGELOG
 
+## [v0.5.0] - 2026-06-24
+
+### ✨ Funcionalidades
+
+- **Registro de conta** (Spec 12) com `POST /auth/register`
+  - Criação de usuário com validação de e-mail e confirmação obrigatória de senha (`confirmPassword`)
+  - Bloqueio de e-mail duplicado com retorno `409 Conflict`
+  - Persistência de senha somente em hash (PBKDF2) sem exposição de dados sensíveis
+  - Resposta `201 Created` com envelope `Result<T>`
+
+### ⚙️ Configuração
+
+- Política de senha externalizada para `appsettings.json` via seção `PasswordPolicy`
+  - `MinLength`
+  - `RequireUppercase`
+  - `RequireLowercase`
+  - `RequireDigit`
+  - `RequireSpecialCharacter`
+- `RegisterHandler` passou a usar `PasswordValidator` com `PasswordPolicy` injetada por DI
+
+### 🧪 Testes
+
+- `RegisterHandlerTests` atualizado para cenários reais (sem mock de repositório/hasher)
+  - Execução com `UserRepository` real + SQLite em memória (`RepositoryTestDbFactory`)
+  - Uso de `PasswordHasher` real e validação por `Verify`
+  - Cobertura focada em fluxos reproduzíveis de ponta a ponta no handler
+
+### 📚 Documentação
+
+- Atualização do `SPEC.md` e README para refletir registro de conta e política de senha configurável
+- Mini-spec 12 promovida para concluída
+
 ## [v0.4.0] - 2026-06-23
 
 ### ✨ Funcionalidades
