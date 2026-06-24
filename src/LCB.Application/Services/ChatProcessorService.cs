@@ -13,11 +13,13 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
 
         await foreach (var message in Reader.ReadAllAsync(cancellationToken))
         {
+            var domainMessage = message.ToChatMessageEntity();
+
             // TODO lógica aqui
             // Ex: Salvar no banco, enviar para o frontend via SignalR, etc.
             Logger.LogInformation(
                 "[{Platform}] [{CreatedAt}] {User}: {Text}",
-                message.Platform, message.CreatedAt, message.User, message.Text);
+                domainMessage.Provider, domainMessage.Timestamp, domainMessage.Author, domainMessage.Text);
         }
 
         Logger.LogInformation("Finishing {service}", nameof(ChatProcessorService));

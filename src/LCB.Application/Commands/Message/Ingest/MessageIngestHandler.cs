@@ -2,6 +2,7 @@ using System.Net;
 using LCB.Application.Helpers;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Objects;
@@ -25,7 +26,7 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
 
         if (existing?.Processed == true)
             return Result<MessageIngestResponse>.Fail("Invalid payload",
-                                                      new(StatusResultEnum.Duplicate, existing, null),
+                                                      new(StatusResultEnum.Duplicate, existing.ToApiModel(), null),
                                                       HttpStatusCode.BadRequest);
 
         var messageToPersist = existing ?? message;
@@ -49,7 +50,7 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
                                   message.Provider,
                                   message.Author,
                                   existingQueueEntry?.Selected ?? false,
-                                  existingQueueEntry?.JoinedAt ?? DateTime.UtcNow);
+                                  existingQueueEntry?.JoinedAt ?? DateTimeExtensions.NowUtcMinus3());
 
             await queueRepository.UpdateAsync([entry]);
         }
@@ -64,6 +65,6 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
 
         var status = isMessageSaved ? StatusResultEnum.Processed : StatusResultEnum.Error;
 
-        return Result<MessageIngestResponse>.Ok(new(status, messageToPersist, commandResult));
+        return Result<MessageIngestResponse>.Ok(new(status, messageToPersist.ToApiModel(), commandResult));
     }
 }

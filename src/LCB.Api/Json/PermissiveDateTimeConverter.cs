@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using LCB.Domain.Extensions;
 
 namespace LCB.Api.Json;
 
@@ -63,6 +64,6 @@ public class PermissiveDateTimeConverter : JsonConverter<DateTime?>
             return;
         }
 
-        writer.WriteStringValue(value.Value.ToUniversalTime().ToString("o", CultureInfo.InvariantCulture));
+        writer.WriteStringValue(value.Value.NormalizeToUtcMinus3().AsUtcMinus3Offset().ToString("o", CultureInfo.InvariantCulture));
     }
 }

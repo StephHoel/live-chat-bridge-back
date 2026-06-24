@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using LCB.Infrastructure.Repositories;
 using LCB.UnitTest.Factories;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -19,7 +20,7 @@ public class ChatMessageRepositoryTests
             Provider = provider,
             Author = author,
             Text = "hello",
-            Timestamp = DateTime.UtcNow
+            Timestamp = DateTimeExtensions.NowUtcMinus3()
         };
 
         message.EnsureIdempotencyKey();

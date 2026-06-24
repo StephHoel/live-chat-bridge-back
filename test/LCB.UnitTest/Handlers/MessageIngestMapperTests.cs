@@ -1,6 +1,7 @@
 using System;
 using LCB.Application.Commands.Message.Ingest;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using Xunit;
 
 namespace LCB.UnitTest.Handlers;
@@ -18,13 +19,13 @@ public class MessageIngestMapperTests
         Assert.Equal(ProviderTypeEnum.YOUTUBE, message.Provider);
         Assert.Equal("alice", message.Author);
         Assert.Equal("hello", message.Text);
-        Assert.Equal(timestamp, message.Timestamp);
+        Assert.Equal(timestamp.NormalizeToUtcMinus3(), message.Timestamp);
     }
 
     [Fact]
     public void ToChatMessage_UsesUtcNow_WhenTimestampIsNull()
     {
-        var before = DateTime.UtcNow;
+        var before = DateTimeExtensions.NowUtcMinus3();
         var request = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", null);
 
         var message = request.ToChatMessage();
@@ -32,6 +33,6 @@ public class MessageIngestMapperTests
         Assert.Equal(ProviderTypeEnum.TIKTOK, message.Provider);
         Assert.Equal("alice", message.Author);
         Assert.Equal("hello", message.Text);
-        Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTime.UtcNow.AddSeconds(1));
+        Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTimeExtensions.NowUtcMinus3().AddSeconds(1));
     }
 }

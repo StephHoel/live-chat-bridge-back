@@ -6,6 +6,7 @@ using LCB.Application.Commands.Message.Ingest;
 using LCB.Domain.DTO;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Extensions;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using Microsoft.Extensions.Logging;
@@ -89,7 +90,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-2"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTime.UtcNow));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTimeExtensions.NowUtcMinus3()));
 
         Assert.True(result.Success);
         queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Once);
@@ -98,7 +99,7 @@ public class MessageIngestHandlerTests
         Assert.Equal(existingQueue.Provider, updated.Provider);
         Assert.Equal(existingQueue.User, updated.User);
         Assert.True(updated.Selected);
-        Assert.Equal(joinedAt, updated.JoinedAt);
+        Assert.Equal(joinedAt.NormalizeToUtcMinus3(), updated.JoinedAt);
     }
 
     [Fact]
@@ -121,7 +122,9 @@ public class MessageIngestHandlerTests
         Assert.Equal("Invalid payload", result.Error);
         Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         Assert.Equal(StatusResultEnum.Duplicate, result.Data!.Status);
-        Assert.Same(existing, result.Data.Message);
+        Assert.NotNull(result.Data.Message);
+        Assert.Equal(existing.Id, result.Data.Message!.Id);
+        Assert.Equal(existing.IdempotencyKey, result.Data.Message.IdempotencyKey);
         adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
         queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Never);
         messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
@@ -161,7 +164,7 @@ public class MessageIngestHandlerTests
             .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
             .ReturnsAsync(false);
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTimeExtensions.NowUtcMinus3()));
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Error, result.Data!.Status);
@@ -175,7 +178,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTimeExtensions.NowUtcMinus3()));
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
@@ -194,11 +197,11 @@ public class MessageIngestHandlerTests
         Assert.Equal(ProviderTypeEnum.TWITCH, message.Provider);
         Assert.Equal("user", message.Author);
         Assert.Equal("text", message.Text);
-        Assert.True((DateTime.UtcNow - message.Timestamp).TotalSeconds < 5);
+        Assert.True((DateTimeExtensions.NowUtcMinus3() - message.Timestamp).TotalSeconds < 5);
     }
 
     [Fact]
-    public void ToChatMessage_NormalizesAuthor_AndTimestampToUtc()
+    public void ToChatMessage_NormalizesAuthor_AndTimestampToUtcMinus3()
     {
         var localTimestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Local);
         var request = new MessageIngestRequest(ProviderTypeEnum.TWITCH, "  user  ", "text", localTimestamp);
@@ -206,6 +209,6 @@ public class MessageIngestHandlerTests
         var message = request.ToChatMessage();
 
         Assert.Equal("user", message.Author);
-        Assert.Equal(DateTimeKind.Utc, message.Timestamp.Kind);
+        Assert.Equal(localTimestamp.NormalizeToUtcMinus3(), message.Timestamp);
     }
 }
