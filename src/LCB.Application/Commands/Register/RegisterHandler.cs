@@ -1,10 +1,11 @@
 using System.Net;
-using System.Net.Mail;
 using LCB.Application.Helpers;
 using LCB.Domain.Entities;
+using LCB.Domain.Extensions;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Objects;
+using LCB.Domain.Services;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Application.Commands.Register;
@@ -12,23 +13,22 @@ namespace LCB.Application.Commands.Register;
 public class RegisterHandler(
     IUserRepository repository,
     IPasswordHasher passwordHasher,
+    PasswordValidator passwordValidator,
     ILogger<RegisterHandler> logger)
 {
-    private const int MinPasswordLength = 8;
-
     public Task<Result<RegisterResponse>> Handle(RegisterRequest request)
         => OperationExecutor.ExecuteAsync(logger, nameof(RegisterHandler), () => ExecuteAsync(request));
 
     private async Task<Result<RegisterResponse>> ExecuteAsync(RegisterRequest request)
     {
-        var normalizedEmail = NormalizeEmail(request.Email);
+        var normalizedEmail = request.Email.NormalizeEmail();
 
-        if (!IsValidEmail(normalizedEmail))
+        if (!normalizedEmail.IsValidEmail())
             return Result<RegisterResponse>.Fail("Invalid email format", HttpStatusCode.BadRequest);
 
-        if (!IsPasswordValid(request.Password))
+        if (!passwordValidator.IsPasswordValid(request.Password))
             return Result<RegisterResponse>.Fail(
-                "Password must be at least 8 characters and include uppercase, lowercase, number, and special character",
+                passwordValidator.GetPasswordErrorMessage(),
                 HttpStatusCode.BadRequest);
 
         if (string.IsNullOrWhiteSpace(request.ConfirmPassword))
@@ -60,39 +60,5 @@ public class RegisterHandler(
 
         return Result<RegisterResponse>.Ok(
             new RegisterResponse("Account created successfully", normalizedEmail));
-    }
-
-    private static string NormalizeEmail(string email)
-        => string.IsNullOrWhiteSpace(email)
-            ? string.Empty
-            : email.Trim().ToLowerInvariant();
-
-    private static bool IsValidEmail(string email)
-    {
-        if (string.IsNullOrWhiteSpace(email))
-            return false;
-
-        try
-        {
-            var address = new MailAddress(email);
-            return string.Equals(address.Address, email, StringComparison.OrdinalIgnoreCase);
-        }
-        catch
-        {
-            return false;
-        }
-    }
-
-    private static bool IsPasswordValid(string password)
-    {
-        if (string.IsNullOrWhiteSpace(password) || password.Length < MinPasswordLength)
-            return false;
-
-        var hasUppercase = password.Any(char.IsUpper);
-        var hasLowercase = password.Any(char.IsLower);
-        var hasNumber = password.Any(char.IsDigit);
-        var hasSpecial = password.Any(c => !char.IsLetterOrDigit(c));
-
-        return hasUppercase && hasLowercase && hasNumber && hasSpecial;
     }
 }
