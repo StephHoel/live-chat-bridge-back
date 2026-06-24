@@ -10,7 +10,7 @@ public static class ResultExtensions
         return result.StatusCode switch
         {
             HttpStatusCode.OK => Results.Ok(result),
-            HttpStatusCode.Created => Results.Created(null as string, result),
+            HttpStatusCode.Created => Results.Created(string.Empty, result),
             HttpStatusCode.BadRequest => Results.BadRequest(result),
             HttpStatusCode.NotFound => Results.NotFound(result),
             HttpStatusCode.Unauthorized => Results.Json(result, statusCode: (int)HttpStatusCode.Unauthorized),

@@ -3,7 +3,7 @@ using LCB.Domain.Models.Config;
 namespace LCB.Domain.Services;
 
 /// <summary>
-/// Validador de e-mail e senha conforme política configurável.
+/// Validador de senha conforme política configurável.
 /// </summary>
 public class PasswordValidator
 {
