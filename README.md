@@ -61,6 +61,11 @@ docs/
 
 - `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos
 
+### Contrato de resposta
+
+- Todos os endpoints retornam envelope `Result<T>` tanto em sucesso quanto em erro.
+- Os metadados HTTP (`Produces`) devem refletir o contrato `Result<T>` em todos os status codes.
+
 ## 🏗️ Arquitetura
 
 - **Padrão:** Arquitetura em camadas (API → Application → Domain ← Infrastructure)

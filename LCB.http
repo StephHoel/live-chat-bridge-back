@@ -20,6 +20,39 @@ Content-Type: application/json
     "password": "1234"
 }
 
+### Registro com Sucesso - 201
+POST {{ LCB.Api_HostAddress }}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+	"email": "new.user@livebridge.com",
+	"password": "StrongP@ss1",
+	"confirmPassword": "StrongP@ss1"
+}
+
+### Registro com Erro - 409 (email duplicado)
+POST {{ LCB.Api_HostAddress }}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+	"email": "steph@hoel.com",
+	"password": "StrongP@ss1",
+	"confirmPassword": "StrongP@ss1"
+}
+
+### Registro com Erro - 400 (senha fora da política)
+POST {{ LCB.Api_HostAddress }}/auth/register
+Accept: application/json
+Content-Type: application/json
+
+{
+	"email": "another.user@livebridge.com",
+	"password": "1234",
+	"confirmPassword": "1234"
+}
+
 ### Documentação Swagger
 GET {{ LCB.Api_HostAddress }}/swagger/v1/swagger.json
 
