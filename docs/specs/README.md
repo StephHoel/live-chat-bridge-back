@@ -20,13 +20,12 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### 🔄 Ativas/Em andamento
 
-_Nenhuma no momento._
+- [Registro de conta](planned/12-registro-de-conta.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** implementar nessa ordem para solidificar a base (idempotência → autenticação → modelo unificado → processamento real).
 
-- [Registro de conta](planned/12-registro-de-conta.md)
 - [Autenticação com validação de senha](planned/02-autenticacao-com-senha.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](planned/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](planned/05-processamento-real-chat-worker.md)

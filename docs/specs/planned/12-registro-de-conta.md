@@ -18,7 +18,7 @@ Status: planejado
 
 ## Superfícies afetadas
 
-- Endpoints: novo `POST /auth/register`.
+- Endpoints: novo `POST /register`.
 - Handlers: novo handler/use case de registro.
 - Workers/Provedores: sem impacto direto.
 - Integrações externas: sem obrigatoriedade nesta fase.
@@ -31,7 +31,8 @@ Status: planejado
 
 ## Contratos de API
 
-- Request: `email`, `password`, opcionalmente `confirmPassword`.
+- Endpoint: `POST /register`.
+- Request: `email`, `password`, `confirmPassword` (obrigatório).
 - Response: confirmação de conta criada (sem retornar senha/hash/token).
 - Códigos HTTP:
   - `201 Created`: conta criada com sucesso.
@@ -41,8 +42,13 @@ Status: planejado
 ## Regras de validação
 
 - `email` obrigatório em formato válido.
-- `password` obrigatória com política mínima configurável (ex.: tamanho mínimo).
-- Se `confirmPassword` existir, deve coincidir com `password`.
+- `password` obrigatória com política mínima configurável:
+  - tamanho mínimo de 8 caracteres;
+  - pelo menos 1 letra maiúscula;
+  - pelo menos 1 letra minúscula;
+  - pelo menos 1 número;
+  - pelo menos 1 caractere especial.
+- `confirmPassword` é obrigatória e deve coincidir com `password`.
 - Nunca registrar senha em logs.
 
 ## Critérios de aceite
@@ -56,7 +62,14 @@ Status: planejado
 
 - Teste de sucesso no cadastro com payload válido.
 - Teste de falha para e-mail duplicado.
-- Teste de validação de e-mail/senha inválidos.
+- Teste de validação para e-mail inválido.
+- Teste de validação para senha com menos de 8 caracteres.
+- Teste de validação para senha sem letra maiúscula.
+- Teste de validação para senha sem letra minúscula.
+- Teste de validação para senha sem número.
+- Teste de validação para senha sem caractere especial.
+- Teste de validação para ausência de `confirmPassword`.
+- Teste de validação para `confirmPassword` diferente de `password`.
 - Teste garantindo persistência de hash (e não senha bruta).
 
 ## Fora de escopo
