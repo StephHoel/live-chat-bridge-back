@@ -121,7 +121,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 ### Worker de Live
 
 1. `ChatWorker` inicia `ChatProcessorService` e conexão com `TikTokChatProvider`.
-2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageEntity>`.
+2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageModel>` (tipo atual do canal, tratado como `WorkerInput`).
 3. `ChatProcessorService` consome o `ChannelReader` e hoje apenas escreve no console.
 
 ## 7. Configuração e Ambiente
@@ -157,7 +157,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 | `LCB.Domain.DTO` | **Transporte interno entre camadas.** Usado por handlers, serviços e workers para trocar dados sem expor a entidade completa. Pode ser ajustado livremente conforme a necessidade de cada caso de uso. | Nunca retornar diretamente em endpoints de API. Não persiste. |
 | `LCB.Domain.Models` | **Response de API.** Representa o contrato de saída dos endpoints — é o que o cliente externo recebe. | Nunca usar como modelo de persistência. A conversão de `Entity → Model` deve acontecer nos handlers (`Application`), nunca em `Infrastructure` ou nos endpoints diretamente. |
 
-**Observação sobre `LCB.Domain.Models.ChatMessageEntity`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a DTO nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessageEntity` deve ocorrer em `ChatProcessorService` antes de qualquer persistência ou lógica de negócio.
+**Observação sobre `LCB.Domain.Models.ChatMessageModel`:** este tipo, usado no canal assíncrono do worker (`TikTokChatProvider → ChannelWriter → ChatProcessorService`), funciona hoje como transporte interno (equivalente funcional a `WorkerInput` nesse contexto). A conversão para `LCB.Domain.Entities.ChatMessageEntity` deve ocorrer em `ChatProcessorService` por mapeador dedicado (`WorkerInput -> ChatMessageEntity`) antes de qualquer persistência ou lógica de negócio.
 
 ### Contratos atuais
 
@@ -178,11 +178,11 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ### Idempotência (implementada — Spec 01 ✅)
 
-`IdempotencyKey` é derivada de `Provider + Author + Timestamp` (UTC, formato ISO 8601). O campo `Timestamp` em `ChatMessageEntity` é `DateTime?`; quando ausente no payload, o mapper usa `DateTime.UtcNow`.
+`IdempotencyKey` é derivada de `Provider + Author + Timestamp` (UTC-3, formato ISO 8601). O campo `Timestamp` em `ChatMessageEntity` é `DateTime?`; quando ausente no payload, o mapper usa horário atual normalizado para UTC-3.
 
 - Mensagem com mesma chave e `Processed == true`: retorna `400 Bad Request` com `StatusResultEnum.Duplicate`.
 - Mensagem com mesma chave e `Processed == false`: reprocessada com `UpdateAsync` (nova tentativa permitida).
-- `Author` é normalizado com trim antes do cálculo; `Timestamp` é convertido para UTC quando necessário.
+- `Author` é normalizado com trim antes do cálculo; `Timestamp` é convertido para UTC-3 quando necessário.
 
 ### Autenticação
 
@@ -198,7 +198,11 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ### Processamento
 
 - `ChatProcessorService` não implementa lógica de negócio real; apenas imprime no console.
-- Consolidação de modelo entre fluxo HTTP e worker planejada para Spec 04.
+- Consolidação de modelo entre fluxo HTTP e worker planejada para Spec 04, incluindo:
+  - tipo atual do canal explicitado como `ChatMessageModel` (`WorkerInput`);
+  - mapeador dedicado `WorkerInput -> ChatMessageEntity` no fluxo assíncrono;
+  - normalização temporal única em UTC-3 para todas as entradas;
+  - migração do retorno de ingestão para `Model` de API (sem expor `Entity` de persistência).
 - Lógica real de processamento prevista para Spec 05.
 
 ## 11. Testes e Cobertura Atual
