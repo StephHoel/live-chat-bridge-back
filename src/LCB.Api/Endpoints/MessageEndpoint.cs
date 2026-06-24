@@ -16,7 +16,7 @@ public static class MessageEndpoints
             return result.ToMinimalResult();
         })
         .WithTags("Messages")
-        .Produces((int)HttpStatusCode.OK, typeof(MessageIngestResponse))
+        .Produces((int)HttpStatusCode.OK, typeof(Result<MessageIngestResponse>))
         .Produces((int)HttpStatusCode.BadRequest, typeof(Result<MessageIngestResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<MessageIngestResponse>));
 
