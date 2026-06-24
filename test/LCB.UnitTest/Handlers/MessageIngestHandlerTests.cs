@@ -119,7 +119,7 @@ public class MessageIngestHandlerTests
 
         Assert.False(result.Success);
         Assert.Equal("Invalid payload", result.Error);
-        Assert.Equal(HttpStatusCode.BadRequest, result.ErrorType);
+        Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
         Assert.Equal(StatusResultEnum.Duplicate, result.Data!.Status);
         Assert.Same(existing, result.Data.Message);
         adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
@@ -179,7 +179,7 @@ public class MessageIngestHandlerTests
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
-        Assert.Equal(HttpStatusCode.InternalServerError, result.ErrorType);
+        Assert.Equal(HttpStatusCode.InternalServerError, result.StatusCode);
         adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Once);
         messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
     }

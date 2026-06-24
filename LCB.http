@@ -6,17 +6,17 @@ Accept: application/json
 Content-Type: application/json
 
 {
-    "email": "teste@teste.com",
-    "password": "1234"
+    "email": "steph@hoel.com",
+    "password": "Hoel@1996"
 }
 
-### Login com Erro
+### Login com Erro - 401
 POST {{ LCB.Api_HostAddress }}/auth/login
 Accept: application/json
 Content-Type: application/json
 
 {
-    "email": "teste1@teste.com",
+    "email": "steph@hoel.com",
     "password": "1234"
 }
 
