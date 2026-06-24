@@ -58,7 +58,7 @@ public class RegisterHandler(
 
         logger.LogInformation("User registered successfully: {Email}", normalizedEmail);
 
-        return Result<RegisterResponse>.Ok(
-            new RegisterResponse("Account created successfully", normalizedEmail));
+        var response = new RegisterResponse("Account created successfully", normalizedEmail);
+        return Result<RegisterResponse>.Ok(response, HttpStatusCode.Created);
     }
 }
