@@ -335,3 +335,7 @@ Status: planejado
 - O projeto está documentado como backend de ponte para chats de live, com foco atual em TikTok e ingestão HTTP.
 - O estado atual deve ser tratado como protótipo funcional, não como baseline estável de produção.
 - Idempotência, persistência e consolidação do modelo de mensagem são temas estruturais e devem passar por mini-spec antes de mudanças maiores.
+- Para a Spec 05, o fluxo do worker deve reutilizar o mesmo caso de uso do ingest HTTP (direto ou via serviço compartilhado), evitando duplicação de regra de negócio.
+- Para providers sem ID nativo de mensagem, a idempotência no fluxo assíncrono deve usar `Provider + Author + Timestamp` do provider (normalizado para UTC-3).
+- A semântica de entrega do canal interno na Spec 05 é `at-least-once` intra-processo; não há garantia cross-restart com o canal em memória atual.
+- Observabilidade mínima por mensagem na Spec 05: `IdempotencyKey`, `Status`, `Error` (quando houver), `Provider` e `DateTime`.
