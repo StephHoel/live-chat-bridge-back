@@ -14,7 +14,7 @@ namespace LCB.UnitTest.Repositories;
 public class QueueRepositoryTests
 {
     private static QueueEntity NewQueue(ProviderTypeEnum provider, string user)
-        => new(null, provider, user, false, DateTimeExtensions.NowUtcMinus3());
+        => new(null, provider, user, false, DateTime.UtcNow.NormalizeToUtcMinus3());
 
     [Fact]
     public async Task Update_Get_Delete_Flow_Works()

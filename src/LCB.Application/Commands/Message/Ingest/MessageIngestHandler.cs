@@ -47,10 +47,10 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
             var existingQueueEntry = await queueRepository.GetByUserAsync(message.Author);
 
             var entry = new QueueEntity(existingQueueEntry?.Id ?? Guid.NewGuid(),
-                                  message.Provider,
-                                  message.Author,
-                                  existingQueueEntry?.Selected ?? false,
-                                  existingQueueEntry?.JoinedAt ?? DateTimeExtensions.NowUtcMinus3());
+                                        message.Provider,
+                                        message.Author,
+                                        existingQueueEntry?.Selected ?? false,
+                                        existingQueueEntry?.JoinedAt ?? DateTime.UtcNow.NormalizeToUtcMinus3());
 
             await queueRepository.UpdateAsync([entry]);
         }

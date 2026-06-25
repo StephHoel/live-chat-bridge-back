@@ -20,7 +20,7 @@ public class ChatMessageRepositoryTests
             Provider = provider,
             Author = author,
             Text = "hello",
-            Timestamp = DateTimeExtensions.NowUtcMinus3()
+            Timestamp = DateTime.UtcNow.NormalizeToUtcMinus3()
         };
 
         message.EnsureIdempotencyKey();

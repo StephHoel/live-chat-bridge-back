@@ -90,7 +90,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-2"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTimeExtensions.NowUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTime.UtcNow.NormalizeToUtcMinus3()));
 
         Assert.True(result.Success);
         queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Once);
@@ -164,7 +164,7 @@ public class MessageIngestHandlerTests
             .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
             .ReturnsAsync(false);
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTimeExtensions.NowUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()));
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Error, result.Data!.Status);
@@ -178,7 +178,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTimeExtensions.NowUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()));
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
@@ -197,7 +197,7 @@ public class MessageIngestHandlerTests
         Assert.Equal(ProviderTypeEnum.TWITCH, message.Provider);
         Assert.Equal("user", message.Author);
         Assert.Equal("text", message.Text);
-        Assert.True((DateTimeExtensions.NowUtcMinus3() - message.Timestamp).TotalSeconds < 5);
+        Assert.True((DateTime.UtcNow.NormalizeToUtcMinus3() - message.Timestamp).TotalSeconds < 5);
     }
 
     [Fact]
