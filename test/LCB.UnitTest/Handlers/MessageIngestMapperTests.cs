@@ -25,7 +25,7 @@ public class MessageIngestMapperTests
     [Fact]
     public void ToChatMessage_UsesUtcNow_WhenTimestampIsNull()
     {
-        var before = DateTimeExtensions.NowUtcMinus3();
+        var before = DateTime.UtcNow.NormalizeToUtcMinus3();
         var request = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", null);
 
         var message = request.ToChatMessage();
@@ -33,6 +33,6 @@ public class MessageIngestMapperTests
         Assert.Equal(ProviderTypeEnum.TIKTOK, message.Provider);
         Assert.Equal("alice", message.Author);
         Assert.Equal("hello", message.Text);
-        Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTimeExtensions.NowUtcMinus3().AddSeconds(1));
+        Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTime.UtcNow.NormalizeToUtcMinus3().AddSeconds(1));
     }
 }

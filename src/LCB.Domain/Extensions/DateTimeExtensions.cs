@@ -16,9 +16,6 @@ public static class DateTimeExtensions
         return asOffset.ToOffset(UtcMinus3Offset).DateTime;
     }
 
-    public static DateTime NowUtcMinus3()
-        => DateTime.UtcNow.NormalizeToUtcMinus3();
-
     public static DateTimeOffset AsUtcMinus3Offset(this DateTime timestamp)
         => new(DateTime.SpecifyKind(timestamp.NormalizeToUtcMinus3(), DateTimeKind.Unspecified), UtcMinus3Offset);
 

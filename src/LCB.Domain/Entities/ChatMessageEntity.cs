@@ -13,10 +13,10 @@ public class ChatMessageEntity
     public ProviderTypeEnum Provider { get; set; }
     public string Author { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
-    public DateTime Timestamp { get; set; } = DateTimeExtensions.NowUtcMinus3();
+    public DateTime Timestamp { get; set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
     public bool Processed { get; set; } = false;
-    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
+    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
 
     public void EnsureIdempotencyKey()
     {

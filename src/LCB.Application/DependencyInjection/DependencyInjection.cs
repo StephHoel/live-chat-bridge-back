@@ -38,7 +38,7 @@ public static class DependencyInjection
         {
             var configuration = sp.GetRequiredService<IConfiguration>();
             var hostEnvironment = sp.GetRequiredService<IHostEnvironment>();
-            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=lcb.dev.db";
+            var connectionString = configuration.GetConnectionString("DefaultConnection") ?? "Data Source=lcb.db";
             var sqliteConnection = new SqliteConnectionStringBuilder(connectionString);
 
             if (!Path.IsPathRooted(sqliteConnection.DataSource))

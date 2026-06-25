@@ -8,7 +8,7 @@ public static class MessageIngestMapper
 {
     public static ChatMessageEntity ToChatMessage(this MessageIngestRequest request)
     {
-        var normalizedTimestamp = (request.Timestamp ?? DateTimeExtensions.NowUtcMinus3())
+        var normalizedTimestamp = (request.Timestamp ?? DateTime.UtcNow.NormalizeToUtcMinus3())
             .NormalizeToUtcMinus3();
 
         var message = new ChatMessageEntity

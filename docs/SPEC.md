@@ -180,7 +180,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ### Idempotência (implementada — Spec 01 ✅)
 
-`IdempotencyKey` é derivada de `Provider + Author + Timestamp` (UTC-3, formato ISO 8601). O campo `Timestamp` em `ChatMessageEntity` é `DateTime?`; quando ausente no payload, o mapper usa horário atual normalizado para UTC-3.
+`IdempotencyKey` é derivada de `Provider + Author + Timestamp` (UTC-3, formato ISO 8601). O campo `Timestamp` em `ChatMessageEntity` é `DateTime`; quando ausente no payload, o mapper usa horário atual normalizado para UTC-3.
 
 - Mensagem com mesma chave e `Processed == true`: retorna `400 Bad Request` com `StatusResultEnum.Duplicate`.
 - Mensagem com mesma chave e `Processed == false`: reprocessada com `UpdateAsync` (nova tentativa permitida).
