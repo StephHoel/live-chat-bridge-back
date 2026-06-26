@@ -43,7 +43,7 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
 
             LogOutcome(message, status, result.Error);
 
-            if (result.Success || status == StatusResultEnum.Duplicate)
+            if (status is StatusResultEnum.Processed or StatusResultEnum.Duplicate)
                 return;
 
             if (attempt == MaxProcessingAttempts)
