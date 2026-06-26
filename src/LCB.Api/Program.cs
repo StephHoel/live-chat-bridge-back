@@ -25,8 +25,7 @@ public class Program
         builder.Services.AddServices(builder.Configuration);
         builder.Services.AddSwagger();
         builder.Services.AddWorkers();
-
-        builder.Services.AddAuthorization();
+        builder.Services.ConfigureAuthorization();
         builder.Services.AddControllers();
 
         // Permissive DateTime converter for inbound JSON bodies (accepts ISO strings, epoch numbers, empty strings)

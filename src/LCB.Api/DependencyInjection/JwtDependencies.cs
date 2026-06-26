@@ -1,4 +1,6 @@
+using System.Net;
 using LCB.Domain.Extensions;
+using LCB.Domain.Objects;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -20,6 +22,28 @@ public static class JwtDependencies
                     ValidateLifetime = true,
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key)
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnChallenge = async context =>
+                    {
+                        context.HandleResponse();
+
+                        context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                        context.Response.ContentType = "application/json";
+
+                        var result = Result<object?>.Fail("Unauthorized", HttpStatusCode.Unauthorized);
+                        await context.Response.WriteAsJsonAsync(result);
+                    },
+                    OnForbidden = async context =>
+                    {
+                        context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                        context.Response.ContentType = "application/json";
+
+                        var result = Result<object?>.Fail("Forbidden", HttpStatusCode.Forbidden);
+                        await context.Response.WriteAsJsonAsync(result);
+                    }
                 };
             });
 

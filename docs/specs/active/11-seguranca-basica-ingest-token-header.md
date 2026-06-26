@@ -1,7 +1,7 @@
 # Mini-spec: Segurança de acesso por token para HTTP e acionamento do worker
 
 Número: 11
-Status: planejado
+Status: em andamento
 Origem: [Issue #45](https://github.com/StephHoel/live-chat-bridge/issues/45)
 
 ## Problema
