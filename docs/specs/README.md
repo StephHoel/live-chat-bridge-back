@@ -37,7 +37,7 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 ### 🔄 Ativas/Em andamento
 
 <!-- - Nenhuma no momento. -->
-- [Segurança de acesso por token para HTTP e acionamento do worker](planned/11-seguranca-basica-ingest-token-header.md)
+- [Segurança de acesso por token para HTTP e acionamento do worker](active/11-seguranca-basica-ingest-token-header.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
