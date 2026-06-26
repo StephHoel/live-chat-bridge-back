@@ -1,7 +1,7 @@
 # Mini-spec: Refatoração transversal de observabilidade e tratamento de erros
 
 Número: 13
-Status: concluída
+Status: implementado
 
 ## Problema
 

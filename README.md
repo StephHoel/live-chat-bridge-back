@@ -100,5 +100,7 @@ Antes de qualquer mudança:
 2. **Verifique specs em [docs/specs/](docs/specs/)** - Seguimos process de spec-driven
 3. **Consulte a branch ativa** - Verifique se há PR aberta com features em progresso
 4. **Rodando testes** - Todas as mudanças devem passar em `dotnet test`
+5. **Ao iniciar uma spec** - Atualize o status para `em andamento`, mova de `docs/specs/planned/` para `docs/specs/active/` e atualize [docs/specs/README.md](docs/specs/README.md)
+6. **Ao abrir PR de spec implementada** - Atualize o status para `implementado`, mova de `docs/specs/active/` para `docs/specs/done/` e atualize [docs/specs/README.md](docs/specs/README.md)
 
 Mais detalhes em [.github/copilot-instructions.md](.github/copilot-instructions.md).

@@ -1,7 +1,7 @@
 # Mini-spec: Registro de conta
 
 Número: 12
-Status: concluído
+Status: implementado
 
 ## Problema
 

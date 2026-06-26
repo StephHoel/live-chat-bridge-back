@@ -1,7 +1,7 @@
 # Mini-spec: Autenticação com validação de senha
 
 Número: 02
-Status: concluído
+Status: implementado
 
 ## Problema
 
