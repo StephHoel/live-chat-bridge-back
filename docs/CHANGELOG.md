@@ -25,9 +25,11 @@
   - processamento de mensagem válida reutilizando ingest
   - descarte de mensagem inválida sem acionar repositórios/adapter
   - retry em falha transitória e continuidade do consumo
+  - interrupção imediata em mensagem duplicada sem dispatch/retry adicional
+  - atualização de fila no fluxo assíncrono quando mensagem atende `QueuePolicy` (`!fila`)
   - cancelamento antes da leitura do canal
 - Ajuste de `ChatWorkerTests` para novo construtor com `IServiceScopeFactory`
-- Execução validada dos testes focados de worker/ingest sem falhas
+- Execução validada dos testes focados de worker/ingest sem falhas (`ChatProcessorServiceTests`: 6/6)
 
 ### 📚 Documentação
 
