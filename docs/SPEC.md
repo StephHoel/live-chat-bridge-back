@@ -48,14 +48,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** 1 spec em `docs/specs/active/`
-- **Planejadas:** 9 specs em `docs/specs/planned/`
+- **Planejadas:** 10 specs em `docs/specs/planned/`
 - **Concluídas:** 7 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
 1. **Spec 11** - Segurança de acesso por token para HTTP e acionamento do worker
-2. **Spec 15** - Tabela de logs com auditoria mínima
-3. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
+2. **Spec 18** - Acionamento do worker pelo front
+3. **Spec 15** - Tabela de logs com auditoria mínima
+4. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -233,6 +234,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
 - implementar segurança de acesso por token para endpoints protegidos e acionamento do worker (Spec 11);
+- implementar acionamento explícito do worker pelo front (Spec 18);
 - implementar trilha de auditoria persistida mínima (Spec 15) e auditoria de inserção em `ChatMessages` (Spec 16).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto

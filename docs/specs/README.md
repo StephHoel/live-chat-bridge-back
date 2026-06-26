@@ -43,6 +43,7 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
+- [Acionamento do worker pelo front](planned/18-acionamento-do-worker-pelo-front.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
