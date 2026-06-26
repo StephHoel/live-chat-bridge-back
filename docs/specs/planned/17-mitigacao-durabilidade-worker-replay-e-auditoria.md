@@ -1,47 +1,47 @@
-# Mini-spec: Mitigacao de durabilidade do worker com replay e auditoria
+# Mini-spec: Mitigação de durabilidade do worker com replay e auditoria
 
-Numero: 17
+Número: 17
 Status: planejado
-Origem: risco registrado na PR #9 (semantica at-least-once intra-processo sem garantia cross-restart)
+Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem garantia cross-restart)
 
 ## Problema
 
-- O fluxo assincrono do worker usa canal em memoria e nao garante retencao entre reinicios do processo.
-- Quedas durante processamento podem causar perda de mensagens que ainda nao foram persistidas de forma recuperavel.
+- O fluxo assíncrono do worker usa canal em memória e não garante retenção entre reinícios do processo.
+- Quedas durante processamento podem causar perda de mensagens que ainda não foram persistidas de forma recuperável.
 - Falta trilha persistida unificada para auditoria operacional do processamento do worker.
-- A tabela `ChatMessages` ainda nao diferencia claramente o ator que inseriu/processou a mensagem no backend.
+- A tabela `ChatMessages` ainda não diferencia claramente o ator que inseriu/processou a mensagem no backend.
 
 ## Comportamento esperado
 
-- Implementar buffer duravel de entrada para o worker (store-then-process) antes do processamento de negocio.
-- Permitir replay pos-restart de mensagens pendentes/falhas com estrategia de retentativa controlada.
-- Manter reutilizacao do caso de uso de ingestao para preservar regras de idempotencia, fila e comandos.
-- Persistir auditoria minima do fluxo com ator, acao, status e timestamp em tabela dedicada.
-- Preencher origem de insercao da mensagem em `ChatMessages` para distinguir autor do chat e ator de insercao no sistema.
+- Implementar buffer durável de entrada para o worker (store-then-process) antes do processamento de negócio.
+- Permitir replay pós-restart de mensagens pendentes/falhas com estratégia de retentativa controlada.
+- Manter reutilização do caso de uso de ingestão para preservar regras de idempotência, fila e comandos.
+- Persistir auditoria mínima do fluxo com ator, ação, status e timestamp em tabela dedicada.
+- Preencher origem de inserção da mensagem em `ChatMessages` para distinguir autor do chat e ator de inserção no sistema.
 
-## Interferencia com mini-specs existentes
+## Interferência com mini-specs existentes
 
-- Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](docs/specs/done/05-processamento-real-chat-worker.md): expande a semantica de entrega do worker para garantir recuperacao cross-restart.
-- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): incorpora a trilha de auditoria minima no mesmo fluxo de mitigacao.
-- Interfere com [docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md): incorpora o preenchimento de origem de insercao em todas as entradas.
+- Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](docs/specs/done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
+- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): incorpora a trilha de auditoria mínima no mesmo fluxo de mitigação.
+- Interfere com [docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md): incorpora o preenchimento de origem de inserção em todas as entradas.
 
-### Decisao explicita do usuario
+### Decisão explícita do usuário
 
-- Implementar esta mitigacao em escopo consolidado, incluindo auditoria minima e origem de insercao.
+- Implementar esta mitigação em escopo consolidado, incluindo auditoria mínima e origem de inserção.
 
-## Superficies afetadas
+## Superfícies afetadas
 
-- Endpoints: sem mudanca obrigatoria de contrato publico nesta fase.
-- Handlers: `MessageIngestHandler` permanece como regra central de negocio.
+- Endpoints: sem mudança obrigatória de contrato público nesta fase.
+- Handlers: `MessageIngestHandler` permanece como regra central de negócio.
 - Workers/Provedores: `ChatWorker`, `ChatProcessorService`, `TikTokChatProvider` (ou provedores equivalentes).
-- Repositorios/Persistencia: novo repositorio de inbox do worker, auditoria e evolucao de `ChatMessages`.
-- Integracoes externas: sem alteracao de protocolo com provider nesta fase.
+- Repositórios/Persistência: novo repositório de inbox do worker, auditoria e evolução de `ChatMessages`.
+- Integrações externas: sem alteração de protocolo com provider nesta fase.
 
-## Dados e persistencia
+## Dados e persistência
 
-### 1) Inbox duravel do worker
+### 1) Inbox durável do worker
 
-Criar tabela de entrada duravel para mensagens recebidas do provider (ex.: `WorkerInboxMessages`), com campos minimos:
+Criar tabela de entrada durável para mensagens recebidas do provider (ex.: `WorkerInboxMessages`), com campos mínimos:
 
 - `Id` (Guid)
 - `Provider` (string)
@@ -56,15 +56,15 @@ Criar tabela de entrada duravel para mensagens recebidas do provider (ex.: `Work
 - `CreatedAtUtc` (DateTime)
 - `UpdatedAtUtc` (DateTime)
 
-Indices recomendados:
+Índices recomendados:
 
-- `IdempotencyKey` (unico quando aplicavel ao inbox)
+- `IdempotencyKey` (único quando aplicável ao inbox)
 - `Status + NextRetryAtUtc`
 - `CreatedAtUtc`
 
-### 2) Auditoria minima
+### 2) Auditoria mínima
 
-Criar/usar tabela `AuditLogs` com campos minimos:
+Criar/usar tabela `AuditLogs` com campos mínimos:
 
 - `Id` (Guid)
 - `CreatedAtUtc` (DateTime)
@@ -77,19 +77,19 @@ Campos recomendados:
 - `Status` (string)
 - `MetadataJson` (string?)
 
-### 3) Origem de insercao em ChatMessages
+### 3) Origem de inserção em ChatMessages
 
 Adicionar coluna `InsertedByUser` em `ChatMessages`:
 
-- Obrigatoria apos migracao.
-- Fluxo HTTP: usuario autenticado do token.
-- Fluxo worker: identificador tecnico controlado, ex.: `system:worker`.
-- Dados legados: preencher com fallback seguro em migracao.
+- Obrigatória após migração.
+- Fluxo HTTP: usuário autenticado do token.
+- Fluxo worker: identificador técnico controlado, ex.: `system:worker`.
+- Dados legados: preencher com fallback seguro em migração.
 
 ## Fluxo funcional proposto
 
 1. Provedor recebe mensagem e persiste em `WorkerInboxMessages` com `Status=Pending`.
-2. Processador faz claim atomico de lote `Pending`/`Failed` elegivel (`NextRetryAtUtc <= now`) para `Processing`.
+2. Processador faz claim atômico de lote `Pending`/`Failed` elegível (`NextRetryAtUtc <= now`) para `Processing`.
 3. Processador executa `MessageIngestHandler` com os dados da inbox.
 4. Em sucesso:
    - marca inbox como `Processed`;
@@ -104,57 +104,57 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
    - marca `DeadLetter`;
    - persiste auditoria de falha final.
 7. No startup/restart:
-   - rotina de recuperacao varre `Pending` e `Failed` elegiveis e retoma processamento.
+   - rotina de recuperação varre `Pending` e `Failed` elegíveis e retoma processamento.
 
-## Semantica de entrega
+## Semântica de entrega
 
-- Objetivo: at-least-once com recuperacao cross-restart.
-- Efeitos duplicados continuam prevenidos por idempotencia ja existente no fluxo de ingestao.
-- A garantia de exactly-once nao faz parte desta mini-spec.
+- Objetivo: at-least-once com recuperação cross-restart.
+- Efeitos duplicados continuam prevenidos por idempotência já existente no fluxo de ingestão.
+- A garantia de exactly-once não faz parte desta mini-spec.
 
 ## Contratos de API
 
-- Request/Response HTTP: sem alteracao obrigatoria nesta etapa.
+- Request/Response HTTP: sem alteração obrigatória nesta etapa.
 - Códigos HTTP: sem impacto direto esperado.
 - Envelope `Result<T>` permanece inalterado em endpoints.
 
-## Regras de validacao
+## Regras de validação
 
-- Mensagens invalidas devem ser auditadas e descartadas com motivo estruturado.
-- `InsertedByUser` nao pode ser nulo/vazio para novas mensagens.
-- `ActorUser` nao pode expor segredo (senha/token/chave).
-- Claim de processamento deve ser atomico para evitar corrida entre workers futuros.
+- Mensagens inválidas devem ser auditadas e descartadas com motivo estruturado.
+- `InsertedByUser` não pode ser nulo/vazio para novas mensagens.
+- `ActorUser` não pode expor segredo (senha/token/chave).
+- Claim de processamento deve ser atômico para evitar corrida entre workers futuros.
 
-## Criterios de aceite
+## Critérios de aceite
 
-- Reiniciar o processo nao perde mensagens ja recebidas e persistidas na inbox.
-- Mensagens pendentes/falhas elegiveis sao reprocessadas apos restart.
-- Duplicatas nao geram efeito colateral adicional no dominio.
-- Entradas de auditoria sao persistidas com `CreatedAtUtc` e `ActorUser`.
-- `ChatMessages.InsertedByUser` e preenchido corretamente em fluxo HTTP e worker.
-- Mensagens com falha recorrente chegam em `DeadLetter` apos limite de tentativas.
+- Reiniciar o processo não perde mensagens já recebidas e persistidas na inbox.
+- Mensagens pendentes/falhas elegíveis são reprocessadas após restart.
+- Duplicatas não geram efeito colateral adicional no domínio.
+- Entradas de auditoria são persistidas com `CreatedAtUtc` e `ActorUser`.
+- `ChatMessages.InsertedByUser` é preenchido corretamente em fluxo HTTP e worker.
+- Mensagens com falha recorrente chegam em `DeadLetter` após limite de tentativas.
 
 ## Testes esperados
 
-- Testes de repositorio da inbox duravel: create, claim, transicoes de status e consultas por elegibilidade.
-- Testes de processamento: sucesso, falha transitoria com retry, falha final com dead-letter.
-- Testes de restart: mensagens `Pending/Failed` sao retomadas no boot.
-- Testes de auditoria: persistencia de `CreatedAtUtc` e `ActorUser` sem dados sensiveis.
+- Testes de repositório da inbox durável: create, claim, transições de status e consultas por elegibilidade.
+- Testes de processamento: sucesso, falha transitória com retry, falha final com dead-letter.
+- Testes de restart: mensagens `Pending/Failed` são retomadas no boot.
+- Testes de auditoria: persistência de `CreatedAtUtc` e `ActorUser` sem dados sensíveis.
 - Testes de `InsertedByUser`:
   - HTTP autenticado preenche ator do token.
   - Worker preenche `system:worker`.
-  - Migracao preenche legado com fallback.
+  - Migração preenche legado com fallback.
 
 ## Fora de escopo
 
-- Troca para broker externo distribuido (RabbitMQ/Kafka/SQS/Service Bus).
+- Troca para broker externo distribuído (RabbitMQ/Kafka/SQS/Service Bus).
 - Dashboard de monitoramento de DLQ/auditoria.
-- Exactly-once distribuido.
+- Exactly-once distribuído.
 
-## Plano sugerido de implementacao (incremental)
+## Plano sugerido de implementação (incremental)
 
-1. Migracoes de schema: `WorkerInboxMessages`, `AuditLogs`, `ChatMessages.InsertedByUser`.
-2. Repositorios e servicos de claim/retry/recovery.
-3. Integracao do provider com persistencia de inbox (store-then-process).
-4. Integracao do processador com transicoes de status + auditoria + dead-letter.
-5. Testes de regressao e cenarios de restart.
+1. Migrações de schema: `WorkerInboxMessages`, `AuditLogs`, `ChatMessages.InsertedByUser`.
+2. Repositórios e serviços de claim/retry/recovery.
+3. Integração do provider com persistência de inbox (store-then-process).
+4. Integração do processador com transições de status + auditoria + dead-letter.
+5. Testes de regressão e cenários de restart.

@@ -38,6 +38,8 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
     {
         for (var attempt = 1; attempt <= MaxProcessingAttempts; attempt++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
+
             var result = await ExecuteIngestUseCaseAsync(message);
             var status = result.Data?.Status ?? StatusResultEnum.Error;
 
