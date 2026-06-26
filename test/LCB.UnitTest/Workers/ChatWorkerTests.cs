@@ -8,6 +8,7 @@ using LCB.Application.Workers;
 using LCB.Domain.Models;
 using LCB.Domain.Models.Config;
 using LCB.Infrastructure.Providers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Xunit;
@@ -21,10 +22,13 @@ public class ChatWorkerTests
     {
         var channel = Channel.CreateUnbounded<ChatMessageModel>();
         channel.Writer.Complete();
+        var provider = new ServiceCollection().BuildServiceProvider();
 
         var worker = new ChatWorker(
             new TikTokChatProvider(channel.Writer, NullLogger<TikTokChatProvider>.Instance),
-            new ChatProcessorService(channel.Reader, NullLogger<ChatProcessorService>.Instance),
+            new ChatProcessorService(channel.Reader,
+                                     provider.GetRequiredService<IServiceScopeFactory>(),
+                                     NullLogger<ChatProcessorService>.Instance),
             NullLogger<ChatWorker>.Instance,
             new TestOptionsMonitor(new LiveConfig { Tiktok = string.Empty }));
 

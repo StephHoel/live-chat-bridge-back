@@ -1,7 +1,7 @@
 # Mini-spec: Processamento real de mensagens no ChatProcessorService
 
 Número: 05
-Status: planejado
+Status: implementado
 
 ## Problema
 
