@@ -84,6 +84,26 @@ public class ChatProcessorServiceTests
     }
 
     [Fact]
+    public async Task ProcessMessagesAsync_RetriesWhenPersistenceFails_AndSucceedsOnThirdAttempt()
+    {
+        var sut = CreateSut();
+
+        sut.MessageRepository
+            .SetupSequence(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .ReturnsAsync(false)
+            .ReturnsAsync(false)
+            .ReturnsAsync(true);
+
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-persist", "hello", "TikTok", DateTime.UtcNow));
+        sut.Channel.Writer.Complete();
+
+        await sut.Service.ProcessMessagesAsync(CancellationToken.None);
+
+        sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Exactly(3));
+        sut.AdapterService.Verify(a => a.ParseAndDispatch(It.Is<ChatMessageEntity>(m => m.Author == "user-persist")), Times.Exactly(3));
+    }
+
+    [Fact]
     public async Task ProcessMessagesAsync_StopsOnDuplicate_WithoutRetryingOrDispatchingCommand()
     {
         var sut = CreateSut();
