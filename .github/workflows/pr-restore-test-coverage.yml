@@ -27,13 +27,22 @@ jobs:
       - name: Restore solution
         run: dotnet restore LCB.sln
 
-      - name: Run tests with coverage
+      - name: Clean previous test artifacts
+        run: rm -rf ./TestResults
+
+      - name: Run unit tests with coverage
         run: |
-          dotnet test LCB.sln \
+          dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj \
             --configuration Release \
             --no-restore \
             --collect:"XPlat Code Coverage;Format=cobertura" \
             --results-directory ./TestResults
+
+      - name: Run integration tests
+        run: |
+          dotnet test test/LCB.IntegrationTest/LCB.IntegrationTest.csproj \
+            --configuration Release \
+            --no-restore
 
       - name: Enforce minimum 80% line coverage
         shell: pwsh
@@ -43,6 +52,10 @@ jobs:
           if (-not $files) {
             Write-Error "Coverage report not found."
             exit 1
+          }
+
+          if ($files.Count -gt 1) {
+            Write-Host "Multiple coverage reports found. Using the first one from unit test execution."
           }
 
           [xml]$coverage = Get-Content $files[0].FullName
