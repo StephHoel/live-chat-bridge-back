@@ -34,6 +34,7 @@ Adicionalmente aos passos acima:
 - Nunca executar `git commit` (nem variações como `git commit --amend`) sem que o usuário solicite explicitamente. Editar arquivos e fazer stage são permitidos; o commit final depende sempre de pedido explícito.
 - Sempre que for abrir Pull Request, usar obrigatoriamente o template em `.github/pull_request_template.md`, preenchendo todas as seções aplicáveis no corpo do PR.
 - Em endpoints HTTP, manter sempre envelope `Result<T>` em **todos** os responses (sucesso e erro). A implementação e a documentação (`Produces(...)`) devem permanecer consistentes com `Result<T>`.
+- Em documentação escrita em português, manter sempre consistência de ortografia, acentuação e terminologia em pt-BR (evitar variações mistas e grafias sem acento quando não intencionais).
 
 ## Ao finalizar qualquer implementação
 

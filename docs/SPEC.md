@@ -48,7 +48,7 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 9 specs em `docs/specs/planned/`
+- **Planejadas:** 10 specs em `docs/specs/planned/`
 - **Concluídas:** 7 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
@@ -145,6 +145,7 @@ Ao trabalhar neste projeto, a IA deve:
 - manter responses de API sempre envelopados em `Result<T>` (sucesso e erro), com metadados de endpoint (`Produces`) refletindo o mesmo contrato;
 - preferir mudanças incrementais, porque há partes ainda prototipais e não totalmente consolidadas;
 - adicionar ou atualizar testes ao mexer em repositórios, parsing de comandos, autenticação ou idempotência;
+- manter consistência de ortografia, acentuação e terminologia em português (pt-BR) em toda documentação do projeto (`docs/`, mini-specs, changelog e instruções), evitando mistura inconsistente de variantes;
 - documentar no spec qualquer mudança que altere fluxo de ingestão, autenticação, processamento ou persistência.
 
 ## 9. Convenção de Namespaces de Domínio
