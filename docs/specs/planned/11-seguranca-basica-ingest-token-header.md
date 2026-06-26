@@ -1,4 +1,4 @@
-# Mini-spec: Segurança básica do ingest por token em header
+# Mini-spec: Segurança de acesso por token para HTTP e acionamento do worker
 
 Número: 11
 Status: planejado
@@ -6,51 +6,61 @@ Origem: [Issue #45](https://github.com/StephHoel/live-chat-bridge/issues/45)
 
 ## Problema
 
-- Endpoint de ingest pode ficar exposto sem proteção mínima.
-- Risco de envio não autorizado de comandos/mensagens.
+- Endpoints HTTP sensíveis podem ficar expostos sem proteção mínima uniforme.
+- Há necessidade de exigir token para qualquer operação HTTP (exceto autenticação inicial) e para rotas de acionamento operacional do worker.
+- Sem padronização, cada endpoint pode adotar uma regra de segurança diferente.
 
 ## Comportamento esperado
 
-- Suportar validação opcional de token por header (`x-ingest-token`).
-- Se variável de ambiente de token estiver configurada, validar obrigatoriamente.
-- Se token não estiver configurado, permitir requisição (modo dev).
+- Exigir token em todas as requisições HTTP da API, com exceção de `POST /auth/login` e `POST /auth/register`.
+- Exigir token em qualquer endpoint que acione/parcialmente controle o worker (quando existente).
+- Padronizar o header de autenticação por token de serviço para chamadas não interativas.
+- Aplicar autenticação em ponto único do pipeline HTTP (middleware/filtro/policy), sem replicar checagem manual em endpoints e handlers.
+- Falhas de autenticação devem retornar erro consistente sem expor segredos.
 
 ## Superfícies afetadas
 
-- Endpoints: `POST /messages/ingest`.
-- Handlers: sem alteração de regra de negócio.
-- Workers/Provedores: sem impacto.
-- Integrações externas: variáveis de ambiente/configuração.
+- Endpoints: todos os endpoints HTTP, exceto `POST /auth/login` e `POST /auth/register`.
+- Handlers: sem alteração de regra de negócio; proteção deve ocorrer no pipeline (middleware/filtro/autorização).
+- Workers/Provedores: impacto indireto em endpoints de acionamento/controle do worker.
+- Integrações externas: variáveis de ambiente/configuração de token.
 
 ## Dados e persistência
 
 - Não persistir token em logs.
 - Registrar apenas tentativa autorizada/não autorizada de forma segura.
+- Garantir que logs de segurança não armazenem conteúdo bruto de header de autenticação.
 
 ## Contratos de API
 
-- Request: header opcional `x-ingest-token`.
-- Response: sem alteração no sucesso.
+- Request: header obrigatório de token para endpoints protegidos.
+- Response: sem alteração no sucesso para endpoints autenticados.
 - Códigos HTTP:
   - `200 OK`: autorizado.
-  - `401 Unauthorized` ou `403 Forbidden`: token ausente/inválido quando proteção ativa.
+  - `401 Unauthorized`: token ausente ou inválido em endpoint protegido.
+  - `403 Forbidden`: opcional quando token válido não possuir escopo/perfil esperado (se aplicável futuramente).
 
 ## Regras de validação
 
-- Comparação exata com token configurado.
-- Ausência de configuração ativa modo permissivo controlado.
+- Comparação exata com token configurado em ambiente.
+- `POST /auth/login` e `POST /auth/register` são rotas explicitamente públicas.
+- Endpoints protegidos nunca operam em modo permissivo no ambiente alvo da feature.
+- Endpoints e handlers não devem conter lógica duplicada de validação de token quando o pipeline central estiver ativo.
 
 ## Critérios de aceite
 
-- Com token configurado, requisições sem token são negadas.
-- Com token configurado, requisição com token inválido é negada.
-- Sem token configurado, fluxo continua funcionando em desenvolvimento.
+- Requisições para qualquer endpoint protegido sem token retornam `401 Unauthorized`.
+- Requisições para qualquer endpoint protegido com token inválido retornam `401 Unauthorized`.
+- `POST /auth/login` e `POST /auth/register` permanecem acessíveis sem token.
+- Endpoints de acionamento/controle do worker exigem token.
+- Não existe duplicação de checagem de token entre middleware/filtro e endpoint/handler.
 
 ## Testes esperados
 
-- Teste de autorização com token válido.
-- Teste sem token quando proteção ativa.
-- Teste sem configuração de token (modo permissivo).
+- Testes de autorização para endpoint protegido com token válido.
+- Testes para endpoint protegido sem token e com token inválido.
+- Testes garantindo acesso público apenas para login e register.
+- Testes para endpoint de acionamento/controle do worker validando exigência de token.
 
 ## Fora de escopo
 
