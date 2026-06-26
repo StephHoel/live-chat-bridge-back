@@ -10,6 +10,6 @@ public static class HttpJson
         PropertyNameCaseInsensitive = true
     };
 
-    public static async Task<T?> ReadAsAsync<T>(this HttpContent content)
+    public static async Task<T?> ReadAsync<T>(this HttpContent content)
         => await content.ReadFromJsonAsync<T>(SerializerOptions);
 }
