@@ -60,6 +60,36 @@ public class ChatProcessorServiceTests
     }
 
     [Fact]
+    public async Task ProcessMessagesAsync_DiscardsMessage_WhenTextIsMissing()
+    {
+        var sut = CreateSut();
+
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-text", "   ", "TikTok", DateTime.UtcNow));
+        sut.Channel.Writer.Complete();
+
+        await sut.Service.ProcessMessagesAsync(CancellationToken.None);
+
+        sut.MessageRepository.Verify(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()), Times.Never);
+        sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
+        sut.AdapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessMessagesAsync_DiscardsMessage_WhenTimestampIsDefault()
+    {
+        var sut = CreateSut();
+
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-time", "hello", "TikTok", default));
+        sut.Channel.Writer.Complete();
+
+        await sut.Service.ProcessMessagesAsync(CancellationToken.None);
+
+        sut.MessageRepository.Verify(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()), Times.Never);
+        sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
+        sut.AdapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
+    }
+
+    [Fact]
     public async Task ProcessMessagesAsync_RetriesTransientFailure_AndContinuesWithNextMessage()
     {
         var sut = CreateSut();
