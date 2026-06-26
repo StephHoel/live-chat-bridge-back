@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace LCB.Api;
 
-public class Program
+public partial class Program
 {
     private static void Main(string[] args)
     {
