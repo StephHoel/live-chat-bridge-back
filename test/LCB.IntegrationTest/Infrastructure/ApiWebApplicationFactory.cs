@@ -1,3 +1,4 @@
+using LCB.Api;
 using LCB.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -10,7 +11,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace LCB.IntegrationTest.Infrastructure;
 
-public sealed class ApiWebApplicationFactory : WebApplicationFactory<Api.Program>
+public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 {
     private const string JwtTestKey = "integration-tests-jwt-key-with-at-least-32-bytes!!";
     private readonly SqliteConnection _connection = new("Data Source=:memory:");

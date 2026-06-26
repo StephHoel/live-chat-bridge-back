@@ -1,0 +1,68 @@
+using System.Net;
+using System.Net.Http.Json;
+using LCB.Application.Commands.Login;
+using LCB.Application.Commands.Register;
+using LCB.Domain.Objects;
+using LCB.IntegrationTest.Constants;
+using LCB.IntegrationTest.Infrastructure;
+using Xunit;
+
+namespace LCB.IntegrationTest.Endpoints.Auth;
+
+public class LoginIntegrationTests(ApiWebApplicationFactory factory)
+    : IClassFixture<ApiWebApplicationFactory>
+{
+    private readonly HttpClient _client = factory.CreateClient();
+    private readonly string endpointLogin = "/auth/login";
+    private readonly string endpointReq = "/auth/register";
+    private readonly string pass = "StrongP@ss1";
+
+    [Fact]
+    public async Task Login_UnknownUser_ReturnsUnauthorized()
+    {
+        var email = FakeData.BuildUniqueEmail();
+        var request = new LoginRequest(email, pass);
+        var response = await _client.PostAsJsonAsync(endpointLogin, request);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var body = await response.Content.ReadAsync<Result<LoginResponse>>();
+        Assert.NotNull(body);
+        Assert.False(body.Success);
+        Assert.Equal("Invalid email or password", body.Error);
+    }
+
+    [Fact]
+    public async Task Login_InvalidPassword_ReturnsUnauthorized()
+    {
+        var email = FakeData.BuildUniqueEmail();
+        var registerRequest = new RegisterRequest(email, pass, pass);
+        await _client.PostAsJsonAsync(endpointReq, registerRequest);
+
+        var request = new LoginRequest(email, "WrongP@ss1");
+        var response = await _client.PostAsJsonAsync(endpointLogin, request);
+        Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+
+        var body = await response.Content.ReadAsync<Result<LoginResponse>>();
+        Assert.NotNull(body);
+        Assert.False(body.Success);
+        Assert.Equal("Invalid email or password", body.Error);
+    }
+
+    [Fact]
+    public async Task Login_Valid_ReturnToken()
+    {
+        var email = FakeData.BuildUniqueEmail();
+        var registerRequest = new RegisterRequest(email, pass, pass);
+        await _client.PostAsJsonAsync(endpointReq, registerRequest);
+
+        var request = new LoginRequest(email, pass);
+        var loginResponse = await _client.PostAsJsonAsync(endpointLogin, request);
+        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
+
+        var body = await loginResponse.Content.ReadAsync<Result<LoginResponse>>();
+        Assert.NotNull(body);
+        Assert.True(body.Success);
+        Assert.NotNull(body.Data);
+        Assert.False(string.IsNullOrWhiteSpace(body.Data!.Token));
+    }
+}

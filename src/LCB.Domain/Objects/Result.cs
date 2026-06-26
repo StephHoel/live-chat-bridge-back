@@ -7,12 +7,11 @@ namespace LCB.Domain.Objects;
 [ExcludeFromCodeCoverage]
 public class Result<T>
 {
-    public bool Success { get; private set; }
-    public T? Data { get; private set; }
-    public string? Error { get; private set; }
+    public bool Success { get; set; }
+    public T? Data { get; set; }
+    public string? Error { get; set; }
     [JsonIgnore]
-    public HttpStatusCode? StatusCode { get; private set; }
-
+    public HttpStatusCode? StatusCode { get; set; }
 
     public static Result<T> Ok(T data, HttpStatusCode? statusCode = HttpStatusCode.OK)
         => new() { Success = true, Data = data, StatusCode = statusCode };
