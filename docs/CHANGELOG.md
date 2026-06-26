@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## [v0.6.0] - 2026-06-25
+
+### ✨ Funcionalidades
+
+- **Processamento real no worker de chat** (Spec 05)
+  - `ChatProcessorService` deixou de ser apenas log e passou a executar processamento real por mensagem
+  - Reuso obrigatório do mesmo caso de uso de ingest HTTP (`MessageIngestHandler`) no fluxo assíncrono
+  - Validação de mensagens de entrada (`Author`, `Text`, `Timestamp`) antes do processamento
+  - Estratégia de retry para falhas transitórias com até 3 tentativas
+  - Tratamento explícito de duplicata no fluxo assíncrono usando a mesma regra de idempotência do ingest
+
+### 🔧 Melhorias Técnicas
+
+- **Resiliência do worker**
+  - Loop de reconexão do `ChatWorker` ajustado para `Task.Run` assíncrono
+  - Backoff de reconexão com `await Task.Delay(...)` respeitando `CancellationToken`
+- **Observabilidade mínima por mensagem no worker**
+  - Log estruturado com `IdempotencyKey`, `Status`, `Error`, `Provider` e `DateTime`
+
+### 🧪 Testes
+
+- Expansão de cobertura em `ChatProcessorServiceTests`
+  - processamento de mensagem válida reutilizando ingest
+  - descarte de mensagem inválida sem acionar repositórios/adapter
+  - retry em falha transitória e continuidade do consumo
+  - cancelamento antes da leitura do canal
+- Ajuste de `ChatWorkerTests` para novo construtor com `IServiceScopeFactory`
+- Execução validada dos testes focados de worker/ingest sem falhas
+
+### 📚 Documentação
+
+- Mini-spec 05 movida para concluída (`docs/specs/done/05-processamento-real-chat-worker.md`)
+- Spec 11 atualizada para segurança por token em endpoints protegidos, com exceção explícita de `POST /auth/login` e `POST /auth/register`
+- Inclusão das novas mini-specs planejadas:
+  - Spec 15: tabela de logs com auditoria mínima
+  - Spec 16: auditoria de origem de inserção em `ChatMessages`
+- `docs/SPEC.md` e `docs/specs/README.md` sincronizados com status, prioridades e decisões mais recentes
+
 ## [v0.5.0] - 2026-06-24
 
 ### ✨ Funcionalidades

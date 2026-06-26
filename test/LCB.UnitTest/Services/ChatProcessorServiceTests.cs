@@ -84,6 +84,50 @@ public class ChatProcessorServiceTests
     }
 
     [Fact]
+    public async Task ProcessMessagesAsync_StopsOnDuplicate_WithoutRetryingOrDispatchingCommand()
+    {
+        var sut = CreateSut();
+
+        var duplicate = new ChatMessageEntity
+        {
+            Provider = ProviderTypeEnum.TIKTOK,
+            Author = "alice",
+            Text = "hello",
+            Timestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc),
+            Processed = true,
+        };
+        duplicate.EnsureIdempotencyKey();
+
+        sut.MessageRepository
+            .Setup(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()))
+            .ReturnsAsync(duplicate);
+
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("alice", "hello", "TikTok", duplicate.Timestamp));
+        sut.Channel.Writer.Complete();
+
+        await sut.Service.ProcessMessagesAsync(CancellationToken.None);
+
+        sut.MessageRepository.Verify(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()), Times.Once);
+        sut.AdapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
+        sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
+        sut.MessageRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ProcessMessagesAsync_UpdatesQueue_WhenMessageMatchesQueuePolicy()
+    {
+        var sut = CreateSut();
+
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("queue-user", "!fila", "TikTok", DateTime.UtcNow));
+        sut.Channel.Writer.Complete();
+
+        await sut.Service.ProcessMessagesAsync(CancellationToken.None);
+
+        sut.QueueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Once);
+        sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
+    }
+
+    [Fact]
     public async Task ProcessMessagesAsync_Stops_WhenCancellationIsRequestedBeforeRead()
     {
         var channel = Channel.CreateUnbounded<ChatMessageModel>();
