@@ -48,14 +48,14 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** Nenhuma (pasta `active/` vazia)
-- **Planejadas:** 8 specs em `docs/specs/planned/`
-- **Concluídas:** 6 specs em `docs/specs/done/`
+- **Planejadas:** 9 specs em `docs/specs/planned/`
+- **Concluídas:** 7 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 05** - Processamento real em `ChatProcessorService`
-2. **Spec 06** - Endpoint auth recover
-3. **Spec 07** - Endpoint HTTP para bootstrap da fila
+1. **Spec 11** - Segurança de acesso por token para HTTP e acionamento do worker
+2. **Spec 15** - Tabela de logs com auditoria mínima
+3. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -172,6 +172,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ### Status de Specs Completadas
 
+- ✅ **Spec 05 - Processamento real do worker** (feita): `ChatProcessorService` reutiliza o caso de uso de ingest HTTP, com validação, idempotência, resiliência e observabilidade mínima por mensagem.
 - ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
 - ✅ **Spec 12 - Registro de conta** (feita): Endpoint `POST /auth/register` com política de senha configurável, confirmação obrigatória e prevenção de e-mail duplicado.
@@ -199,9 +200,9 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ### Processamento
 
-- `ChatProcessorService` não implementa lógica de negócio real; apenas imprime no console.
+- `ChatProcessorService` implementa processamento real com reuso do caso de uso de ingest HTTP.
 - Consolidação de modelo entre fluxo HTTP e worker implementada na Spec 04, com conversões explícitas por camada e contrato de API sem exposição de entidade de persistência.
-- Lógica real de processamento prevista para Spec 05.
+- Semântica de entrega no canal interno permanece `at-least-once` intra-processo (sem garantia cross-restart no canal em memória atual).
 
 ## 11. Testes e Cobertura Atual
 
@@ -230,8 +231,8 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- implementar processamento real no `ChatProcessorService` (Spec 05);
-- ampliar cobertura de testes nas rotas e handlers centrais.
+- implementar segurança de acesso por token para endpoints protegidos e acionamento do worker (Spec 11);
+- implementar trilha de auditoria persistida mínima (Spec 15) e auditoria de inserção em `ChatMessages` (Spec 16).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto
 
@@ -339,3 +340,5 @@ Status: planejado
 - Para providers sem ID nativo de mensagem, a idempotência no fluxo assíncrono deve usar `Provider + Author + Timestamp` do provider (normalizado para UTC-3).
 - A semântica de entrega do canal interno na Spec 05 é `at-least-once` intra-processo; não há garantia cross-restart com o canal em memória atual.
 - Observabilidade mínima por mensagem na Spec 05: `IdempotencyKey`, `Status`, `Error` (quando houver), `Provider` e `DateTime`.
+- Para segurança de acesso da Spec 11, `POST /auth/login` e `POST /auth/register` são rotas públicas; demais endpoints protegidos exigem token.
+- A validação de token da Spec 11 deve ser centralizada no pipeline HTTP, evitando duplicação em endpoints/handlers.
