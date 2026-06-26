@@ -30,7 +30,7 @@ public class ChatWorker(TikTokChatProvider TikTok,
             return;
         }
 
-        var tiktokTask = Task.Factory.StartNew(() =>
+        var tiktokTask = Task.Run(async () =>
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -41,10 +41,18 @@ public class ChatWorker(TikTokChatProvider TikTok,
                 catch (Exception ex)
                 {
                     Logger.LogError(ex, "Erro na conexão TikTok");
-                    Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+
+                    try
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
                 }
             }
-        }, cancellationToken, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }, cancellationToken);
 
         await Task.WhenAll(processorTask, tiktokTask);
     }
