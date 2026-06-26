@@ -4,6 +4,18 @@ Esta pasta organiza mini-specs por status para funcionalidades e pendências do 
 
 Use estes documentos antes de iniciar qualquer alteração de produto. Quando uma mini-spec mudar de estágio, mova o arquivo para a pasta correspondente, atualize o status no documento, registre decisões tomadas durante a execução e mantenha o `docs/SPEC.md` sincronizado quando houver mudança de diretriz.
 
+## Fluxo obrigatório de ciclo de vida
+
+1. Ao iniciar a implementação de uma mini-spec:
+   - atualizar o status da mini-spec para **em andamento**;
+   - mover o arquivo de `planned/` para `active/`;
+   - atualizar este `README.md` para refletir a mini-spec na lista **Ativas/Em andamento**.
+
+2. Ao abrir PR com a implementação concluída da mini-spec:
+   - atualizar o status da mini-spec para **implementado**;
+   - mover o arquivo de `active/` para `done/`;
+   - atualizar este `README.md` para refletir a mini-spec no final da lista **Implementadas**.
+
 ## Estrutura
 
 - `planned/`: mini-specs planejadas, ainda não iniciadas.
@@ -38,6 +50,7 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 - [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
+- [Mitigação de durabilidade do worker com replay e auditoria](planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.

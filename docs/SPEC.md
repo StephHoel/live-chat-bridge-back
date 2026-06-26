@@ -258,6 +258,11 @@ A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir u
 - não refatorar código não relacionado;
 - proteger dados persistidos;
 - preservar comportamento existente por padrão;
+
+### Fluxo obrigatório de status das mini-specs
+
+- ao iniciar uma mini-spec, atualizar o status para **em andamento**, mover o arquivo de `docs/specs/planned/` para `docs/specs/active/` e atualizar `docs/specs/README.md` para listá-la em **Ativas/Em andamento**;
+- ao abrir PR com a mini-spec implementada, atualizar o status para **implementado**, mover o arquivo de `docs/specs/active/` para `docs/specs/done/` e atualizar `docs/specs/README.md` para listá-la no final da lista de **Implementadas**.
 - pedir confirmação quando uma mudança alterar comportamento de usuário, formato de dados, formato de compartilhamento ou compatibilidade;
 - atualizar este spec quando uma decisão nova for tomada;
 - atualizar README somente quando a informação for útil para usuários ou contribuidores.

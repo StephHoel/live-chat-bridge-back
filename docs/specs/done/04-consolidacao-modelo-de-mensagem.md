@@ -1,7 +1,7 @@
 # Mini-spec: Consolidação do modelo de mensagem entre HTTP e worker
 
 Número: 04
-Status: concluída
+Status: implementado
 
 ## Problema
 
