@@ -6,7 +6,6 @@ using LCB.Domain.Models.Config;
 using LCB.Domain.Services;
 using LCB.Infrastructure.Repositories;
 using LCB.Infrastructure.Services;
-using LCB.UnitTest.Factories;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 using static LCB.UnitTest.Factories.RepositoryTestDbFactory;

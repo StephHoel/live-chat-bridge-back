@@ -1,6 +1,7 @@
 @LCB.Api_HostAddress = https://localhost:7274
 
 ### Login com Sucesso
+# @name loginSuccess
 POST {{ LCB.Api_HostAddress }}/auth/login
 Accept: application/json
 Content-Type: application/json
@@ -9,6 +10,9 @@ Content-Type: application/json
     "email": "steph@hoel.com",
     "password": "Hoel@1996"
 }
+
+### Capturar token JWT da resposta de login
+@LCB.JwtToken = {{loginSuccess.response.body.$.data.token}}
 
 ### Login com Erro - 401
 POST {{ LCB.Api_HostAddress }}/auth/login
@@ -59,6 +63,7 @@ GET {{ LCB.Api_HostAddress }}/swagger/v1/swagger.json
 ### Ingest TikTok message (entra na fila)
 POST {{ LCB.Api_HostAddress }}/messages/ingest
 Content-Type: application/json
+Authorization: Bearer {{ LCB.JwtToken }}
 
 {
 	"provider": 0,

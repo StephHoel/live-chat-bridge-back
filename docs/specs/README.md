@@ -36,13 +36,13 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 ### 🔄 Ativas/Em andamento
 
-- Nenhuma no momento.
+<!-- - Nenhuma no momento. -->
+- [Segurança de acesso por token para HTTP e acionamento do worker](planned/11-seguranca-basica-ingest-token-header.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Segurança de acesso por token para HTTP e acionamento do worker](planned/11-seguranca-basica-ingest-token-header.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
