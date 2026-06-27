@@ -49,15 +49,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Ativas:** 0 specs em `docs/specs/active/`
-- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Planejadas:** 12 specs em `docs/specs/planned/`
 - **Concluídas:** 8 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 18** - Acionamento do worker pelo front
-2. **Spec 15** - Tabela de logs com auditoria mínima
-3. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
-4. **Spec 17** - Mitigação de durabilidade do worker com replay e auditoria
+1. **Spec 19** - Configuração persistida de live e usernames por plataforma
+2. **Spec 20** - Login retorna usernames de live para bootstrap do front
+3. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
+4. **Spec 15** - Tabela de logs com auditoria mínima
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
