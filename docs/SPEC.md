@@ -42,6 +42,12 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 As mini-specs ficam em `docs/specs/` e são organizadas por status em `planned/`, `active/` e `done/`. A estrutura já existe no repositório. Consulte a mini-spec correspondente antes da implementação.
 
+### Diretriz transversal para escalabilidade de workers
+
+- O sistema deve estar apto a operar com **N usuários conectados simultaneamente**.
+- O backend deve suportar **execução concorrente de múltiplos workers/listeners**, mantendo isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- Novas mini-specs e implementações não podem assumir worker único global como premissa fixa.
+
 Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini-spec no formato da seção 16 deste documento.
 
 **Fallback enquanto não houver mini-spec formal:** se a pasta `docs/specs/planned/` não contiver um arquivo para a funcionalidade solicitada, a IA deve propor um rascunho de mini-spec ao usuário antes de escrever qualquer código, e aguardar confirmação.
@@ -209,6 +215,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - `ChatProcessorService` implementa processamento real com reuso do caso de uso de ingest HTTP.
 - Consolidação de modelo entre fluxo HTTP e worker implementada na Spec 04, com conversões explícitas por camada e contrato de API sem exposição de entidade de persistência.
 - Semântica de entrega no canal interno permanece `at-least-once` intra-processo (sem garantia cross-restart no canal em memória atual).
+- O desenho atual ainda evolui para atender plenamente operação com múltiplos workers simultâneos por usuário conectado (escala horizontal por sessão de live).
 
 ## 11. Testes e Cobertura Atual
 

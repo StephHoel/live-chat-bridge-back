@@ -3,6 +3,12 @@
 Número: 18
 Status: planejado
 
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
 ## Problema
 
 - Hoje o worker inicia junto com a aplicação e passa a operar sem um gesto explícito do front.
@@ -27,8 +33,8 @@ Status: planejado
 - Preferir `POST /worker/start` e `POST /worker/stop` como contrato explícito e fácil de testar.
 - Complementar com `GET /worker/status` para o front exibir se o worker está ativo, parado ou em transição.
 - O payload de `POST /worker/start` deve indicar explicitamente quais listeners serão ativados (`tiktok`, `twitch`, `youtube`).
-- Os usernames das plataformas não devem ser enviados no start; eles devem vir da configuração persistida do sistema.
-- Manter o acionamento restrito a um front autenticado, sem início automático no boot, exceto se houver decisão explícita diferente em ambiente futuro.
+- Os usernames das plataformas não devem ser enviados no start; eles devem vir da configuração persistida do banco.
+- Manter o acionamento restrito a um front autenticado, sem início automático no boot.
 
 ## Comportamento esperado
 
@@ -58,6 +64,7 @@ Status: planejado
 ## Dependências e interferências conhecidas
 
 - Esta mini-spec depende da existência de configuração persistida de usernames por plataforma, proposta na Spec 19.
+- Esta mini-spec interfere em [docs/specs/done/05-processamento-real-chat-worker.md](../done/05-processamento-real-chat-worker.md), pois o fluxo de execução do worker deixa de ser implicitamente único/global e passa a exigir controle e isolamento por usuário/sessão.
 - Esta mini-spec complementa a proteção já definida em [docs/specs/done/11-seguranca-basica-ingest-token-header.md](../done/11-seguranca-basica-ingest-token-header.md).
 - Esta mini-spec altera o escopo originalmente proposto da própria Spec 18, substituindo um start genérico por um start com seleção explícita de listeners por rede.
 
@@ -68,24 +75,24 @@ Status: planejado
 - `GET /worker/status`: retorna o estado atual do worker.
 - Exemplo de request para `POST /worker/start`:
 
-```json
+```cs
+public class WorkerStartRequest
 {
-  "tiktok": true,
-  "twitch": false,
-  "youtube": false
+    public bool TikTok { get; set; }
+    public bool Twitch { get; set; }
+    public bool YouTube { get; set; }
 }
 ```
 
 - Exemplo de response para `GET /worker/status`:
 
-```json
+```cs
+public class WorkerStatusResponse
 {
-  "state": "active",
-  "listeners": {
-    "tiktok": true,
-    "twitch": false,
-    "youtube": false
-  }
+    public StateEnum State { get; set; }
+    public bool TikTok { get; set; }
+    public bool Twitch { get; set; }
+    public bool YouTube { get; set; }
 }
 ```
 

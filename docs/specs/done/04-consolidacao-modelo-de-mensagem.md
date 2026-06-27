@@ -59,3 +59,9 @@ Status: implementado
 
 - Redesign de payload externo dos provedores.
 - Alteração visual/contratual para frontend.
+
+## Nota de evolução posterior
+
+- Esta mini-spec consolidou fronteiras de tipos entre HTTP e worker no desenho vigente.
+- Com a exigência atual de múltiplos workers concorrentes por usuário, os contratos de transporte interno devem manter o mesmo isolamento de camadas, incluindo identificação de contexto de sessão/usuário quando necessário.
+- Qualquer ampliação de metadados operacionais deve preservar a regra de conversão explícita por camada definida nesta spec.

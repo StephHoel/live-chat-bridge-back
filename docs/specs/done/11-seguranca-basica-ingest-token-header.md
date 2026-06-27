@@ -66,3 +66,9 @@ Origem: [Issue #45](https://github.com/StephHoel/live-chat-bridge/issues/45)
 
 - OAuth, JWT de serviço e mTLS.
 - Rate limiting e WAF.
+
+## Nota de evolução posterior
+
+- Esta mini-spec estabeleceu a exigência de autenticação para endpoints protegidos e para controle operacional do worker.
+- Com a diretriz de múltiplos workers concorrentes por usuário/sessão ativa, os endpoints de controle deverão preservar esse baseline e evoluir para autorização contextual por usuário-alvo.
+- A evolução funcional está concentrada nas mini-specs planejadas de acionamento do worker e configuração operacional (`18`, `19` e `20`).

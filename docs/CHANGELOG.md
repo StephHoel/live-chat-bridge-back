@@ -9,6 +9,7 @@
   - processamento real do worker registrado como implementado (sem pendência de lógica)
   - atualização do status de mini-specs (`active=0`, `done=8`) e prioridades planejadas
   - inclusão explícita da cobertura de testes de integração no spec
+- Diretriz transversal adicionada em documentação e specs planejadas: suporte a N usuários conectados simultaneamente com múltiplos workers concorrentes (um worker lógico por usuário/sessão).
 
 ### 🧪 Verificação
 

@@ -3,6 +3,12 @@
 Número: 20
 Status: planejado
 
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
 ## Problema
 
 - O login hoje retorna apenas o token JWT.

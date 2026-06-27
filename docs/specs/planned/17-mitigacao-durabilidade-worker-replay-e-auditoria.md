@@ -4,6 +4,12 @@ Número: 17
 Status: planejado
 Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem garantia cross-restart)
 
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
 ## Problema
 
 - O fluxo assíncrono do worker usa canal em memória e não garante retenção entre reinícios do processo.

@@ -4,6 +4,12 @@ Número: 09
 Status: planejado
 Origem: [Issue #36](https://github.com/StephHoel/live-chat-bridge/issues/36)
 
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
 ## Problema
 
 - Falta caso de uso transacional para aplicar regras e atualizar saldo.

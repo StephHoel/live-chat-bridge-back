@@ -13,6 +13,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Worker background para provedores de live (TikTok)
 - ✅ Persistência durável com SQLite/EF Core
 - ✅ Processamento real no worker com reuso do caso de uso de ingestão
+- 🎯 Diretriz de evolução: suporte a N usuários simultâneos com múltiplos workers concorrentes (um worker lógico por usuário)
 - 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 
 ## 🚀 Quick Start
