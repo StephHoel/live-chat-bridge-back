@@ -20,12 +20,12 @@ Status: planejado
 - Criar uma configuração operacional persistida para as plataformas de live suportadas.
 - Permitir que o front consulte a configuração atual.
 - Permitir que o front atualize os usernames das redes sociais por endpoint protegido.
-- Preparar a estrutura para expansão futura de outras configurações operacionais sem depender de `appsettings` como fonte principal.
+- Preparar a estrutura para expansão futura de outras configurações operacionais sem depender de `appsettings`, que deve ser descontinuado para estas configurações.
 
 ## Decisão de modelagem
 
 - A configuração será tratada como preferência individual por usuário.
-- A recomendação é usar uma única tabela de configuração com uma entrada por plataforma por usuário, para manter validação, índices e evolução de schema mais previsíveis.
+- A recomendação é usar uma única tabela de configuração com uma entrada por usuário, para manter validação, índices e evolução de schema mais previsíveis.
 
 ## Superfícies afetadas
 
@@ -38,22 +38,24 @@ Status: planejado
 
 - Criar nova tabela `LiveSettings` com uma linha por usuário.
 - Campos mínimos:
-  - `Id` (Guid)
+  - `SettingsId` (Guid unique)
   - `UserId` (correlação com tabela `Users`)
-  - `TikTokUsername` (string)
-  - `YouTubeUsername` (string)
-  - `TwitchUsername` (string)
+  - `TikTokUsername` (string nullable)
+  - `YouTubeUsername` (string nullable)
+  - `TwitchUsername` (string nullable)
+  - `ReloadTimeInSec` (long padrão 5)
   - `CreatedAtUtc` (DateTime)
   - `UpdatedAtUtc` (DateTime)
   - `UpdatedByUser` (string)
 - Índices recomendados:
+  - `UserId`
   - `UpdatedAtUtc`
 - A tabela deve nascer compatível com SQLite atual e com a futura migração para PostgreSQL.
 
 ## Contratos de API
 
-- `GET /config/live`: retorna usernames configurados por plataforma.
-- `PUT /config/live`: atualiza usernames configurados por plataforma.
+- `GET /config/live`: retorna configurações relevantes ao front (como usernames e tempo de reload).
+- `PUT /config/live`: atualiza configurações relevantes ao front (como usernames e tempo de reload).
 
 - Exemplo de request para `PUT /config/live`:
 
@@ -93,10 +95,10 @@ public class GetConfigLiveResponse
 
 ## Critérios de aceite
 
-- Existe persistência durável para usernames.
+- Existe persistência durável para configurações.
 - O front consegue consultar a configuração atual por endpoint protegido.
-- O front consegue atualizar usernames por endpoint protegido.
-- O worker passa a depender dessa configuração persistida em vez de depender exclusivamente de `appsettings`.
+- O front consegue atualizar configurações por endpoint protegido.
+- O worker passa a depender dessa configuração persistida em vez de depender de `appsettings`.
 - A solução permanece compatível com a futura migração para PostgreSQL.
 
 ## Testes esperados
