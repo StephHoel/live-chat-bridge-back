@@ -7,12 +7,13 @@ Status: planejado
 
 - Hoje o worker inicia junto com a aplicação e passa a operar sem um gesto explícito do front.
 - Isso dificulta controle operacional, previsibilidade de início e parada, e a separação entre API disponível e worker efetivamente ativo.
-- Falta um contrato claro para o front decidir quando o worker deve começar a processar eventos.
+- Falta um contrato claro para o front decidir quando o worker deve começar a processar eventos e quais listeners de redes sociais devem ser ativados em cada sessão.
 
 ## Objetivo
 
 - Permitir que o worker só funcione após um acionamento explícito vindo do front.
 - Definir um contrato simples e seguro para iniciar, consultar e, se necessário, interromper o worker.
+- Permitir que o front informe, no start, quais redes sociais entrarão em live naquele momento por meio de flags booleanas.
 - Preservar o comportamento atual da API HTTP fora desse controle operacional.
 
 ## Opções de acionamento avaliadas
@@ -25,14 +26,18 @@ Status: planejado
 
 - Preferir `POST /worker/start` e `POST /worker/stop` como contrato explícito e fácil de testar.
 - Complementar com `GET /worker/status` para o front exibir se o worker está ativo, parado ou em transição.
+- O payload de `POST /worker/start` deve indicar explicitamente quais listeners serão ativados (`tiktok`, `twitch`, `youtube`).
+- Os usernames das plataformas não devem ser enviados no start; eles devem vir da configuração persistida do sistema.
 - Manter o acionamento restrito a um front autenticado, sem início automático no boot, exceto se houver decisão explícita diferente em ambiente futuro.
 
 ## Comportamento esperado
 
 - O worker inicia em estado inativo.
-- O front envia um comando explícito para habilitar o worker.
+- O front envia um comando explícito para habilitar o worker, informando quais plataformas devem ser ativadas.
 - O backend registra e expõe o estado operacional atual do worker.
 - O worker pode ser interrompido por comando explícito, sem derrubar a API HTTP inteira.
+- O worker só tenta conectar listeners para plataformas marcadas como `true` no payload de start.
+- O backend valida se cada plataforma ativada possui username configurado antes de abrir o listener correspondente.
 - Comandos repetidos de start/stop devem ser idempotentes ou responder com estado atual.
 
 ## Superfícies afetadas
@@ -41,49 +46,90 @@ Status: planejado
 - Handlers: orquestração de start/stop/status.
 - Workers/Provedores: `ChatWorker` e possivelmente serviços auxiliares de ciclo de vida.
 - Integrações externas: front da aplicação ou painel administrativo.
+- Dependências funcionais: configuração persistida de usernames por plataforma.
 
 ## Dados e persistência
 
-- Definir se o estado operacional do worker será apenas em memória ou persistido.
+- O estado operacional do worker pode permanecer em memória nesta fase, desde que o comportamento fique explícito.
 - Se persistido, registrar o último estado conhecido e o horário da transição.
+- A seleção de plataformas ativas no comando de start não deve exigir novo username no payload; o backend deve ler os usernames persistidos para cada rede habilitada.
 - Não persistir payloads sensíveis de comando.
+
+## Dependências e interferências conhecidas
+
+- Esta mini-spec depende da existência de configuração persistida de usernames por plataforma, proposta na Spec 19.
+- Esta mini-spec complementa a proteção já definida em [docs/specs/done/11-seguranca-basica-ingest-token-header.md](../done/11-seguranca-basica-ingest-token-header.md).
+- Esta mini-spec altera o escopo originalmente proposto da própria Spec 18, substituindo um start genérico por um start com seleção explícita de listeners por rede.
 
 ## Contratos de API
 
-- `POST /worker/start`: habilita o worker.
+- `POST /worker/start`: habilita o worker com seleção explícita de listeners.
 - `POST /worker/stop`: interrompe o worker.
 - `GET /worker/status`: retorna o estado atual do worker.
+- Exemplo de request para `POST /worker/start`:
+
+```json
+{
+  "tiktok": true,
+  "twitch": false,
+  "youtube": false
+}
+```
+
+- Exemplo de response para `GET /worker/status`:
+
+```json
+{
+  "state": "active",
+  "listeners": {
+    "tiktok": true,
+    "twitch": false,
+    "youtube": false
+  }
+}
+```
+
 - Códigos HTTP esperados:
   - `200 OK`: comando executado ou status retornado.
   - `401 Unauthorized`: front não autenticado.
-  - `409 Conflict`: comando redundante, se o estado já estiver no destino.
+  - `400 Bad Request`: payload inválido ou nenhuma plataforma habilitada.
+  - `409 Conflict`: comando incompatível com o estado atual ou tentativa de start com plataforma ativa sem username configurado.
   - `503 Service Unavailable`: worker indisponível por falha operacional.
 
 ## Regras de validação
 
 - O front precisa estar autenticado para acionar o worker.
-- Start só pode ocorrer a partir de um estado inativo.
+- Start só pode ocorrer a partir de um estado inativo, salvo política explícita de idempotência para comando repetido.
 - Stop só pode ocorrer a partir de um estado ativo.
 - O worker não deve aceitar processamento antes do comando de start.
+- Pelo menos uma plataforma deve ser enviada como `true` no comando de start.
+- Toda plataforma marcada como `true` no start deve possuir username persistido válido.
+- A ausência de username configurado para uma plataforma ativada deve impedir o start completo, evitando estado parcial silencioso.
 - Estados intermediários devem ser bem definidos para evitar corrida entre início e consumo.
 
 ## Critérios de aceite
 
 - O worker não processa mensagens até receber acionamento explícito do front.
-- O front consegue iniciar o worker e consultar seu status.
+- O front consegue iniciar o worker informando as plataformas ativas e consultar seu status.
 - O front consegue interromper o worker sem afetar a API HTTP principal.
+- O backend ativa apenas os listeners das plataformas marcadas como `true`.
+- O backend bloqueia start inconsistente quando uma plataforma ativa não possui username configurado.
 - Chamadas repetidas de start/stop não quebram o estado operacional.
 
 ## Testes esperados
 
-- Teste de start do worker a partir de estado inativo.
+- Teste de start do worker a partir de estado inativo com uma plataforma válida.
 - Teste de stop do worker a partir de estado ativo.
 - Teste de status refletindo transição correta.
 - Teste de start/stop redundante.
 - Teste de bloqueio quando o front não estiver autenticado.
+- Teste de validação para payload sem nenhuma plataforma ativa.
+- Teste de bloqueio de start quando plataforma ativa não possui username configurado.
+- Teste de ativação seletiva de listeners por plataforma.
 
 ## Fora de escopo
 
 - Orquestração distribuída entre múltiplas instâncias.
 - Escalonamento automático do worker.
 - Fila externa para comandos operacionais.
+- Edição de usernames das plataformas no mesmo endpoint de start.

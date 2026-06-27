@@ -43,6 +43,8 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
+- [Configuração persistida de live e usernames por plataforma](planned/19-configuracao-persistida-de-live-e-usernames.md)
+- [Login retorna usernames de live para bootstrap do front](planned/20-login-retorna-usernames-de-live.md)
 - [Acionamento do worker pelo front](planned/18-acionamento-do-worker-pelo-front.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
