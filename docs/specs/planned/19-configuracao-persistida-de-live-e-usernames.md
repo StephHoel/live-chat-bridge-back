@@ -18,28 +18,29 @@ Status: planejado
 
 ## Decisão de modelagem
 
-- A configuração será tratada como configuração global do sistema nesta fase, e não como preferência individual por usuário.
-- A recomendação é usar uma tabela por plataforma, em vez de um único blob JSON, para manter validação, índices e evolução de schema mais previsíveis.
+- A configuração será tratada como preferência individual por usuário.
+- A recomendação é usar uma única tabela de configuração com uma entrada por plataforma por usuário, para manter validação, índices e evolução de schema mais previsíveis.
 
 ## Superfícies afetadas
 
-- Endpoints: novo endpoint de leitura e atualização de configuração de live.
+- Endpoints: novo endpoint de leitura e novo endpoint de atualização de configuração de live.
 - Handlers: use case de consulta e use case de atualização da configuração.
 - Workers/Provedores: dependem dessa configuração para obter usernames ao iniciar listeners.
 - Integrações externas: front autenticado que administra a operação.
 
 ## Dados e persistência
 
-- Criar nova tabela `LivePlatformSettings` com uma linha por plataforma suportada.
-- Campos mínimos sugeridos:
+- Criar nova tabela `LiveSettings` com uma linha por usuário.
+- Campos mínimos:
   - `Id` (Guid)
-  - `Platform` (string ou enum persistido como string)
-  - `Username` (string, opcional enquanto a plataforma não estiver configurada)
+  - `UserId` (correlação com tabela `Users`)
+  - `TikTokUsername` (string)
+  - `YouTubeUsername` (string)
+  - `TwitchUsername` (string)
   - `CreatedAtUtc` (DateTime)
   - `UpdatedAtUtc` (DateTime)
   - `UpdatedByUser` (string)
 - Índices recomendados:
-  - `Platform` único
   - `UpdatedAtUtc`
 - A tabela deve nascer compatível com SQLite atual e com a futura migração para PostgreSQL.
 
@@ -50,21 +51,23 @@ Status: planejado
 
 - Exemplo de request para `PUT /config/live`:
 
-```json
+```cs
+public class PutConfigLiveRequest
 {
-  "tiktokUsername": "canal_tiktok",
-  "twitchUsername": "canal_twitch",
-  "youtubeUsername": "canal_youtube"
+    public string TikTokUsername { get; set; }
+    public string TwitchUsername { get; set; }
+    public string YouTubeUsername { get; set; }
 }
 ```
 
 - Exemplo de response para `GET /config/live`:
 
-```json
+```cs
+public class GetConfigLiveResponse
 {
-  "tiktokUsername": "canal_tiktok",
-  "twitchUsername": "canal_twitch",
-  "youtubeUsername": "canal_youtube"
+    public string TikTokUsername { get; set; }
+    public string TwitchUsername { get; set; }
+    public string YouTubeUsername { get; set; }
 }
 ```
 
@@ -76,15 +79,15 @@ Status: planejado
 
 ## Regras de validação
 
-- O endpoint deve ser protegido por autenticação.
-- Usernames devem ser normalizados com `trim` e remoção opcional de prefixos incompatíveis com o provider, quando a regra já for conhecida.
+- Os endpoints devem ser protegidos por autenticação.
+- Usernames devem ser normalizados com `trim` e remoção de prefixos incompatíveis com o provider, quando a regra já for conhecida.
 - O backend não deve aceitar valores arbitrários que inviabilizem o listener da plataforma.
 - Atualização parcial pode ser permitida, desde que a semântica do contrato seja explícita.
 - Toda atualização deve registrar `UpdatedByUser` a partir do contexto autenticado.
 
 ## Critérios de aceite
 
-- Existe persistência durável para usernames por plataforma.
+- Existe persistência durável para usernames.
 - O front consegue consultar a configuração atual por endpoint protegido.
 - O front consegue atualizar usernames por endpoint protegido.
 - O worker passa a depender dessa configuração persistida em vez de depender exclusivamente de `appsettings`.
@@ -92,8 +95,8 @@ Status: planejado
 
 ## Testes esperados
 
-- Teste de repositório para criação e atualização das configurações por plataforma.
-- Teste de endpoint para leitura da configuração atual.
+- Teste de repositório para criação e atualização das configurações por usuário.
+- Teste de endpoint para leitura da configuração atual do usuário.
 - Teste de endpoint para atualização válida.
 - Teste de autenticação obrigatória nos endpoints.
 - Teste de normalização de usernames.
@@ -101,6 +104,5 @@ Status: planejado
 
 ## Fora de escopo
 
-- Preferências individuais por usuário autenticado.
 - Versionamento histórico completo das configurações.
 - Edição de flags de start/stop do worker neste endpoint.
