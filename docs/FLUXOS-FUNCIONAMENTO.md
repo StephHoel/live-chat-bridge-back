@@ -69,7 +69,7 @@ Processamento:
 3. Se usuário não existir, retorna erro genérico de autenticação.
 4. Se a senha não confere com o hash, retorna erro genérico de autenticação.
 5. Se as credenciais forem válidas, gera JWT.
-6. Retorna token no envelope padrão Result&lt;T&gt;.
+6. Retorna token no envelope padrão Result<T>.
 
 Saídas esperadas:
 
@@ -172,7 +172,7 @@ Arquivos base:
 
 ### Contrato de resposta
 
-- Endpoints retornam envelope ResultT em sucesso e erro.
+- Endpoints retornam envelope Result<T> em sucesso e erro.
 - Conversão para status HTTP ocorre em ResultExtensions.
 
 ### Autorização
@@ -199,6 +199,11 @@ Os seguintes fluxos existem como planejamento e não estão implementados no com
 - Auditoria de origem de inserção em ChatMessages (spec 16)
 - Mitigação de durabilidade com replay (spec 17)
 
+Diretriz transversal de evolução:
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- O backend deve suportar múltiplos workers/listeners em paralelo, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+
 Referências:
 
 - docs/specs/planned/18-acionamento-do-worker-pelo-front.md
@@ -211,7 +216,7 @@ Referências:
 - Testes de integração cobrem auth e ingestão (incluindo token ausente/inválido/válido e duplicata).
 - Execução de referência registrada no projeto: dotnet test LCB.sln com 98 testes aprovados e 0 falhas.
 
-## Sistemas
+## Planejamento Geral de Sistemas
 
 - Sistema de Registro de Usuário
   - Registro

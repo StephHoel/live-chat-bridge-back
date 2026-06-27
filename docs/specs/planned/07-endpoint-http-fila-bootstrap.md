@@ -4,6 +4,12 @@ Número: 07
 Status: planejado
 Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
 ## Problema
 
 - A UI precisa carregar estado inicial da fila antes de assinar SSE.

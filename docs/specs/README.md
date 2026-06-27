@@ -4,6 +4,12 @@ Esta pasta organiza mini-specs por status para funcionalidades e pendências do 
 
 Use estes documentos antes de iniciar qualquer alteração de produto. Quando uma mini-spec mudar de estágio, mova o arquivo para a pasta correspondente, atualize o status no documento, registre decisões tomadas durante a execução e mantenha o `docs/SPEC.md` sincronizado quando houver mudança de diretriz.
 
+Diretriz transversal vigente para specs planejadas e futuras:
+
+- O sistema deve suportar N usuários simultâneos conectados.
+- A arquitetura deve permitir múltiplos workers concorrentes, com isolamento por usuário/sessão (um worker lógico por usuário ativo).
+- Evitar premissas de worker único global em novos contratos e critérios de aceite.
+
 ## Fluxo obrigatório de ciclo de vida
 
 1. Ao iniciar a implementação de uma mini-spec:

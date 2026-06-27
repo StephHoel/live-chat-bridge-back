@@ -69,3 +69,9 @@ Status: implementado
 
 - Escalonamento horizontal do worker.
 - Mecanismo distribuído de fila externa.
+
+## Nota de evolução posterior
+
+- Esta mini-spec consolidou o processamento assíncrono real no contexto inicial de um worker hospedado.
+- A diretriz atual do projeto exige evolução para múltiplos workers concorrentes com isolamento por usuário/sessão ativa (N usuários simultâneos).
+- Mudanças desse tipo devem ser tratadas pelas mini-specs planejadas de acionamento e durabilidade (`17` e `18`) e pelas próximas que detalharem orquestração por usuário.
