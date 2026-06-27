@@ -1,5 +1,22 @@
 # CHANGELOG
 
+## [v0.6.1] - 2026-06-26
+
+### 📚 Documentação
+
+- Sincronização de `README.md` e `docs/SPEC.md` com o estado real do código:
+  - `POST /messages/ingest` documentado como endpoint protegido por JWT
+  - processamento real do worker registrado como implementado (sem pendência de lógica)
+  - atualização do status de mini-specs (`active=0`, `done=8`) e prioridades planejadas
+  - inclusão explícita da cobertura de testes de integração no spec
+
+### 🧪 Verificação
+
+- Execução de validação em `dotnet test LCB.sln`:
+  - total: 98
+  - sucesso: 98
+  - falhas: 0
+
 ## [v0.6.0] - 2026-06-25
 
 ### ✨ Funcionalidades

@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.0
+> **Versão do Projeto:** v0.6.1
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -16,13 +16,13 @@ Hoje existem dois eixos principais no produto:
 
 O objetivo é servir como ponte entre provedores de live chat e uma camada de automação, fila, comando e distribuição para frontend.
 
-O sistema ainda está em fase inicial/prototipal: já possui persistência local durável via SQLite/EF Core, há comandos de chat simples, e parte do fluxo assíncrono está preparada mas ainda com lógica pendente.
+O sistema ainda está em fase inicial/prototipal: já possui persistência local durável via SQLite/EF Core, comandos de chat simples, autenticação JWT com endpoints protegidos e processamento assíncrono real no worker.
 
 ## 2. Funcionalidades Existentes
 
 - Login por e-mail via `POST /auth/login`, com validação de senha e emissão de JWT.
 - Registro de conta via `POST /auth/register`, com validação de e-mail, confirmação de senha e política configurável.
-- Ingestão de mensagens via `POST /messages/ingest`, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
+- Ingestão de mensagens via `POST /messages/ingest` com autenticação JWT obrigatória, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
@@ -36,6 +36,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Tratamento centralizado de erros com logs estruturados e sem exposição de dados sensíveis.
 - **Idempotência de mensagens** (Spec 01 ✅): chave derivada de `Provider + Author + Timestamp` normalizado; reprocessamento de mensagens não processadas via `UpdateAsync`; duplicatas já processadas retornam `400 Duplicate`.
 - **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
+- **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
 
 ## 3. Funcionalidades Planejadas
 
@@ -47,16 +48,16 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Ativas:** 1 spec em `docs/specs/active/`
+- **Ativas:** 0 specs em `docs/specs/active/`
 - **Planejadas:** 10 specs em `docs/specs/planned/`
-- **Concluídas:** 7 specs em `docs/specs/done/`
+- **Concluídas:** 8 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 11** - Segurança de acesso por token para HTTP e acionamento do worker
-2. **Spec 18** - Acionamento do worker pelo front
-3. **Spec 15** - Tabela de logs com auditoria mínima
-4. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
+1. **Spec 18** - Acionamento do worker pelo front
+2. **Spec 15** - Tabela de logs com auditoria mínima
+3. **Spec 16** - Campo de auditoria de origem de inserção em `ChatMessages`
+4. **Spec 17** - Mitigação de durabilidade do worker com replay e auditoria
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -70,7 +71,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - Worker/Hosted Service com `BackgroundService`.
 - Comunicação assíncrona interna com `System.Threading.Channels`.
 - Integração com TikTok Live por `TikTokLive_Sharp`.
-- Testes unitários com xUnit.
+- Testes unitários e de integração com xUnit.
 - Persistência atual via EF Core com SQLite local e migrations versionadas.
 
 ## 5. Estrutura de Pastas
@@ -82,6 +83,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
 - `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos e migrations.
 - `test/LCB.UnitTest`: testes unitários de handlers, serviços, workers e repositórios persistentes.
+- `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/messages/ingest`).
 
 ## 6. Fluxos Principais
 
@@ -113,17 +115,18 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 ### Ingestão HTTP de Mensagens
 
 1. `MessageEndpoints` recebe `POST /messages/ingest`.
-2. `MessageIngestHandler` converte o request para `LCB.Domain.Entities.ChatMessageEntity`.
-3. O handler tenta verificar duplicidade por `IdempotencyKey`.
-4. Se a mensagem indicar entrada em fila, o usuário é inserido/atualizado em `IQueueRepository`.
-5. O texto é parseado e despachado pelo `AdapterService`.
-6. A mensagem é marcada como processada e salva em `IMessageRepository`.
+2. A rota exige usuário autenticado via JWT (`Authorization: Bearer <token>`).
+3. `MessageIngestHandler` converte o request para `LCB.Domain.Entities.ChatMessageEntity`.
+4. O handler tenta verificar duplicidade por `IdempotencyKey`.
+5. Se a mensagem indicar entrada em fila, o usuário é inserido/atualizado em `IQueueRepository`.
+6. O texto é parseado e despachado pelo `AdapterService`.
+7. A mensagem é marcada como processada e salva em `IMessageRepository`.
 
 ### Worker de Live
 
 1. `ChatWorker` inicia `ChatProcessorService` e conexão com `TikTokChatProvider`.
 2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageModel>` (tipo atual do canal, tratado como `WorkerInput`).
-3. `ChatProcessorService` consome o `ChannelReader` e hoje apenas escreve no console.
+3. `ChatProcessorService` consome o `ChannelReader`, converte `WorkerInput` para entidade de domínio e reutiliza `MessageIngestHandler` para processamento real com validação, idempotência e retry.
 
 ## 7. Configuração e Ambiente
 
@@ -175,6 +178,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ### Status de Specs Completadas
 
 - ✅ **Spec 05 - Processamento real do worker** (feita): `ChatProcessorService` reutiliza o caso de uso de ingest HTTP, com validação, idempotência, resiliência e observabilidade mínima por mensagem.
+- ✅ **Spec 11 - Segurança por token** (feita): policy de autenticação aplicada aos endpoints protegidos, com exceção explícita para `POST /auth/login` e `POST /auth/register`.
 - ✅ **Spec 03 - Persistência durável** (feita): Repositórios EF Core com SQLite, migrations versionadas, índices otimizados.
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
 - ✅ **Spec 12 - Registro de conta** (feita): Endpoint `POST /auth/register` com política de senha configurável, confirmação obrigatória e prevenção de e-mail duplicado.
@@ -209,11 +213,13 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ## 11. Testes e Cobertura Atual
 
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
+- Há cobertura de integração para endpoints de autenticação e ingestão (`/auth/login`, `/auth/register`, `/messages/ingest`), incluindo cenários com token ausente, token inválido e token válido.
 - Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
 - Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`) possuem testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
+- Execução de referência (2026-06-27): `dotnet test LCB.sln` com 98 testes aprovados, 0 falhas.
 
 ## 12. Convenções Observadas
 
@@ -233,7 +239,6 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- implementar segurança de acesso por token para endpoints protegidos e acionamento do worker (Spec 11);
 - implementar acionamento explícito do worker pelo front (Spec 18);
 - implementar trilha de auditoria persistida mínima (Spec 15) e auditoria de inserção em `ChatMessages` (Spec 16).
 
