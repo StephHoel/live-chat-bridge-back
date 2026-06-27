@@ -33,11 +33,11 @@ Use estes documentos antes de iniciar qualquer alteração de produto. Quando um
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](done/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](done/05-processamento-real-chat-worker.md)
+- [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
 
 ### 🔄 Ativas/Em andamento
 
 <!-- - Nenhuma no momento. -->
-- [Segurança de acesso por token para HTTP e acionamento do worker](active/11-seguranca-basica-ingest-token-header.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
