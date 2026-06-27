@@ -8,11 +8,11 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 
 - ✅ API REST com autenticação JWT
 - ✅ Registro de conta com política de senha configurável
-- ✅ Ingestão de mensagens com detecção de comandos
+- ✅ Ingestão de mensagens com detecção de comandos (endpoint protegido por JWT)
 - ✅ Fila de usuários
 - ✅ Worker background para provedores de live (TikTok)
 - ✅ Persistência durável com SQLite/EF Core
-- 🔄 Lógica de processamento em desenvolvimento
+- ✅ Processamento real no worker com reuso do caso de uso de ingestão
 - 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 
 ## 🚀 Quick Start
@@ -29,7 +29,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 dotnet build LCB.sln
 
 # Executar testes
-dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj
+dotnet test LCB.sln
 
 # Executar API (porta padrão: 5000)
 dotnet run --project src/LCB.Api/LCB.Api.csproj
@@ -45,6 +45,7 @@ src/
   LCB.Infrastructure/ - Repositórios EF Core, provedores externos
 test/
   LCB.UnitTest/       - Testes unitários
+  LCB.IntegrationTest/ - Testes de integração dos endpoints HTTP
 docs/
   SPEC.md             - Especificação viva do projeto
   specs/              - Mini-specs organizadas por status (planned/active/done)
@@ -59,7 +60,7 @@ docs/
 
 ### Mensagens
 
-- `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos
+- `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos (requer token JWT)
 
 ### Contrato de resposta
 
