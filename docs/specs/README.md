@@ -41,17 +41,16 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Consolidação do modelo de mensagem entre HTTP e worker](done/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](done/05-processamento-real-chat-worker.md)
 - [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
-- [Configuração persistida de live e usernames por plataforma](active/19-configuracao-persistida-de-live-e-usernames.md)
+- [Configuração persistida de live e usernames por plataforma](done/19-configuracao-persistida-de-live-e-usernames.md)
 
 ### 🔄 Ativas/Em andamento
 
-- _Nenhuma ativa._
+- [Acionamento do worker pelo front](active/18-acionamento-do-worker-pelo-front.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Acionamento do worker pelo front](planned/18-acionamento-do-worker-pelo-front.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
