@@ -38,7 +38,12 @@ public class PutLiveConfigHandler(
 
         var saved = await repository.UpsertAsync(settings);
         if (!saved)
-            return Result<LiveConfigResponse>.Fail("Could not save live configuration", HttpStatusCode.InternalServerError);
+        {
+            saved = await repository.UpsertAsync(settings);
+
+            if (!saved)
+                return Result<LiveConfigResponse>.Fail("Could not save live configuration", HttpStatusCode.InternalServerError);
+        }
 
         return Result<LiveConfigResponse>.Ok(new LiveConfigResponse
         {
