@@ -1,7 +1,7 @@
 # Mini-spec: Configuração persistida de live e usernames por plataforma
 
 Número: 19
-Status: planejado
+Status: em andamento
 
 ## Diretriz transversal de concorrência
 
@@ -62,9 +62,10 @@ Status: planejado
 ```cs
 public class PutConfigLiveRequest
 {
-    public string TikTokUsername { get; set; }
-    public string TwitchUsername { get; set; }
-    public string YouTubeUsername { get; set; }
+  public string? TikTokUsername { get; set; }
+  public string? TwitchUsername { get; set; }
+  public string? YouTubeUsername { get; set; }
+  public long? ReloadTimeInSec { get; set; }
 }
 ```
 
@@ -73,9 +74,10 @@ public class PutConfigLiveRequest
 ```cs
 public class GetConfigLiveResponse
 {
-    public string TikTokUsername { get; set; }
-    public string TwitchUsername { get; set; }
-    public string YouTubeUsername { get; set; }
+  public string TikTokUsername { get; set; }
+  public string TwitchUsername { get; set; }
+  public string YouTubeUsername { get; set; }
+  public long ReloadTimeInSec { get; set; }
 }
 ```
 
@@ -89,16 +91,20 @@ public class GetConfigLiveResponse
 
 - Os endpoints devem ser protegidos por autenticação.
 - Usernames devem ser normalizados com `trim` e remoção de prefixos incompatíveis com o provider, quando a regra já for conhecida.
+- Deve aceitar usernames informados como URL da plataforma e extrair o handle equivalente (ex.: `tiktok.com/@user` -> `user`).
 - O backend não deve aceitar valores arbitrários que inviabilizem o listener da plataforma.
-- Atualização parcial pode ser permitida, desde que a semântica do contrato seja explícita.
+- `PUT /config/live` opera como atualização parcial: apenas campos enviados devem ser alterados.
+- Se ainda não existir registro para o usuário no `PUT`, criar com defaults para campos ausentes e aplicar somente os campos enviados no payload.
+- `GET /config/live` deve auto-provisionar o registro para o usuário autenticado quando inexistente e retornar `200 OK`.
 - Toda atualização deve registrar `UpdatedByUser` a partir do contexto autenticado.
+- Nesta fase, `UpdatedByUser` deve armazenar o e-mail do usuário autenticado.
 
 ## Critérios de aceite
 
 - Existe persistência durável para configurações.
 - O front consegue consultar a configuração atual por endpoint protegido.
 - O front consegue atualizar configurações por endpoint protegido.
-- O worker passa a depender dessa configuração persistida em vez de depender de `appsettings`.
+- O worker permanece fora do escopo desta entrega; consumo dessa configuração no runtime será tratado nas Specs 18/20.
 - A solução permanece compatível com a futura migração para PostgreSQL.
 
 ## Testes esperados
@@ -114,3 +120,11 @@ public class GetConfigLiveResponse
 
 - Versionamento histórico completo das configurações.
 - Edição de flags de start/stop do worker neste endpoint.
+
+## Decisões de implementação desta fase
+
+- `GET /config/live`: cria automaticamente o registro quando inexistente e retorna `200 OK`.
+- `PUT /config/live`: atualização parcial (merge de campos), com criação automática quando inexistente.
+- `ReloadTimeInSec`: exposto e atualizável em `GET` e `PUT`.
+- `UpdatedByUser`: persistido com e-mail do usuário autenticado.
+- Evolução planejada: criar mini-spec futura para adicionar nome em `Users` e migrar `UpdatedByUser` para nome de exibição.

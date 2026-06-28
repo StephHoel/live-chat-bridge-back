@@ -43,13 +43,12 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-<!-- - Nenhuma no momento. -->
+- [Configuração persistida de live e usernames por plataforma](active/19-configuracao-persistida-de-live-e-usernames.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Configuração persistida de live e usernames por plataforma](planned/19-configuracao-persistida-de-live-e-usernames.md)
 - [Login retorna usernames de live para bootstrap do front](planned/20-login-retorna-usernames-de-live.md)
 - [Acionamento do worker pelo front](planned/18-acionamento-do-worker-pelo-front.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
@@ -61,5 +60,6 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
 - [Mitigação de durabilidade do worker com replay e auditoria](planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
+- [Nome de usuário para auditoria operacional](planned/21-nome-de-usuario-para-auditoria-operacional.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.

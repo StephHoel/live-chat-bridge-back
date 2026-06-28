@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.1
+> **Versão do Projeto:** v0.6.2
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -22,12 +22,14 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 - Login por e-mail via `POST /auth/login`, com validação de senha e emissão de JWT.
 - Registro de conta via `POST /auth/register`, com validação de e-mail, confirmação de senha e política configurável.
+- Configuração operacional por usuário via `GET /config/live` e `PUT /config/live`, com persistência durável de usernames por plataforma e `ReloadTimeInSec`.
 - Ingestão de mensagens via `POST /messages/ingest` com autenticação JWT obrigatória, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
 - Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
+- **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 em andamento).
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
@@ -54,16 +56,16 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Ativas:** 0 specs em `docs/specs/active/`
 - **Planejadas:** 12 specs em `docs/specs/planned/`
+- **Ativas:** 1 spec em `docs/specs/active/`
 - **Concluídas:** 8 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 19** - Configuração persistida de live e usernames por plataforma
-2. **Spec 20** - Login retorna usernames de live para bootstrap do front
-3. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
-4. **Spec 15** - Tabela de logs com auditoria mínima
+1. **Spec 20** - Login retorna usernames de live para bootstrap do front
+2. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
+3. **Spec 15** - Tabela de logs com auditoria mínima
+4. **Spec 21** - Nome de usuário para auditoria operacional
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -128,6 +130,16 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 6. O texto é parseado e despachado pelo `AdapterService`.
 7. A mensagem é marcada como processada e salva em `IMessageRepository`.
 
+### Configuração de Live por Usuário
+
+1. `ConfigEndpoints` recebe `GET /config/live` ou `PUT /config/live`.
+2. A rota exige usuário autenticado via JWT e extrai `UserId` e `Email` dos claims.
+3. `GET /config/live` busca a configuração do usuário em `ILiveSettingsRepository`.
+4. Se a configuração ainda não existir, o backend cria automaticamente um registro com defaults e retorna `200 OK`.
+5. `PUT /config/live` opera como atualização parcial: apenas os campos enviados são alterados.
+6. Usernames são normalizados com `trim`, remoção de `@` inicial e extração de handle quando informados como URL.
+7. Toda atualização registra `UpdatedByUser` com o e-mail do usuário autenticado.
+
 ### Worker de Live
 
 1. `ChatWorker` inicia `ChatProcessorService` e conexão com `TikTokChatProvider`.
@@ -139,7 +151,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `appsettings.json` define `JWT_KEY`, a seção `Usernames` com `Tiktok`, `Twitch` e `Youtube`, e a seção `PasswordPolicy`.
 - `appsettings.Development.json` já contém uma chave JWT de desenvolvimento e um username de TikTok preenchido.
 - `ConnectionStrings:DefaultConnection` define o banco SQLite local.
-- `LiveConfig.SectionName` aponta para `Usernames`.
+- `LiveConfig.SectionName` aponta para `Usernames` e permanece como configuração transitória do worker atual até a evolução das Specs 18/20.
 - `PasswordPolicy` define requisitos mínimos de senha (`MinLength`, `RequireUppercase`, `RequireLowercase`, `RequireDigit`, `RequireSpecialCharacter`).
 - O Swagger só é exposto em ambiente de desenvolvimento.
 - A autenticação JWT depende de `JWT_KEY` com pelo menos 32 bytes; caso contrário, o helper retorna `null`.
@@ -173,6 +185,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ### Contratos atuais
 
 - `LCB.Domain.Entities.ChatMessageEntity`: entidade de mensagem; usada em persistência e lógica de negócio no fluxo HTTP.
+- `LCB.Domain.Entities.LiveSettingsEntity`: configuração operacional persistida por usuário para usernames de live e `ReloadTimeInSec`.
 - `LCB.Domain.Entities.QueueEntity`: entrada de usuário na fila; identidade por `Id` (Guid), indexado por `User`.
 - `LCB.Domain.Entities.UserEntity`: usuário autenticável; `Email` como identificador único, `PasswordHash` para validação de senha (armazenado como PBKDF2 hash).
 - `LCB.Domain.Interfaces.Services.IPasswordHasher`: contrato para serviços de hashing seguro de senha com métodos `Hash(string)` e `Verify(string, string)`.
@@ -207,6 +220,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 ### Persistência
 
 - Persistência local agora usa SQLite em arquivo `.db` com schema gerenciado por migrations.
+- A tabela `LiveSettings` mantém uma linha por usuário, com `UserId` único, usernames por plataforma, `ReloadTimeInSec` e auditoria mínima em `UpdatedByUser`.
 - Estratégia de banco online (PostgreSQL) permanece planejada para Spec 14.
 - Ainda não há mecanismo de backup, replay ou snapshot.
 
@@ -221,12 +235,14 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
 - Há cobertura de integração para endpoints de autenticação e ingestão (`/auth/login`, `/auth/register`, `/messages/ingest`), incluindo cenários com token ausente, token inválido e token válido.
+- Há cobertura de integração para `GET /config/live` e `PUT /config/live`, incluindo autenticação obrigatória, auto-provisionamento, atualização parcial e validação de `ReloadTimeInSec`.
 - Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
-- Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`) possuem testes com SQLite em memória.
+- Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`, `LiveSettingsRepository`) possuem testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
+- Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência (2026-06-27): `dotnet test LCB.sln` com 98 testes aprovados, 0 falhas.
+- Execução de referência (2026-06-27): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"` com 99 testes aprovados, 0 falhas e cobertura de linhas em 84,26% (Cobertura `line-rate=0.8426`).
 
 ## 12. Convenções Observadas
 
