@@ -19,7 +19,7 @@ public static class MessageEndpoints
         .WithTags("Messages")
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<MessageIngestResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<MessageIngestResponse>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
         .Produces((int)HttpStatusCode.BadRequest, typeof(Result<MessageIngestResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<MessageIngestResponse>));
 

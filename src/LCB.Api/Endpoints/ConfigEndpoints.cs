@@ -24,7 +24,7 @@ public static class ConfigEndpoints
         .WithTags("Config")
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<LiveConfigResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<LiveConfigResponse>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<LiveConfigResponse>));
 
         app.MapPut("/config/live", async (HttpContext httpContext, PutLiveConfigRequest request, [FromServices] PutLiveConfigHandler handler) =>
@@ -39,7 +39,7 @@ public static class ConfigEndpoints
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<LiveConfigResponse>))
         .Produces((int)HttpStatusCode.BadRequest, typeof(Result<LiveConfigResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<LiveConfigResponse>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<LiveConfigResponse>));
 
         return app;

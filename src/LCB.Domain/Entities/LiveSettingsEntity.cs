@@ -10,8 +10,8 @@ public class LiveSettingsEntity
     public string? YouTubeUsername { get; private set; }
     public string? TwitchUsername { get; private set; }
     public long ReloadTimeInSec { get; private set; } = 5;
-    public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
-    public DateTime UpdatedAtUtc { get; private set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
+    public DateTime CreatedAtUtc { get; private set; } = DateTime.UtcNow;
+    public DateTime UpdatedAtUtc { get; private set; } = DateTime.UtcNow;
     public string UpdatedByUser { get; private set; } = string.Empty;
 
     public static LiveSettingsEntity Create(
