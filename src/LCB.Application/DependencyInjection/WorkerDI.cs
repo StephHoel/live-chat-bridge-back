@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Channels;
 using LCB.Application.Services;
 using LCB.Application.Workers;
+using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Models;
 using LCB.Infrastructure.Providers;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +23,8 @@ public static class WorkerDI
         services.AddSingleton(chatChannel.Writer);
         services.AddSingleton(chatChannel.Reader);
 
-        services.AddSingleton<TikTokChatProvider>();
+        services.AddSingleton<ITikTokChatProvider, TikTokChatProvider>();
+
         services.AddSingleton<ChatProcessorService>();
 
         services.AddHostedService<ChatWorker>();

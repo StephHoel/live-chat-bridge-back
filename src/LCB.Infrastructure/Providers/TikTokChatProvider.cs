@@ -1,5 +1,6 @@
 using System.Threading.Channels;
 using LCB.Domain.Extensions;
+using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Models;
 using Microsoft.Extensions.Logging;
 using TikTokLiveSharp.Client;
@@ -10,6 +11,7 @@ namespace LCB.Infrastructure.Providers;
 
 public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
                                 ILogger<TikTokChatProvider> Logger)
+    : ITikTokChatProvider
 {
     private TikTokLiveClient? Client;
 
@@ -80,6 +82,6 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
 
     private void OnException(object? _, Exception args)
     {
-        Logger.LogError(args, $"Erro de Conexão | Mensagem: {args.Message}");
+        Logger.LogError(args, "Erro de Conexão | Mensagem: {message}", args.Message);
     }
 }
