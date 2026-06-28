@@ -1,5 +1,60 @@
 # CHANGELOG
 
+## [v0.6.2] - 2026-06-27
+
+### ✨ Funcionalidades
+
+- **Configuração persistida de live por usuário** (Spec 19 em andamento)
+  - Novos endpoints protegidos:
+    - `GET /config/live`
+    - `PUT /config/live`
+  - Persistência dedicada em `LiveSettings` (uma linha por usuário)
+  - Campos operacionais incluídos: usernames por plataforma e `ReloadTimeInSec`
+  - `GET /config/live` com auto-provisionamento quando não existir registro
+  - `PUT /config/live` com merge parcial (apenas campos enviados são alterados)
+  - Auditoria mínima de atualização com `UpdatedByUser` (e-mail do usuário autenticado)
+
+### 🔧 Melhorias Técnicas
+
+- Normalização de usernames no backend:
+  - `trim`
+  - remoção de `@` inicial
+  - extração de handle quando input vier como URL (ex.: `tiktok.com/@user`)
+- Nova migration EF Core para tabela `LiveSettings`:
+  - índice único por `UserId`
+  - índice por `UpdatedAtUtc`
+  - compatível com SQLite atual e estratégia futura para PostgreSQL
+- Ajuste de idempotência operacional no repositório de live settings para tratar updates sem alteração material como sucesso de comando.
+
+### 🧪 Testes
+
+- Novos testes unitários para:
+  - `LiveSettingsRepository`
+  - `GetLiveConfigHandler`
+  - `PutLiveConfigHandler`
+  - normalização de usernames
+- Novos testes de integração para `GET /config/live` e `PUT /config/live` cobrindo:
+  - autenticação obrigatória
+  - auto-provisionamento
+  - atualização parcial
+  - validação de `ReloadTimeInSec`
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"`
+  - total: 99
+  - sucesso: 99
+  - falhas: 0
+  - cobertura de linhas: **84,26%** (`line-rate=0.8426`)
+
+### 📚 Documentação
+
+- Atualização de `docs/SPEC.md` para versão `v0.6.2` com:
+  - novo fluxo de configuração live por usuário
+  - status de mini-specs sincronizado (`active=0`, `planned=12`, `done=9`)
+  - registro do resultado de cobertura unitária
+- Atualização de `docs/specs/README.md` com:
+  - Spec 19 em `active`
+  - nova Spec 21 em `planned` para migração de auditoria operacional de e-mail para nome de usuário
+
 ## [v0.6.1] - 2026-06-26
 
 ### 📚 Documentação
