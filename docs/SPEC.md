@@ -42,7 +42,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 ## 3. Funcionalidades Planejadas
 
-As mini-specs ficam em `docs/specs/` e são organizadas por status em `planned/`, `active/` e `done/`. A estrutura já existe no repositório. Consulte a mini-spec correspondente antes da implementação.
+As mini-specs ficam em `docs/specs/` e são organizadas por status em `planned/`, `active/`, `done/` e `discontinued/`. A estrutura já existe no repositório. Consulte a mini-spec correspondente antes da implementação.
 
 ### Diretriz transversal para escalabilidade de workers
 
@@ -56,16 +56,16 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 12 specs em `docs/specs/planned/`
+- **Planejadas:** 11 specs em `docs/specs/planned/`
 - **Ativas:** 0 spec em `docs/specs/active/`
 - **Concluídas:** 9 specs em `docs/specs/done/`
+- **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 20** - Login retorna usernames de live para bootstrap do front
-2. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
-3. **Spec 15** - Tabela de logs com auditoria mínima
-4. **Spec 21** - Nome de usuário para auditoria operacional
+1. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
+2. **Spec 15** - Tabela de logs com auditoria mínima
+3. **Spec 21** - Nome de usuário para auditoria operacional
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -85,7 +85,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 ## 5. Estrutura de Pastas
 
 - `.github`: workflows, Dependabot, assets e instruções para Copilot.
-- `docs`: documentação principal do projeto. Contém este spec e a árvore `docs/specs/` com as pastas `planned/`, `active/` e `done/` para mini-specs.
+- `docs`: documentação principal do projeto. Contém este spec e a árvore `docs/specs/` com as pastas `planned/`, `active/`, `done/` e `discontinued/` para mini-specs.
 - `src/LCB.Api`: entrypoint HTTP, DI, endpoints, middleware, logging e extensões de API.
 - `src/LCB.Application`: handlers de caso de uso, configuração, serviços de processamento e workers.
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
@@ -242,7 +242,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência (2026-06-27): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"` com 99 testes aprovados, 0 falhas e cobertura de linhas em 84,26% (Cobertura `line-rate=0.8426`).
+- Execução de referência (2026-06-27): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"` com 115 testes aprovados, 0 falhas e cobertura de linhas em 84,26% (Cobertura `line-rate=0.8426`).
 
 ## 12. Convenções Observadas
 
@@ -254,7 +254,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 ## 13. Pendências de Documentação
 
-- A estrutura `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/` já existe no repositório.
+- A estrutura `docs/specs/planned/`, `docs/specs/active/`, `docs/specs/done/` e `docs/specs/discontinued/` já existe no repositório.
 - Manter mini-specs planejadas atualizadas com mudanças de contrato, incluindo em qual spec já implementada está a versão anterior do contrato.
 - Atualizar README quando o fluxo de autenticação ou de ingestão mudar de forma material.
 
@@ -276,7 +276,7 @@ A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir u
 
 ### Antes de criar uma mini-spec, adicionalmente
 
-1. listar todos os arquivos existentes em `docs/specs/planned/`, `docs/specs/active/` e `docs/specs/done/`;
+1. listar todos os arquivos existentes em `docs/specs/planned/`, `docs/specs/active/`, `docs/specs/done/` e `docs/specs/discontinued/`;
 2. ler o conteúdo de cada mini-spec existente e verificar se a nova proposta interfere em alguma delas (sobreposição de escopo, dependência implícita, conflito de comportamento ou alteração de contrato compartilhado);
 3. se houver qualquer interferência, descrever o conflito ao usuário e aguardar instrução explícita antes de criar o arquivo;
 4. nunca determinar a ordem de implementação de mini-specs — a numeração indica apenas sequência de criação. A IA pode sugerir uma ordem ao usuário, mas a decisão final é sempre do usuário.
@@ -306,12 +306,12 @@ A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir u
 
 ## 16. Template de Mini-Spec para Novas Features
 
-As mini-specs do projeto ficam em `docs/specs/` e são separadas por status. Novas mini-specs devem nascer em `docs/specs/planned/`, migrar para `docs/specs/active/` quando entrarem em execução e ir para `docs/specs/done/` quando virarem referência estável. Elas devem ser escritas em pt-BR, incluindo acentuação e caracteres especiais.
+As mini-specs do projeto ficam em `docs/specs/` e são separadas por status. Novas mini-specs devem nascer em `docs/specs/planned/`, migrar para `docs/specs/active/` quando entrarem em execução e ir para `docs/specs/done/` quando virarem referência estável. Mini-specs canceladas devem ser movidas para `docs/specs/discontinued/`. Elas devem ser escritas em pt-BR, incluindo acentuação e caracteres especiais.
 
 **Protocolo obrigatório antes de criar uma mini-spec** (ver também segundo bloco da seção 15):
 
 1. Reler `docs/SPEC.md` para garantir que reflete o estado atual do projeto.
-2. Listar e ler todas as mini-specs existentes em `planned/`, `active/` e `done/`.
+2. Listar e ler todas as mini-specs existentes em `planned/`, `active/`, `done/` e `discontinued/`.
 3. Identificar se a nova mini-spec interfere em qualquer mini-spec existente.
 4. Se houver interferência de qualquer tipo, apresentar o conflito ao usuário e aguardar definição antes de criar o arquivo.
 
@@ -320,7 +320,7 @@ Convenção obrigatória de mini-spec:
 - nome de arquivo com prefixo numérico sequencial **de criação** (não de implementação): `NN-nome-da-feature.md`;
 - a numeração indica apenas a ordem em que a mini-spec foi criada — **a ordem de implementação é sempre definida pelo usuário**;
 - campo `Número: NN` logo após o título;
-- campo `Status:` mantido e atualizado conforme o estágio (`planejado`, `ativa`, `implementado`, `concluída`).
+- campo `Status:` mantido e atualizado conforme o estágio (`planejado`, `ativa`, `implementado`, `concluída`, `descontinuado`).
 
 Copie e preencha o modelo abaixo antes de implementar funcionalidades maiores que ainda não tenham documento próprio:
 

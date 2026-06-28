@@ -1,7 +1,14 @@
 # Mini-spec: Login retorna usernames de live para bootstrap do front
 
 Número: 20
-Status: planejado
+Status: descontinuado
+
+## Decisão de descontinuação
+
+- Data: 2026-06-28.
+- Motivo: o backend já expõe `GET /config/live` para bootstrap dos usernames após autenticação, eliminando a necessidade funcional de acoplar esse retorno ao `POST /auth/login`.
+- Decisão: manter o contrato de login focado em autenticação (`token`) e usar o endpoint de configuração como fonte de leitura operacional.
+- Impacto: nenhuma alteração de código necessária; esta mini-spec permanece como referência histórica e não deve ser implementada.
 
 ## Diretriz transversal de concorrência
 

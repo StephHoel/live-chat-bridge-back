@@ -20,6 +20,7 @@ Status: planejado
 - Permitir que o worker só funcione após um acionamento explícito vindo do front.
 - Definir um contrato simples e seguro para iniciar, consultar e, se necessário, interromper o worker.
 - Permitir que o front informe, no start, quais redes sociais entrarão em live naquele momento por meio de flags booleanas.
+- Garantir que start/stop/status atuem somente sobre a instância lógica do usuário autenticado, sem efeito global sobre outras instâncias ativas de outros usuários.
 - Preservar o comportamento atual da API HTTP fora desse controle operacional.
 
 ## Opções de acionamento avaliadas
@@ -34,6 +35,7 @@ Status: planejado
 - Complementar com `GET /worker/status` para o front exibir se o worker está ativo, parado ou em transição.
 - O payload de `POST /worker/start` deve indicar explicitamente quais listeners serão ativados (`tiktok`, `twitch`, `youtube`).
 - Os usernames das plataformas não devem ser enviados no start; eles devem vir da configuração persistida do banco.
+- O alvo operacional dos endpoints deve ser sempre a instância do usuário autenticado (derivada do token), sem parâmetro de usuário no payload para evitar controle cruzado.
 - Manter o acionamento restrito a um front autenticado, sem início automático no boot.
 
 ## Comportamento esperado
@@ -45,6 +47,8 @@ Status: planejado
 - O worker só tenta conectar listeners para plataformas marcadas como `true` no payload de start.
 - O backend valida se cada plataforma ativada possui username configurado antes de abrir o listener correspondente.
 - Comandos repetidos de start/stop devem ser idempotentes ou responder com estado atual.
+- `POST /worker/start`, `POST /worker/stop` e `GET /worker/status` devem refletir apenas o contexto do usuário autenticado que fez a chamada.
+- O start/stop de um usuário não pode iniciar, parar ou alterar status de workers de outros usuários ativos.
 
 ## Superfícies afetadas
 
@@ -57,6 +61,7 @@ Status: planejado
 ## Dados e persistência
 
 - O estado operacional do worker pode permanecer em memória nesta fase, desde que o comportamento fique explícito.
+- O estado operacional em memória deve ser isolado por usuário (chaveado por `UserId` autenticado), e não compartilhado como estado global único.
 - Se persistido, registrar o último estado conhecido e o horário da transição.
 - A seleção de plataformas ativas no comando de start não deve exigir novo username no payload; o backend deve ler os usernames persistidos para cada rede habilitada.
 - Não persistir payloads sensíveis de comando.
@@ -73,6 +78,7 @@ Status: planejado
 - `POST /worker/start`: habilita o worker com seleção explícita de listeners.
 - `POST /worker/stop`: interrompe o worker.
 - `GET /worker/status`: retorna o estado atual do worker.
+- O contexto-alvo dos três endpoints é sempre o usuário autenticado da requisição (`UserId` no token), sem aceitar `userId` no request para start/stop.
 - Exemplo de request para `POST /worker/start`:
 
 ```cs
@@ -106,6 +112,7 @@ public class WorkerStatusResponse
 ## Regras de validação
 
 - O front precisa estar autenticado para acionar o worker.
+- O backend deve derivar o usuário-alvo exclusivamente do token autenticado e rejeitar qualquer tentativa de controle de instância que não pertença ao chamador.
 - Start só pode ocorrer a partir de um estado inativo, salvo política explícita de idempotência para comando repetido.
 - Stop só pode ocorrer a partir de um estado ativo.
 - O worker não deve aceitar processamento antes do comando de start.
@@ -122,6 +129,7 @@ public class WorkerStatusResponse
 - O backend ativa apenas os listeners das plataformas marcadas como `true`.
 - O backend bloqueia start inconsistente quando uma plataforma ativa não possui username configurado.
 - Chamadas repetidas de start/stop não quebram o estado operacional.
+- O start/stop/status de um usuário autenticado não altera o estado operacional de instâncias ativas de outros usuários.
 
 ## Testes esperados
 
@@ -133,6 +141,7 @@ public class WorkerStatusResponse
 - Teste de validação para payload sem nenhuma plataforma ativa.
 - Teste de bloqueio de start quando plataforma ativa não possui username configurado.
 - Teste de ativação seletiva de listeners por plataforma.
+- Teste de isolamento por usuário: start/stop/status para usuário A não impacta o estado da instância do usuário B.
 
 ## Fora de escopo
 
