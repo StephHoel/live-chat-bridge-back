@@ -8,6 +8,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 
 - ✅ API REST com autenticação JWT
 - ✅ Registro de conta com política de senha configurável
+- ✅ Configuração persistida de live por usuário (`GET /config/live`, `PUT /config/live`)
 - ✅ Ingestão de mensagens com detecção de comandos (endpoint protegido por JWT)
 - ✅ Fila de usuários
 - ✅ Worker background para provedores de live (TikTok)
@@ -63,6 +64,11 @@ docs/
 
 - `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos (requer token JWT)
 
+### Configuração de Live
+
+- `GET /config/live` - Consulta configuração de live do usuário autenticado (auto-cria configuração padrão se não existir)
+- `PUT /config/live` - Atualiza parcialmente usernames/reload da configuração de live do usuário autenticado
+
 ### Contrato de resposta
 
 - Todos os endpoints retornam envelope `Result<T>` tanto em sucesso quanto em erro.
@@ -81,6 +87,7 @@ docs/
 - `JWT_KEY`: chave usada para assinatura de JWT
 - `ConnectionStrings:DefaultConnection`: conexão do banco SQLite
 - `Usernames`: configurações de usernames de live (`Tiktok`, `Twitch`, `Youtube`)
+- `LiveSettings` (banco): configuração operacional persistida por usuário (usernames por plataforma + `ReloadTimeInSec`)
 - `PasswordPolicy`: política de senha para registro
   - `MinLength`
   - `RequireUppercase`
@@ -93,6 +100,14 @@ docs/
 - [SPEC.md](docs/SPEC.md) - Guia completo do produto e decisões de arquitetura
 - [CHANGELOG.md](docs/CHANGELOG.md) - Histórico de versões e funcionalidades
 - [specs/](docs/specs/) - Mini-specs técnicas por status
+
+## 🧪 Cobertura de Testes
+
+- Referência atual de unit tests (2026-06-27):
+  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"`
+  - Total: 99
+  - Falhas: 0
+  - Cobertura de linhas: **84,26%** (`line-rate=0.8426`)
 
 ## 🤝 Para Contribuidores
 
