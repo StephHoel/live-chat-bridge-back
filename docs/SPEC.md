@@ -29,7 +29,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Comando `!comando`, que hoje retorna resposta de sucesso simulada pelo `TestCommandHandler`.
 - Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
-- **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 em andamento).
+- **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 ✅).
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
@@ -57,8 +57,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Planejadas:** 12 specs em `docs/specs/planned/`
-- **Ativas:** 1 spec em `docs/specs/active/`
-- **Concluídas:** 8 specs em `docs/specs/done/`
+- **Ativas:** 0 spec em `docs/specs/active/`
+- **Concluídas:** 9 specs em `docs/specs/done/`
 
 ### Próximas Prioridades Sugeridas
 

@@ -19,7 +19,7 @@ public static class AuthEndpoints
         .WithTags("Auth")
         .AllowAnonymous()
         .Produces((int)HttpStatusCode.OK, typeof(Result<LoginResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<LoginResponse>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<LoginResponse>));
 
         app.MapPost("/auth/register", async (RegisterRequest request, [FromServices] RegisterHandler handler) =>

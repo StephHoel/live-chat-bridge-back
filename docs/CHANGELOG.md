@@ -52,7 +52,7 @@
   - status de mini-specs sincronizado (`active=0`, `planned=12`, `done=9`)
   - registro do resultado de cobertura unitária
 - Atualização de `docs/specs/README.md` com:
-  - Spec 19 em `active`
+  - Spec 19 em `done` (implementado)
   - nova Spec 21 em `planned` para migração de auditoria operacional de e-mail para nome de usuário
 
 ## [v0.6.1] - 2026-06-26
