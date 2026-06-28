@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using LCB.Application.Commands.Config.Live.Get;
+using LCB.Application.Commands.Config.Live.Put;
 using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Message.Ingest;
 using LCB.Application.Commands.Register;
@@ -28,6 +30,8 @@ public static class DependencyInjection
         services.AddScoped<LoginHandler>();
         services.AddScoped<RegisterHandler>();
         services.AddScoped<MessageIngestHandler>();
+        services.AddScoped<GetLiveConfigHandler>();
+        services.AddScoped<PutLiveConfigHandler>();
 
         return services;
     }
@@ -56,6 +60,7 @@ public static class DependencyInjection
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IMessageRepository, ChatMessageRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
+        services.AddScoped<ILiveSettingsRepository, LiveSettingsRepository>();
 
         return services;
     }
