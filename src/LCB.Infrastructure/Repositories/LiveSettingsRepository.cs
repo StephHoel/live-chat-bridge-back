@@ -34,6 +34,7 @@ public class LiveSettingsRepository(LcbDbContext context,
                                 settings.UpdatedByUser);
             }
 
-            return await context.SaveChangesAsync() >= 0;
+            await context.SaveChangesAsync();
+            return true;
         }, nameof(UpsertAsync));
 }

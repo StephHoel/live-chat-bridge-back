@@ -24,7 +24,12 @@ public class GetLiveConfigHandler(
             var created = await repository.UpsertAsync(settings);
 
             if (!created)
-                return Result<LiveConfigResponse>.Fail("Could not initialize live configuration", HttpStatusCode.InternalServerError);
+            {
+                settings = await repository.GetByUserIdAsync(userId);
+
+                if (settings is null)
+                    return Result<LiveConfigResponse>.Fail("Could not initialize live configuration", HttpStatusCode.InternalServerError);
+            }
         }
 
         return Result<LiveConfigResponse>.Ok(settings.ToResponse());
