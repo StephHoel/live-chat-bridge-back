@@ -19,12 +19,12 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
 
         Client = new TikTokLiveClient(hostId: tiktokUsername, settings: new()
         {
-            SkipRoomInfo = true, // ISSO É O MAIS IMPORTANTE: Pula o scraping que está dando erro
+            SkipRoomInfo = true, // IMPORTANTE: Pular o scraping que está dando erro
             HandleExistingMessagesOnConnect = true,
             DownloadGiftInfo = true,
             ClientLanguage = "pt-BR",
             RetryOnConnectionFailure = true,
-            PrintToConsole = true // Deixe false para não sujar seu log se você já tem os seus
+            PrintToConsole = true // TODO mudar para false para não sujar o log
         });
 
         Client.OnChatMessage += OnChatMessage;
@@ -34,7 +34,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
 
         try
         {
-            Logger.LogInformation($"Iniciando escuta da live de @{tiktokUsername}");
+            Logger.LogInformation("Iniciando escuta da live de @{username}", tiktokUsername);
 
             Client.Run(cancellationToken);
         }
