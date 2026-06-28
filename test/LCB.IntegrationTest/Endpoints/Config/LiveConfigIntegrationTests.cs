@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using LCB.Application.Commands.Config.Live;
+using LCB.Application.Commands.Config.Live.Put;
 using LCB.Application.Commands.Login;
 using LCB.Domain.Objects;
 using LCB.IntegrationTest.Constants;
