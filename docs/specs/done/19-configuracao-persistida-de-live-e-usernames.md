@@ -1,7 +1,7 @@
 # Mini-spec: Configuração persistida de live e usernames por plataforma
 
 Número: 19
-Status: em andamento
+Status: implementado
 
 ## Diretriz transversal de concorrência
 

@@ -40,10 +40,11 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Consolidação do modelo de mensagem entre HTTP e worker](done/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](done/05-processamento-real-chat-worker.md)
 - [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
+- [Configuração persistida de live e usernames por plataforma](active/19-configuracao-persistida-de-live-e-usernames.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Configuração persistida de live e usernames por plataforma](active/19-configuracao-persistida-de-live-e-usernames.md)
+- _Nenhuma ativa._
 
 ### 📋 Planejadas (ordem de prioridade)
 
