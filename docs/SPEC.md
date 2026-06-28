@@ -56,16 +56,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 11 specs em `docs/specs/planned/`
-- **Ativas:** 0 spec em `docs/specs/active/`
+- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Ativas:** 1 spec em `docs/specs/active/`
 - **Concluídas:** 9 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 18** - Acionamento do worker pelo front com seleção de listeners
-2. **Spec 15** - Tabela de logs com auditoria mínima
-3. **Spec 21** - Nome de usuário para auditoria operacional
+1. **Spec 15** - Tabela de logs com auditoria mínima
+2. **Spec 21** - Nome de usuário para auditoria operacional
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
