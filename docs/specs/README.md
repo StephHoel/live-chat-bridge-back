@@ -27,6 +27,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - `planned/`: mini-specs planejadas, ainda não iniciadas.
 - `active/`: mini-specs em andamento ou em evolução contínua.
 - `done/`: mini-specs concluídas, implementadas ou mantidas como referência de decisões já incorporadas.
+- `discontinued/`: mini-specs descontinuadas, mantidas apenas como histórico de decisão.
 
 ## Status das mini-specs
 
@@ -50,7 +51,6 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Login retorna usernames de live para bootstrap do front](planned/20-login-retorna-usernames-de-live.md)
 - [Acionamento do worker pelo front](planned/18-acionamento-do-worker-pelo-front.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
@@ -64,3 +64,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Nome de usuário para auditoria operacional](planned/21-nome-de-usuario-para-auditoria-operacional.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.
+
+### ⛔ Descontinuadas
+
+- [Login retorna usernames de live para bootstrap do front](discontinued/20-login-retorna-usernames-de-live.md)
