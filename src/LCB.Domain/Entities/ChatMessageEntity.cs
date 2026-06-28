@@ -30,6 +30,6 @@ public class ChatMessageEntity
 
     public void TouchUpdatedAt()
     {
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = DateTime.UtcNow.NormalizeToUtcMinus3();
     }
 }
