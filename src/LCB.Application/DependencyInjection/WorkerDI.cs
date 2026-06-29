@@ -26,6 +26,7 @@ public static class WorkerDI
         services.AddSingleton<ITikTokChatProvider, TikTokChatProvider>();
 
         services.AddSingleton<ChatProcessorService>();
+        services.AddSingleton<WorkerControlService>();
 
         services.AddHostedService<ChatWorker>();
 
