@@ -6,6 +6,7 @@ using LCB.Application.Commands.Message.Ingest;
 using LCB.Domain.Enums;
 using LCB.Domain.Objects;
 using LCB.IntegrationTest.Constants;
+using LCB.IntegrationTest.Helpers;
 using LCB.IntegrationTest.Infrastructure;
 using Xunit;
 
@@ -50,7 +51,7 @@ public class IngestIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Ingest_WithValidToken_Returns200()
     {
-        var token = await RegisterAndLoginAsync();
+        var token = await _client.RegisterAndLoginAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "integration-user", "!fila", DateTime.UtcNow);
@@ -65,7 +66,7 @@ public class IngestIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Ingest_WithDuplicateMessage_ReturnsBadRequest()
     {
-        var token = await RegisterAndLoginAsync();
+        var token = await _client.RegisterAndLoginAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var payload = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "duplicate-user", "!fila", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc));
@@ -82,36 +83,5 @@ public class IngestIntegrationTests(ApiWebApplicationFactory factory)
         Assert.Equal("Invalid payload", duplicateBody.Error);
         Assert.NotNull(duplicateBody.Data);
         Assert.Equal(StatusResultEnum.Duplicate, duplicateBody.Data!.Status);
-    }
-
-    private async Task<string> RegisterAndLoginAsync()
-    {
-        var email = FakeData.BuildUniqueEmail();
-        var password = "StrongP@ss1";
-
-        var registerResponse = await _client.PostAsJsonAsync("/auth/register", new
-        {
-            email,
-            password,
-            confirmPassword = password
-        });
-
-        Assert.Equal(HttpStatusCode.Created, registerResponse.StatusCode);
-
-        var loginResponse = await _client.PostAsJsonAsync("/auth/login", new
-        {
-            email,
-            password
-        });
-
-        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
-        var loginBody = await loginResponse.Content.ReadAsync<Result<LoginResponse>>();
-
-        Assert.NotNull(loginBody);
-        Assert.True(loginBody.Success);
-        Assert.NotNull(loginBody.Data);
-        Assert.False(string.IsNullOrWhiteSpace(loginBody.Data.Token));
-
-        return loginBody.Data.Token!;
     }
 }

@@ -3,9 +3,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using LCB.Application.Commands.Config.Live;
 using LCB.Application.Commands.Config.Live.Put;
-using LCB.Application.Commands.Login;
 using LCB.Domain.Objects;
-using LCB.IntegrationTest.Constants;
+using LCB.IntegrationTest.Helpers;
 using LCB.IntegrationTest.Infrastructure;
 using Xunit;
 
@@ -15,13 +14,14 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     : IClassFixture<ApiWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
+    private readonly string endpoint = "/config/live";
 
     [Fact]
     public async Task Get_WithoutToken_Returns401()
     {
         _client.DefaultRequestHeaders.Authorization = null;
 
-        var response = await _client.GetAsync("/config/live");
+        var response = await _client.GetAsync(endpoint);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
         var body = await response.Content.ReadAsync<Result<LiveConfigResponse>>();
@@ -33,10 +33,10 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Get_Creates_Default_Config_WhenMissing()
     {
-        var token = await RegisterAndLoginAsync();
+        var token = await _client.RegisterAndLoginAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.GetAsync("/config/live");
+        var response = await _client.GetAsync(endpoint);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.Content.ReadAsync<Result<LiveConfigResponse>>();
@@ -50,13 +50,16 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Put_Updates_Config_WithPartialMerge_AndNormalization()
     {
-        var token = await RegisterAndLoginAsync();
+        var token = await _client.RegisterAndLoginAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var firstResponse = await _client.PutAsJsonAsync("/config/live", new PutLiveConfigRequest("https://tiktok.com/@alice", null, null, 10));
+        var request1 = new PutLiveConfigRequest("https://tiktok.com/@alice", null, null, 10);
+        var request2 = new PutLiveConfigRequest(null, " @twitchAlice ", null, null);
+
+        var firstResponse = await _client.PutAsJsonAsync(endpoint, request1);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
 
-        var secondResponse = await _client.PutAsJsonAsync("/config/live", new PutLiveConfigRequest(null, " @twitchAlice ", null, null));
+        var secondResponse = await _client.PutAsJsonAsync(endpoint, request2);
         Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
 
         var body = await secondResponse.Content.ReadAsync<Result<LiveConfigResponse>>();
@@ -71,46 +74,17 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Put_WithInvalidReloadTime_Returns400()
     {
-        var token = await RegisterAndLoginAsync();
+        var token = await _client.RegisterAndLoginAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.PutAsJsonAsync("/config/live", new PutLiveConfigRequest(null, null, null, 0));
+        var request = new PutLiveConfigRequest(null, null, null, 0);
+
+        var response = await _client.PutAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var body = await response.Content.ReadAsync<Result<LiveConfigResponse>>();
         Assert.NotNull(body);
         Assert.False(body.Success);
         Assert.Equal("ReloadTimeInSec must be greater than zero", body.Error);
-    }
-
-    private async Task<string> RegisterAndLoginAsync()
-    {
-        var email = FakeData.BuildUniqueEmail();
-        var password = "StrongP@ss1";
-
-        var registerResponse = await _client.PostAsJsonAsync("/auth/register", new
-        {
-            email,
-            password,
-            confirmPassword = password
-        });
-
-        Assert.Equal(HttpStatusCode.Created, registerResponse.StatusCode);
-
-        var loginResponse = await _client.PostAsJsonAsync("/auth/login", new
-        {
-            email,
-            password
-        });
-
-        Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
-        var loginBody = await loginResponse.Content.ReadAsync<Result<LoginResponse>>();
-
-        Assert.NotNull(loginBody);
-        Assert.True(loginBody.Success);
-        Assert.NotNull(loginBody.Data);
-        Assert.False(string.IsNullOrWhiteSpace(loginBody.Data.Token));
-
-        return loginBody.Data.Token!;
     }
 }
