@@ -44,6 +44,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Configuração persistida de live e usernames por plataforma](done/19-configuracao-persistida-de-live-e-usernames.md)
 - [Acionamento do worker pelo front](done/18-acionamento-do-worker-pelo-front.md)
 - [Swagger desprotegido e testes de integração](done/22-swagger-desprotegido-e-testes-integracao.md)
+- [Campo de auditoria de origem de inserção em ChatMessages](done/16-campo-auditoria-origem-insercao-chatmessages.md)
 
 ### 🔄 Ativas/Em andamento
 
@@ -53,7 +54,6 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
 - [Endpoint HTTP para bootstrap da fila](planned/07-endpoint-http-fila-bootstrap.md)
