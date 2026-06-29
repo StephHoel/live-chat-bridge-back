@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## [v0.6.3] - 2026-06-29
+
+### 🔧 Melhorias Técnicas
+
+- Ajuste no mapeamento de `Result<T>` para preservar `503 Service Unavailable` em respostas HTTP (`ResultExtensions`), evitando fallback indevido para `500`.
+- Refino da suíte de integração de worker com cenários segmentados por endpoint:
+  - `POST /worker/start`
+  - `POST /worker/stop`
+  - `GET /worker/status`
+- Reuso de setup de autenticação/configuração em helper dedicado de testes de worker.
+
+### 🧪 Testes
+
+- Execução de validação da solução completa:
+  - comando: `dotnet test LCB.sln -v minimal`
+  - total: 133
+  - sucesso: 133
+  - falhas: 0
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - total: 105
+  - sucesso: 105
+  - falhas: 0
+  - cobertura de linhas: **90,82%** (`line-rate=0.9082`)
+
+### 📚 Documentação
+
+- Atualização de `README.md` com referência atualizada da suíte completa e da execução de cobertura unitária.
+- Atualização de `docs/SPEC.md` (seção de testes e cobertura) com a execução de referência em 2026-06-29.
+- Reescrita de `docs/FLUXOS-FUNCIONAMENTO.md` para refletir o estado atual dos fluxos ativos (configuração live por usuário, controle de worker por usuário e processamento assíncrono desacoplado).
+
 ## [v0.6.2] - 2026-06-27
 
 ### ✨ Funcionalidades

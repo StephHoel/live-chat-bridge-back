@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.2
+> **Versão do Projeto:** v0.6.3
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -23,6 +23,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Login por e-mail via `POST /auth/login`, com validação de senha e emissão de JWT.
 - Registro de conta via `POST /auth/register`, com validação de e-mail, confirmação de senha e política configurável.
 - Configuração operacional por usuário via `GET /config/live` e `PUT /config/live`, com persistência durável de usernames por plataforma e `ReloadTimeInSec`.
+- Controle operacional de worker por usuário autenticado via `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`.
 - Ingestão de mensagens via `POST /messages/ingest` com autenticação JWT obrigatória, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
@@ -31,7 +32,8 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
 - **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 ✅).
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
-- Worker hospedado (`ChatWorker`) com tentativa contínua de conexão no TikTok usando `TikTokLive_Sharp`.
+- Worker hospedado (`ChatWorker`) dedicado ao processamento assíncrono do canal interno.
+- Listeners de live (TikTok) iniciados/parados sob demanda por usuário autenticado via endpoints de controle operacional.
 - Canal em memória (`System.Threading.Channels`) para receber mensagens do provedor e entregá-las ao `ChatProcessorService`.
 - Conversor JSON tolerante para `DateTime` nas entradas HTTP.
 - **Logging padronizado** com `TemplateLoggerProvider`, middleware de correlação por request e `OperationExecutor` (Spec 13 ✅).
@@ -90,7 +92,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
 - `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos e migrations.
 - `test/LCB.UnitTest`: testes unitários de handlers, serviços, workers e repositórios persistentes.
-- `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/messages/ingest`).
+- `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/messages/ingest`, `/config/live`, `/worker/start`, `/worker/stop`, `/worker/status`).
 
 ## 6. Fluxos Principais
 
@@ -141,16 +143,18 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 
 ### Worker de Live
 
-1. `ChatWorker` inicia `ChatProcessorService` e conexão com `TikTokChatProvider`.
-2. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageModel>` (tipo atual do canal, tratado como `WorkerInput`).
-3. `ChatProcessorService` consome o `ChannelReader`, converte `WorkerInput` para entidade de domínio e reutiliza `MessageIngestHandler` para processamento real com validação, idempotência e retry.
+1. `ChatWorker` inicia apenas o `ChatProcessorService`, mantendo o consumo do canal interno.
+2. O front autenticado aciona `POST /worker/start` para iniciar listeners da própria instância de usuário (não global).
+3. `WorkerControlService` valida usernames persistidos por plataforma e inicia/paralisa os listeners selecionados para o usuário autenticado.
+4. O provedor escreve mensagens em um `ChannelWriter<LCB.Domain.Models.ChatMessageModel>` (tipo atual do canal, tratado como `WorkerInput`).
+5. `ChatProcessorService` consome o `ChannelReader`, converte `WorkerInput` para entidade de domínio e reutiliza `MessageIngestHandler` para processamento real com validação, idempotência e retry.
 
 ## 7. Configuração e Ambiente
 
 - `appsettings.json` define `JWT_KEY`, a seção `Usernames` com `Tiktok`, `Twitch` e `Youtube`, e a seção `PasswordPolicy`.
 - `appsettings.Development.json` já contém uma chave JWT de desenvolvimento e um username de TikTok preenchido.
 - `ConnectionStrings:DefaultConnection` define o banco SQLite local.
-- `LiveConfig.SectionName` aponta para `Usernames` e permanece como configuração transitória do worker atual até a evolução das Specs 18/20.
+- `LiveConfig.SectionName` permanece disponível por compatibilidade de configuração, mas o acionamento de listeners usa usernames persistidos por usuário (`LiveSettings`).
 - `PasswordPolicy` define requisitos mínimos de senha (`MinLength`, `RequireUppercase`, `RequireLowercase`, `RequireDigit`, `RequireSpecialCharacter`).
 - O Swagger só é exposto em ambiente de desenvolvimento.
 - A autenticação JWT depende de `JWT_KEY` com pelo menos 32 bytes; caso contrário, o helper retorna `null`.
@@ -235,13 +239,14 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
 - Há cobertura de integração para endpoints de autenticação e ingestão (`/auth/login`, `/auth/register`, `/messages/ingest`), incluindo cenários com token ausente, token inválido e token válido.
 - Há cobertura de integração para `GET /config/live` e `PUT /config/live`, incluindo autenticação obrigatória, auto-provisionamento, atualização parcial e validação de `ReloadTimeInSec`.
+- Há cobertura de integração para `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`, incluindo autenticação obrigatória, transições de estado e isolamento por usuário autenticado.
 - Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
 - Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`, `LiveSettingsRepository`) possuem testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência (2026-06-27): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"` com 115 testes aprovados, 0 falhas e cobertura de linhas em 84,26% (Cobertura `line-rate=0.8426`).
+- Execução de referência (2026-06-29): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 105 testes aprovados, 0 falhas e cobertura de linhas em 90,82% (Cobertura `line-rate=0.9082`).
 
 ## 12. Convenções Observadas
 
@@ -261,8 +266,8 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- implementar acionamento explícito do worker pelo front (Spec 18);
 - implementar trilha de auditoria persistida mínima (Spec 15) e auditoria de inserção em `ChatMessages` (Spec 16).
+- evoluir auditoria operacional para nome de usuário (Spec 21).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto
 
