@@ -15,12 +15,14 @@ public class WorkerInputMapperTests
             "alice",
             "hello",
             "TikTok",
-            new DateTime(2026, 1, 1, 15, 0, 0, DateTimeKind.Utc));
+            new DateTime(2026, 1, 1, 15, 0, 0, DateTimeKind.Utc),
+            "worker-owner@example.com");
 
         var message = workerInput.ToChatMessageEntity();
 
         Assert.Equal(ProviderTypeEnum.TIKTOK, message.Provider);
         Assert.Equal("alice", message.Author);
+        Assert.Equal("worker-owner@example.com", message.InsertedByUser);
         Assert.Equal("hello", message.Text);
         Assert.Equal(new DateTime(2026, 1, 1, 12, 0, 0), message.Timestamp);
         Assert.False(string.IsNullOrWhiteSpace(message.IdempotencyKey));
@@ -30,7 +32,7 @@ public class WorkerInputMapperTests
     [Fact]
     public void ToChatMessageEntity_FallbacksProviderToTikTok_WhenPlatformIsUnknown()
     {
-        var workerInput = new ChatMessageModel("alice", "hello", "Mixer", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc));
+        var workerInput = new ChatMessageModel("alice", "hello", "Mixer", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc), "worker-owner@example.com");
 
         var message = workerInput.ToChatMessageEntity();
 

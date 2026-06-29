@@ -14,10 +14,11 @@ public class MessageIngestMapperTests
         var timestamp = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc);
         var request = new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "hello", timestamp);
 
-        var message = request.ToChatMessage();
+        var message = request.ToChatMessage("api-user@example.com");
 
         Assert.Equal(ProviderTypeEnum.YOUTUBE, message.Provider);
         Assert.Equal("alice", message.Author);
+        Assert.Equal("api-user@example.com", message.InsertedByUser);
         Assert.Equal("hello", message.Text);
         Assert.Equal(timestamp.NormalizeToUtcMinus3(), message.Timestamp);
     }
@@ -28,10 +29,11 @@ public class MessageIngestMapperTests
         var before = DateTime.UtcNow.NormalizeToUtcMinus3();
         var request = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", null);
 
-        var message = request.ToChatMessage();
+        var message = request.ToChatMessage("api-user@example.com");
 
         Assert.Equal(ProviderTypeEnum.TIKTOK, message.Provider);
         Assert.Equal("alice", message.Author);
+        Assert.Equal("api-user@example.com", message.InsertedByUser);
         Assert.Equal("hello", message.Text);
         Assert.InRange(message.Timestamp, before.AddSeconds(-1), DateTime.UtcNow.NormalizeToUtcMinus3().AddSeconds(1));
     }

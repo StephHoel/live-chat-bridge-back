@@ -56,17 +56,24 @@ public class MessageIngestHandlerTests
     public async Task Handle_ReturnsProcessedResult_WhenMessageIsNewAndDoesNotJoinQueue()
     {
         var commandResult = new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-1");
+        List<ChatMessageEntity> persistedMessages = [];
 
         adapterService
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(commandResult);
+        messageRepository
+            .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .Callback<IEnumerable<ChatMessageEntity>>(messages => persistedMessages.AddRange(messages))
+            .ReturnsAsync(true);
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)), "api-user@example.com");
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Processed, result.Data!.Status);
         Assert.True(result.Data.Message!.Processed);
         Assert.Same(commandResult, result.Data.CommandResult);
+        var persisted = Assert.Single(persistedMessages);
+        Assert.Equal("api-user@example.com", persisted.InsertedByUser);
         messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
         adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Once);
         queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Never);
@@ -90,7 +97,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-2"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTime.UtcNow.NormalizeToUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.YOUTUBE, "alice", "!fila", DateTime.UtcNow.NormalizeToUtcMinus3()), "api-user@example.com");
 
         Assert.True(result.Success);
         queueRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<QueueEntity>>()), Times.Once);
@@ -116,7 +123,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-3"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", timestamp));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "hello", timestamp), "api-user@example.com");
 
         Assert.False(result.Success);
         Assert.Equal("Invalid payload", result.Error);
@@ -136,6 +143,7 @@ public class MessageIngestHandlerTests
         var timestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
         var existing = new ChatMessageEntity { Provider = ProviderTypeEnum.TIKTOK, Author = "alice", Text = "old", Timestamp = timestamp, Processed = false };
         existing.EnsureIdempotencyKey();
+        List<ChatMessageEntity> updatedMessages = [];
 
         messageRepository
             .Setup(r => r.GetByIdempotencyKeyAsync(existing.IdempotencyKey))
@@ -143,13 +151,19 @@ public class MessageIngestHandlerTests
         adapterService
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-retry"));
+        messageRepository
+            .Setup(r => r.UpdateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
+            .Callback<IEnumerable<ChatMessageEntity>>(messages => updatedMessages.AddRange(messages))
+            .ReturnsAsync(true);
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "new text", timestamp));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "alice", "new text", timestamp), "api-user@example.com");
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Processed, result.Data!.Status);
         Assert.True(result.Data.Message!.Processed);
         Assert.Equal("new text", result.Data.Message.Text);
+        var updated = Assert.Single(updatedMessages);
+        Assert.Equal("api-user@example.com", updated.InsertedByUser);
         messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
         messageRepository.Verify(r => r.UpdateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
     }
@@ -164,7 +178,7 @@ public class MessageIngestHandlerTests
             .Setup(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()))
             .ReturnsAsync(false);
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()), "api-user@example.com");
 
         Assert.True(result.Success);
         Assert.Equal(StatusResultEnum.Error, result.Data!.Status);
@@ -178,7 +192,7 @@ public class MessageIngestHandlerTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ThrowsAsync(new InvalidOperationException("boom"));
 
-        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()));
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()), "api-user@example.com");
 
         Assert.False(result.Success);
         Assert.Equal("Erro inesperado", result.Error);
@@ -192,10 +206,11 @@ public class MessageIngestHandlerTests
     {
         var request = new MessageIngestRequest(ProviderTypeEnum.TWITCH, "user", "text", null);
 
-        var message = request.ToChatMessage();
+        var message = request.ToChatMessage("api-user@example.com");
 
         Assert.Equal(ProviderTypeEnum.TWITCH, message.Provider);
         Assert.Equal("user", message.Author);
+        Assert.Equal("api-user@example.com", message.InsertedByUser);
         Assert.Equal("text", message.Text);
         Assert.True((DateTime.UtcNow.NormalizeToUtcMinus3() - message.Timestamp).TotalSeconds < 5);
     }
@@ -206,9 +221,23 @@ public class MessageIngestHandlerTests
         var localTimestamp = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Local);
         var request = new MessageIngestRequest(ProviderTypeEnum.TWITCH, "  user  ", "text", localTimestamp);
 
-        var message = request.ToChatMessage();
+        var message = request.ToChatMessage("  api-user@example.com  ");
 
         Assert.Equal("user", message.Author);
+        Assert.Equal("api-user@example.com", message.InsertedByUser);
         Assert.Equal(localTimestamp.NormalizeToUtcMinus3(), message.Timestamp);
+
+    }
+
+    [Fact]
+    public async Task Handle_ReturnsBadRequest_WhenInsertedByUserIsEmpty()
+    {
+        var result = await handler.Handle(new MessageIngestRequest(ProviderTypeEnum.TWITCH, "alice", "hello world", DateTime.UtcNow.NormalizeToUtcMinus3()), "   ");
+
+        Assert.False(result.Success);
+        Assert.Equal("Invalid payload", result.Error);
+        Assert.Equal(HttpStatusCode.BadRequest, result.StatusCode);
+        adapterService.Verify(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()), Times.Never);
+        messageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Never);
     }
 }
