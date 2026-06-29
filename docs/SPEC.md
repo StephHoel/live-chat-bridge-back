@@ -31,6 +31,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
 - **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 ✅).
+- **Auditoria de origem de inserção em mensagens** (Spec 16 ✅): `ChatMessageEntity` diferencia `Author` (autor do chat) de `InsertedByUser` (ator que inseriu no backend), com preenchimento por usuário autenticado no fluxo HTTP e pelo usuário autenticado que ativou a sessão no worker.
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) dedicado ao processamento assíncrono do canal interno.
 - Listeners de live (TikTok) iniciados/parados sob demanda por usuário autenticado via endpoints de controle operacional.
@@ -59,9 +60,9 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Planejadas:** 9 specs em `docs/specs/planned/`
 - **Ativas:** 0 specs em `docs/specs/active/`
-- **Concluídas:** 11 specs em `docs/specs/done/`
+- **Concluídas:** 12 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
@@ -206,6 +207,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - ✅ **Spec 13 - Observabilidade e tratamento de erros** (feita): Logging centralizado, `OperationExecutor`, remoção de `Console.WriteLine` em componentes críticos.
 - ✅ **Spec 12 - Registro de conta** (feita): Endpoint `POST /auth/register` com política de senha configurável, confirmação obrigatória e prevenção de e-mail duplicado.
 - ✅ **Spec 04 - Consolidação de modelo de mensagem** (feita): tipo de canal explicitado como `ChatMessageModel` (`WorkerInput`), mapeador dedicado `WorkerInput -> ChatMessageEntity`, normalização temporal unificada em UTC-3 e resposta de ingestão migrada para `Model` de API.
+- ✅ **Spec 16 - Campo de auditoria de origem de inserção em ChatMessages** (feita): inclusão de `InsertedByUser` em persistência com fallback legado em migration, preenchimento por e-mail autenticado no fluxo HTTP e pelo usuário autenticado que ativou a sessão no fluxo assíncrono.
 - ✅ **Ajuste transversal de timezone (pós-Spec 04)**: entidades de domínio relacionadas (`ChatMessageEntity`, `QueueEntity`, `UserEntity`) e serialização JSON de `DateTime` padronizadas para UTC-3.
 
 ### Idempotência (implementada — Spec 01 ✅)
