@@ -32,9 +32,9 @@ public class LoginIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Login_InvalidPassword_ReturnsUnauthorized()
     {
-        await _client.RegisterAsync();
+        var (email, _) = await _client.RegisterAsync();
 
-        var request = new LoginRequest(FakeData.BuildUniqueEmail(), FakeData.GetWrongPass());
+        var request = new LoginRequest(email, FakeData.GetWrongPass());
         var response = await _client.PostAsJsonAsync(endpointLogin, request);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
@@ -47,9 +47,9 @@ public class LoginIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Login_Valid_ReturnToken()
     {
-        await _client.RegisterAsync();
+        var (email, password) = await _client.RegisterAsync();
 
-        var request = new LoginRequest(FakeData.BuildUniqueEmail(), FakeData.GetCorrectPass());
+        var request = new LoginRequest(email, password);
         var loginResponse = await _client.PostAsJsonAsync(endpointLogin, request);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
 

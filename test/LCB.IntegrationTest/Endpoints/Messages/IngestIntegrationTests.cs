@@ -51,7 +51,7 @@ public class IngestIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Ingest_WithValidToken_Returns200()
     {
-        var token = await _client.RegisterAndLoginAsync();
+        var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "integration-user", "!fila", DateTime.UtcNow);
@@ -66,7 +66,7 @@ public class IngestIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Ingest_WithDuplicateMessage_ReturnsBadRequest()
     {
-        var token = await _client.RegisterAndLoginAsync();
+        var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var payload = new MessageIngestRequest(ProviderTypeEnum.TIKTOK, "duplicate-user", "!fila", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc));

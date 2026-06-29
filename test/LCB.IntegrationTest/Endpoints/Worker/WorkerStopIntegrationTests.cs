@@ -8,28 +8,29 @@ using Xunit;
 
 namespace LCB.IntegrationTest.Endpoints.Worker;
 
-public class WorkerStatusIntegrationTests(ApiWebApplicationFactory factory)
+public class WorkerStopIntegrationTests(ApiWebApplicationFactory factory)
     : IClassFixture<ApiWebApplicationFactory>
 {
     private readonly HttpClient _client = factory.CreateClient();
-    private readonly string endpoint = "/worker/status";
+    private readonly string endpoint = "/worker/stop";
 
     [Fact]
-    public async Task Status_WithoutToken_Returns401()
+    public async Task Stop_WithoutToken_Returns401()
     {
         _client.DefaultRequestHeaders.Authorization = null;
 
-        var response = await _client.GetAsync(endpoint);
+        var response = await _client.PostAsync(endpoint, null);
+
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
-    public async Task Status_WithAuthenticatedUserAndNoSession_ReturnsInactive()
+    public async Task Stop_WhenInactive_ReturnsInactiveState()
     {
         var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.GetAsync(endpoint);
+        var response = await _client.PostAsync(endpoint, null);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
@@ -39,23 +40,19 @@ public class WorkerStatusIntegrationTests(ApiWebApplicationFactory factory)
     }
 
     [Fact]
-    public async Task Status_IsolatedByAuthenticatedUser()
+    public async Task Stop_WhenActive_ReturnsInactiveState()
     {
-        var tokenA = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
-        await _client.StartWorkerAsync("@user-a", null, null);
+        var token = await _client.LoginWithRegisterAsync();
+        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var tokenB = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenB);
-        var response = await _client.GetAsync(endpoint);
+        await _client.StartWorkerAsync("@integration-user");
+
+        var response = await _client.PostAsync(endpoint, null);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
         Assert.True(body.Success);
         Assert.NotNull(body.Data);
         Assert.Equal(WorkerStateEnum.Inactive, body.Data!.State);
-
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
-        await _client.StopWorkerAsync();
     }
 }
