@@ -12,6 +12,7 @@ public class ChatMessageEntity
     public string IdempotencyKey { get; set; } = string.Empty;
     public ProviderTypeEnum Provider { get; set; }
     public string Author { get; set; } = string.Empty;
+    public string InsertedByUser { get; set; } = string.Empty;
     public string Text { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow.NormalizeToUtcMinus3();
     public bool Processed { get; set; } = false;
