@@ -27,7 +27,7 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
     {
         _connection.Open();
 
-        builder.UseEnvironment("Testing");
+        builder.UseEnvironment("Development");
 
         builder.ConfigureAppConfiguration((_, configBuilder) =>
         {
