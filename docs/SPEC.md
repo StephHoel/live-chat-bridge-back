@@ -58,7 +58,7 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Planejadas:** 11 specs em `docs/specs/planned/`
 - **Ativas:** 0 specs em `docs/specs/active/`
 - **Concluídas:** 10 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
