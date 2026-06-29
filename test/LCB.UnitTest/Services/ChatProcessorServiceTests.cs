@@ -31,7 +31,7 @@ public class ChatProcessorServiceTests
             .Callback<IEnumerable<ChatMessageEntity>>(messages => createdMessages.AddRange(messages))
             .ReturnsAsync(true);
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user1", "hello", "TikTok", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc)));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user1", "hello", "TikTok", new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc), "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -39,6 +39,7 @@ public class ChatProcessorServiceTests
         sut.MessageRepository.Verify(r => r.CreateAsync(It.IsAny<IEnumerable<ChatMessageEntity>>()), Times.Once);
         var persisted = Assert.Single(createdMessages);
         Assert.Equal("user1", persisted.Author);
+        Assert.Equal("worker-owner@example.com", persisted.InsertedByUser);
         Assert.Equal("hello", persisted.Text);
         Assert.NotEqual(default, persisted.Timestamp);
         Assert.NotEmpty(persisted.IdempotencyKey);
@@ -49,7 +50,7 @@ public class ChatProcessorServiceTests
     {
         var sut = CreateSut();
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("   ", "hello", "TikTok", DateTime.UtcNow));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("   ", "hello", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -64,7 +65,7 @@ public class ChatProcessorServiceTests
     {
         var sut = CreateSut();
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-text", "   ", "TikTok", DateTime.UtcNow));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-text", "   ", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -79,7 +80,7 @@ public class ChatProcessorServiceTests
     {
         var sut = CreateSut();
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-time", "hello", "TikTok", default));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-without-time", "hello", "TikTok", default, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -102,8 +103,8 @@ public class ChatProcessorServiceTests
             .Setup(a => a.ParseAndDispatch(It.Is<ChatMessageEntity>(m => m.Text == "ok")))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-ok"));
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user1", "boom", "TikTok", DateTime.UtcNow));
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user2", "ok", "TikTok", DateTime.UtcNow));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user1", "boom", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user2", "ok", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -124,7 +125,7 @@ public class ChatProcessorServiceTests
             .ReturnsAsync(false)
             .ReturnsAsync(true);
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-persist", "hello", "TikTok", DateTime.UtcNow));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("user-persist", "hello", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -152,7 +153,7 @@ public class ChatProcessorServiceTests
             .Setup(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()))
             .ReturnsAsync(duplicate);
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("alice", "hello", "TikTok", duplicate.Timestamp));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("alice", "hello", "TikTok", duplicate.Timestamp, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);
@@ -168,7 +169,7 @@ public class ChatProcessorServiceTests
     {
         var sut = CreateSut();
 
-        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("queue-user", "!fila", "TikTok", DateTime.UtcNow));
+        await sut.Channel.Writer.WriteAsync(new ChatMessageModel("queue-user", "!fila", "TikTok", DateTime.UtcNow, "worker-owner@example.com"));
         sut.Channel.Writer.Complete();
 
         await sut.Service.ProcessMessagesAsync(CancellationToken.None);

@@ -32,11 +32,12 @@ public class TikTokChatProviderTests
         ReflectionTestHelper.SetMemberValue(chatSender, "UniqueId", "tester123");
         ReflectionTestHelper.SetMemberValue(chat, "Sender", chatSender);
 
-        ReflectionTestHelper.InvokePrivate(provider, "OnChatMessage", mockClient, chat);
+        ReflectionTestHelper.InvokePrivate(provider, "OnChatMessage", chat, "worker-owner@example.com");
         Assert.True(channel.Reader.TryRead(out var written));
         Assert.Equal("tester123", written!.User);
         Assert.Equal("hello from chat", written.Text);
         Assert.Equal("TikTok", written.Platform);
+        Assert.Equal("worker-owner@example.com", written.InsertedByUser);
 
         var gift = ReflectionTestHelper.CreateInstance<TikTokGift>();
         var giftObj = ReflectionTestHelper.CreateNestedMemberInstance(gift, "Gift");
@@ -79,10 +80,10 @@ public class TikTokChatProviderTests
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
-        provider.Connect("unit-test-user", cts.Token);
+        provider.Connect("unit-test-user", "worker-owner@example.com", cts.Token);
 
         using var delayedCts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
-        var connectTask = Task.Run(() => provider.Connect("unit-test-user", delayedCts.Token));
+        var connectTask = Task.Run(() => provider.Connect("unit-test-user", "worker-owner@example.com", delayedCts.Token));
 
         var completed = await Task.WhenAny(connectTask, Task.Delay(TimeSpan.FromSeconds(8)));
         Assert.Same(connectTask, completed);
@@ -95,7 +96,7 @@ public class TikTokChatProviderTests
         var provider = new TikTokChatProvider(channel.Writer, new NullLogger<TikTokChatProvider>());
 
         using var cts = new CancellationTokenSource();
-        var connectTask = Task.Run(() => provider.Connect("unit-test-user", cts.Token));
+        var connectTask = Task.Run(() => provider.Connect("unit-test-user", "worker-owner@example.com", cts.Token));
 
         // Allow Connect to start and then request stop through the cancellation token.
         await Task.Delay(100);
