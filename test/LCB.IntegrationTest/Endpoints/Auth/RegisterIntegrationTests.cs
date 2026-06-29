@@ -13,12 +13,13 @@ public class RegisterIntegrationTests(ApiWebApplicationFactory factory)
 {
     private readonly HttpClient _client = factory.CreateClient();
     private readonly string endpoint = "/auth/register";
-    private readonly string pass = "StrongP@ss1";
 
     [Fact]
     public async Task Register_Success()
     {
         var email = FakeData.BuildUniqueEmail();
+        var pass = FakeData.GetCorrectPass();
+
         var response = await Register(email, pass, pass, HttpStatusCode.Created);
 
         var body = await response.Content.ReadAsync<Result<RegisterResponse>>();
@@ -32,6 +33,8 @@ public class RegisterIntegrationTests(ApiWebApplicationFactory factory)
     public async Task DuplicateEmail_ReturnsConflict()
     {
         var email = FakeData.BuildUniqueEmail();
+        var pass = FakeData.GetCorrectPass();
+
         await Register(email, pass, pass, HttpStatusCode.Created);
         var response = await Register(email, pass, pass, HttpStatusCode.Conflict);
 
@@ -44,6 +47,8 @@ public class RegisterIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task InvalidEmail_ReturnsBadRequest()
     {
+        var pass = FakeData.GetCorrectPass();
+
         var response = await Register("invalid-email", pass, pass, HttpStatusCode.BadRequest);
         var body = await response.Content.ReadAsync<Result<RegisterResponse>>();
         Assert.NotNull(body);
@@ -55,6 +60,8 @@ public class RegisterIntegrationTests(ApiWebApplicationFactory factory)
     public async Task InvalidPass_ReturnsBadRequest()
     {
         var email = FakeData.BuildUniqueEmail();
+        var pass = FakeData.GetCorrectPass();
+
         var response = await Register(email, pass + "1", pass, HttpStatusCode.BadRequest);
 
         var body = await response.Content.ReadAsync<Result<RegisterResponse>>();
@@ -67,6 +74,8 @@ public class RegisterIntegrationTests(ApiWebApplicationFactory factory)
     public async Task InvalidPass_WithoutConfirmationPass_ReturnsBadRequest()
     {
         var email = FakeData.BuildUniqueEmail();
+        var pass = FakeData.GetCorrectPass();
+
         var response = await Register(email, pass, string.Empty, HttpStatusCode.BadRequest);
 
         var body = await response.Content.ReadAsync<Result<RegisterResponse>>();

@@ -4,6 +4,7 @@ using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Register;
 using LCB.Domain.Objects;
 using LCB.IntegrationTest.Constants;
+using LCB.IntegrationTest.Helpers;
 using LCB.IntegrationTest.Infrastructure;
 using Xunit;
 
@@ -14,14 +15,11 @@ public class LoginIntegrationTests(ApiWebApplicationFactory factory)
 {
     private readonly HttpClient _client = factory.CreateClient();
     private readonly string endpointLogin = "/auth/login";
-    private readonly string endpointReq = "/auth/register";
-    private readonly string pass = "StrongP@ss1";
 
     [Fact]
     public async Task Login_UnknownUser_ReturnsUnauthorized()
     {
-        var email = FakeData.BuildUniqueEmail();
-        var request = new LoginRequest(email, pass);
+        var request = new LoginRequest(FakeData.BuildUniqueEmail(), FakeData.GetCorrectPass());
         var response = await _client.PostAsJsonAsync(endpointLogin, request);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
@@ -34,11 +32,9 @@ public class LoginIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Login_InvalidPassword_ReturnsUnauthorized()
     {
-        var email = FakeData.BuildUniqueEmail();
-        var registerRequest = new RegisterRequest(email, pass, pass);
-        await _client.PostAsJsonAsync(endpointReq, registerRequest);
+        await _client.RegisterAsync();
 
-        var request = new LoginRequest(email, "WrongP@ss1");
+        var request = new LoginRequest(FakeData.BuildUniqueEmail(), FakeData.GetWrongPass());
         var response = await _client.PostAsJsonAsync(endpointLogin, request);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
 
@@ -51,11 +47,9 @@ public class LoginIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Login_Valid_ReturnToken()
     {
-        var email = FakeData.BuildUniqueEmail();
-        var registerRequest = new RegisterRequest(email, pass, pass);
-        await _client.PostAsJsonAsync(endpointReq, registerRequest);
+        await _client.RegisterAsync();
 
-        var request = new LoginRequest(email, pass);
+        var request = new LoginRequest(FakeData.BuildUniqueEmail(), FakeData.GetCorrectPass());
         var loginResponse = await _client.PostAsJsonAsync(endpointLogin, request);
         Assert.Equal(HttpStatusCode.OK, loginResponse.StatusCode);
 
