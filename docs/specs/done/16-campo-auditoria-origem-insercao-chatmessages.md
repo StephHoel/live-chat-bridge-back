@@ -1,7 +1,7 @@
 # Mini-spec: Campo de auditoria de origem de inserção em ChatMessages
 
 Número: 16
-Status: planejado
+Status: implementado
 
 ## Diretriz transversal de concorrência
 
@@ -32,7 +32,7 @@ Status: planejado
 - Novo campo em `ChatMessages`: `InsertedByUser` (string, obrigatório após migração).
 - Estratégia de preenchimento:
   - Fluxo HTTP autenticado: usuário do token.
-  - Fluxo worker: identificador técnico controlado (ex.: `system:worker`).
+  - Fluxo worker: usuário autenticado que ativou a sessão do worker (dono da sessão ativa).
 - Migration deve tratar dados legados com fallback seguro para registros existentes.
 - Índice recomendado em `InsertedByUser` para consultas operacionais/auditoria.
 
@@ -57,7 +57,7 @@ Status: planejado
 ## Testes esperados
 
 - Testes de handler para preenchimento correto em fluxo HTTP autenticado.
-- Testes de worker para preenchimento com identidade técnica.
+- Testes de worker para preenchimento com o usuário autenticado que ativou a sessão.
 - Testes de migração validando atualização de dados legados.
 
 ## Fora de escopo
