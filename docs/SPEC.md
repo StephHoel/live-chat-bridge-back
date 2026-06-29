@@ -41,7 +41,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Idempotência de mensagens** (Spec 01 ✅): chave derivada de `Provider + Author + Timestamp` normalizado; reprocessamento de mensagens não processadas via `UpdateAsync`; duplicatas já processadas retornam `400 Duplicate`.
 - **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
 - **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
-- **Exceção de autenticação para Swagger em Development** (Spec 22 🔄): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
+- **Exceção de autenticação para Swagger em Development** (Spec 22 ✅): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
 
 ## 3. Funcionalidades Planejadas
 
@@ -60,8 +60,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Planejadas:** 10 specs em `docs/specs/planned/`
-- **Ativas:** 1 spec em `docs/specs/active/`
-- **Concluídas:** 10 specs em `docs/specs/done/`
+- **Ativas:** 0 specs em `docs/specs/active/`
+- **Concluídas:** 11 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas

@@ -43,10 +43,11 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
 - [Configuração persistida de live e usernames por plataforma](done/19-configuracao-persistida-de-live-e-usernames.md)
 - [Acionamento do worker pelo front](done/18-acionamento-do-worker-pelo-front.md)
+- [Swagger desprotegido e testes de integração](done/22-swagger-desprotegido-e-testes-integracao.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Swagger desprotegido e testes de integração](active/22-swagger-desprotegido-e-testes-integracao.md)
+- _Nenhuma ativa_
 
 ### 📋 Planejadas (ordem de prioridade)
 
