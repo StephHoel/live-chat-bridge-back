@@ -1,7 +1,7 @@
 # Mini-spec: Acionamento do worker pelo front
 
 Número: 18
-Status: em andamento
+Status: implementado
 
 ## Diretriz transversal de concorrência
 
