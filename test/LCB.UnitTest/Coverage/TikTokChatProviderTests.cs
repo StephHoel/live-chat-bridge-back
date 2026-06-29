@@ -94,42 +94,12 @@ public class TikTokChatProviderTests
         var channel = Channel.CreateUnbounded<ChatMessageModel>();
         var provider = new TikTokChatProvider(channel.Writer, new NullLogger<TikTokChatProvider>());
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(4));
+        using var cts = new CancellationTokenSource();
         var connectTask = Task.Run(() => provider.Connect("unit-test-user", cts.Token));
 
-        var clientField = provider.GetType().GetField("Client", BindingFlags.Instance | BindingFlags.NonPublic);
-        Assert.NotNull(clientField);
-
-        object? client = null;
-        var waitUntil = DateTime.UtcNow.AddSeconds(2);
-        while (DateTime.UtcNow < waitUntil && client is null)
-        {
-            client = clientField!.GetValue(provider);
-            if (client is null)
-            {
-                await Task.Delay(50);
-            }
-        }
-
-        if (client is not null)
-        {
-            var stopMethod = client.GetType().GetMethod("Disconnect", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                           ?? client.GetType().GetMethod("Stop", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic)
-                           ?? client.GetType().GetMethod("Dispose", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (stopMethod is not null)
-            {
-                var parameters = stopMethod.GetParameters();
-                if (parameters.Length == 0)
-                {
-                    stopMethod.Invoke(client, null);
-                }
-                else if (parameters.Length == 1 && parameters[0].ParameterType == typeof(CancellationToken))
-                {
-                    stopMethod.Invoke(client, [cts.Token]);
-                }
-            }
-        }
+        // Allow Connect to start and then request stop through the cancellation token.
+        await Task.Delay(100);
+        cts.Cancel();
 
         var completed = await Task.WhenAny(connectTask, Task.Delay(TimeSpan.FromSeconds(10)));
         Assert.Same(connectTask, completed);
