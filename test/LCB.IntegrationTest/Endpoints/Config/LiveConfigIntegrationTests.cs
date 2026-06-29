@@ -33,7 +33,7 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Get_Creates_Default_Config_WhenMissing()
     {
-        var token = await _client.RegisterAndLoginAsync();
+        var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var response = await _client.GetAsync(endpoint);
@@ -50,7 +50,7 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Put_Updates_Config_WithPartialMerge_AndNormalization()
     {
-        var token = await _client.RegisterAndLoginAsync();
+        var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request1 = new PutLiveConfigRequest("https://tiktok.com/@alice", null, null, 10);
@@ -74,7 +74,7 @@ public class LiveConfigIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Put_WithInvalidReloadTime_Returns400()
     {
-        var token = await _client.RegisterAndLoginAsync();
+        var token = await _client.LoginWithRegisterAsync();
         _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request = new PutLiveConfigRequest(null, null, null, 0);
