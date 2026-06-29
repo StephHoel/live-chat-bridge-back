@@ -11,9 +11,12 @@ public static class MessageEndpoints
 {
     public static WebApplication MapMessageEndpoints(this WebApplication app)
     {
-        app.MapPost("/messages/ingest", async (MessageIngestRequest request, [FromServices] MessageIngestHandler handler) =>
+        app.MapPost("/messages/ingest", async (HttpContext httpContext, MessageIngestRequest request, [FromServices] MessageIngestHandler handler) =>
         {
-            var result = await handler.Handle(request);
+            if (!httpContext.TryGetAuthenticatedUserData(out _, out var email))
+                return Result<MessageIngestResponse>.Fail("Unauthorized", HttpStatusCode.Unauthorized).ToMinimalResult();
+
+            var result = await handler.Handle(request, email);
             return result.ToMinimalResult();
         })
         .WithTags("Messages")

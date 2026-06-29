@@ -13,14 +13,19 @@ namespace LCB.Application.Commands.Message.Ingest;
 
 public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRepository queueRepository, IAdapterService adapterService, ILogger<MessageIngestHandler> logger)
 {
-    public Task<Result<MessageIngestResponse>> Handle(MessageIngestRequest request)
+    public Task<Result<MessageIngestResponse>> Handle(MessageIngestRequest request, string insertedByUser)
         => OperationExecutor.ExecuteAsync(logger,
                                           nameof(MessageIngestHandler),
-                                          () => ExecuteAsync(request));
+                                          () => ExecuteAsync(request, insertedByUser));
 
-    private async Task<Result<MessageIngestResponse>> ExecuteAsync(MessageIngestRequest request)
+    private async Task<Result<MessageIngestResponse>> ExecuteAsync(MessageIngestRequest request, string insertedByUser)
     {
-        var message = request.ToChatMessage();
+        var normalizedInsertedByUser = insertedByUser?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(normalizedInsertedByUser))
+            return Result<MessageIngestResponse>.Fail("Invalid payload", HttpStatusCode.BadRequest);
+
+        var message = request.ToChatMessage(normalizedInsertedByUser);
 
         var existing = await messageRepository.GetByIdempotencyKeyAsync(message.IdempotencyKey);
 
@@ -35,6 +40,7 @@ public class MessageIngestHandler(IMessageRepository messageRepository, IQueueRe
         {
             messageToPersist.Provider = message.Provider;
             messageToPersist.Author = message.Author;
+            messageToPersist.InsertedByUser = message.InsertedByUser;
             messageToPersist.Text = message.Text;
             messageToPersist.Timestamp = message.Timestamp;
             messageToPersist.IdempotencyKey = message.IdempotencyKey;
