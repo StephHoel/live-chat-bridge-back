@@ -42,7 +42,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Processamento real de mensagens no ChatProcessorService](done/05-processamento-real-chat-worker.md)
 - [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
 - [Configuração persistida de live e usernames por plataforma](done/19-configuracao-persistida-de-live-e-usernames.md)
-- [Acionamento do worker pelo front](active/18-acionamento-do-worker-pelo-front.md)
+- [Acionamento do worker pelo front](done/18-acionamento-do-worker-pelo-front.md)
 
 ### 🔄 Ativas/Em andamento
 
