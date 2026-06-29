@@ -15,9 +15,22 @@ public static class AuthorizationDependencies
             .AddAuthorizationBuilder()
             .AddPolicy(AuthorizationPolicies.ProtectedApi,
                        policy => policy.AddAuthenticationSchemes(authScheme).RequireAuthenticatedUser())
-            .SetFallbackPolicy(builder.AddAuthenticationSchemes(authScheme)
-                                      .RequireAuthenticatedUser()
-                                      .Build());
+            .SetFallbackPolicy(builder
+                .AddAuthenticationSchemes(authScheme)
+                .RequireAssertion(context =>
+                {
+                    if (context.Resource is HttpContext httpContext)
+                    {
+                        var environment = httpContext.RequestServices.GetRequiredService<IHostEnvironment>();
+                        var isSwaggerRoute = httpContext.Request.Path.StartsWithSegments("/swagger");
+
+                        if (environment.IsDevelopment() && isSwaggerRoute)
+                            return true;
+                    }
+
+                    return context.User?.Identity?.IsAuthenticated == true;
+                })
+                .Build());
 
         return services;
     }
