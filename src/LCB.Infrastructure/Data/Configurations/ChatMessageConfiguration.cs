@@ -24,6 +24,10 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageEnti
             .IsRequired()
             .HasMaxLength(255);
 
+        builder.Property(x => x.InsertedByUser)
+            .IsRequired()
+            .HasMaxLength(255);
+
         builder.Property(x => x.Text)
             .HasMaxLength(2048);
 
@@ -47,6 +51,8 @@ public class ChatMessageConfiguration : IEntityTypeConfiguration<ChatMessageEnti
 
         builder.HasIndex(x => x.IdempotencyKey)
             .IsUnique();
+
+        builder.HasIndex(x => x.InsertedByUser);
 
         builder.HasIndex(x => new { x.Processed, x.Timestamp });
     }

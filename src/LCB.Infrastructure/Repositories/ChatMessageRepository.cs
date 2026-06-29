@@ -58,6 +58,7 @@ public class ChatMessageRepository(LcbDbContext context,
                 {
                     existing.Provider = message.Provider;
                     existing.Author = message.Author;
+                    existing.InsertedByUser = message.InsertedByUser;
                     existing.Text = message.Text;
                     existing.Timestamp = message.Timestamp;
                     existing.Processed = message.Processed;
