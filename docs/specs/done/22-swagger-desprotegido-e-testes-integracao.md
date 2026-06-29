@@ -1,7 +1,7 @@
 # Mini-spec: Swagger desprotegido e testes de integração
 
 Número: 22
-Status: em andamento
+Status: implementado
 
 ## Problema
 
@@ -73,3 +73,13 @@ Status: em andamento
 - Expor Swagger sem autenticação em qualquer ambiente diferente de `Development`.
 - Alterar fluxo de autenticação de endpoints de negócio.
 - Alterar contratos de domínio, handlers ou persistência.
+
+## Decisões tomadas durante a implementação
+
+- A exceção de autenticação foi aplicada na `FallbackPolicy` de autorização, com regra condicional para rotas iniciadas por `/swagger` apenas em ambiente `Development`.
+- A policy explícita `ProtectedApi` permaneceu inalterada para endpoints de negócio que já usam `.RequireAuthorization(AuthorizationPolicies.ProtectedApi)`.
+- A fábrica de testes de integração passou a usar ambiente `Development` para validar o comportamento real dos endpoints de Swagger habilitados somente nesse ambiente.
+- Foram adicionados testes de integração para:
+  - acesso sem token a `/swagger/index.html` (200 + HTML);
+  - acesso sem token a `/swagger/v1/swagger.json` (200 + OpenAPI JSON);
+  - regressão de segurança: `/worker/status` sem token continua retornando `401 Unauthorized`.
