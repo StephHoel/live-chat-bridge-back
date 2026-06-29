@@ -1,5 +1,7 @@
 using LCB.Api;
+using LCB.Domain.Interfaces.Services;
 using LCB.Infrastructure.Data;
+using LCB.IntegrationTest.Fakes;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Data.Sqlite;
@@ -56,6 +58,8 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 
             // Keep migrations flow identical to production while preventing external/background effects in tests.
             services.RemoveAll<IHostedService>();
+            services.RemoveAll<ITikTokChatProvider>();
+            services.AddSingleton<ITikTokChatProvider, FakeTikTokChatProvider>();
         });
     }
 
