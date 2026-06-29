@@ -79,7 +79,7 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
                                                message.Text,
                                                message.Timestamp);
 
-        return await handler.Handle(request);
+        return await handler.Handle(request, message.InsertedByUser);
     }
 
     private static bool TryValidate(ChatMessageEntity message, out string? error)
@@ -99,6 +99,12 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
         if (message.Timestamp == default)
         {
             error = "Timestamp is required";
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(message.InsertedByUser))
+        {
+            error = "InsertedByUser is required";
             return false;
         }
 

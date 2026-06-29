@@ -136,7 +136,7 @@ public class WorkerControlService(
         {
             try
             {
-                tikTokChatProvider.Connect(username, cancellationToken);
+                tikTokChatProvider.Connect(username, userEmail, cancellationToken);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
