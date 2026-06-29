@@ -4,5 +4,6 @@ public record ChatMessageModel(
     string User,
     string Text,
     string Platform,
-    DateTime CreatedAt
+    DateTime CreatedAt,
+    string InsertedByUser
 );

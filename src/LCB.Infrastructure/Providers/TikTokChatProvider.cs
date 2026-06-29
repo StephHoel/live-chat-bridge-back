@@ -13,7 +13,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
                                 ILogger<TikTokChatProvider> Logger)
     : ITikTokChatProvider
 {
-    public void Connect(string tiktokUsername, CancellationToken cancellationToken)
+    public void Connect(string tiktokUsername, string insertedByUser, CancellationToken cancellationToken)
     {
         Logger.LogInformation("Starting {provider}", nameof(TikTokChatProvider));
 
@@ -27,7 +27,7 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
             PrintToConsole = true // TODO mudar para false para não sujar o log
         });
 
-        Client.OnChatMessage += OnChatMessage;
+        Client.OnChatMessage += (_, args) => OnChatMessage(args, insertedByUser);
         Client.OnGift += OnGift;
         // Client.OnLike += OnLike;
         Client.OnException += OnException;
@@ -46,13 +46,14 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
         Logger.LogInformation("Finishing {provider}", nameof(TikTokChatProvider));
     }
 
-    private void OnChatMessage(TikTokLiveClient _, Chat args)
+    private void OnChatMessage(Chat args, string insertedByUser)
     {
         var message = new ChatMessageModel(
             args.Sender.UniqueId,
             args.Message,
             "TikTok",
-            args.TimeStamp.ToDateTime()
+            args.TimeStamp.ToDateTime(),
+            insertedByUser
         );
 
         Writer.TryWrite(message);

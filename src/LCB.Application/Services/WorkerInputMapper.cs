@@ -17,6 +17,7 @@ public static class WorkerInputMapper
         {
             Provider = provider,
             Author = workerInput.User.Trim(),
+            InsertedByUser = workerInput.InsertedByUser.Trim(),
             Text = workerInput.Text,
             Timestamp = workerInput.CreatedAt.NormalizeToUtcMinus3(),
         };
