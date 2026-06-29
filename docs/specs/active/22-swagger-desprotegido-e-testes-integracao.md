@@ -1,7 +1,7 @@
 # Mini-spec: Swagger desprotegido e testes de integração
 
 Número: 22
-Status: planejado
+Status: em andamento
 
 ## Problema
 
