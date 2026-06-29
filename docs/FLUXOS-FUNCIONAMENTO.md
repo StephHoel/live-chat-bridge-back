@@ -227,6 +227,7 @@ Processamento:
 7. Service executa MessageIngestHandler em escopo DI por mensagem.
 8. Em falhas não duplicadas, aplica retry até 3 tentativas com backoff.
 9. Em status Processed ou Duplicate, encerra ciclo da mensagem.
+10. O fluxo assíncrono preenche `InsertedByUser` com o usuário autenticado que ativou a sessão do worker.
 
 Saídas esperadas:
 
@@ -267,7 +268,6 @@ Arquivos base:
 Os seguintes fluxos existem como planejamento e não estão implementados no comportamento atual:
 
 - Tabela de logs com auditoria mínima (spec 15)
-- Auditoria de origem de inserção em ChatMessages (spec 16)
 - Mitigação de durabilidade com replay (spec 17)
 
 Diretriz transversal de evolução:
@@ -278,7 +278,6 @@ Diretriz transversal de evolução:
 Referências:
 
 - docs/specs/planned/15-tabela-logs-com-auditoria-minima.md
-- docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md
 - docs/specs/planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md
 
 ## Evidências de validação

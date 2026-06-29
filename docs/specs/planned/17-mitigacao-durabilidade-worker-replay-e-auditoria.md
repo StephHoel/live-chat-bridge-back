@@ -29,7 +29,7 @@ Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem g
 
 - Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](docs/specs/done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
 - Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): incorpora a trilha de auditoria mínima no mesmo fluxo de mitigação.
-- Interfere com [docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/planned/16-campo-auditoria-origem-insercao-chatmessages.md): incorpora o preenchimento de origem de inserção em todas as entradas.
+- Interfere com [docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
 
 ### Decisão explícita do usuário
 
@@ -89,7 +89,7 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 
 - Obrigatória após migração.
 - Fluxo HTTP: usuário autenticado do token.
-- Fluxo worker: identificador técnico controlado, ex.: `system:worker`.
+- Fluxo worker: usuário autenticado que ativou a sessão do worker.
 - Dados legados: preencher com fallback seguro em migração.
 
 ## Fluxo funcional proposto
@@ -148,7 +148,7 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 - Testes de auditoria: persistência de `CreatedAtUtc` e `ActorUser` sem dados sensíveis.
 - Testes de `InsertedByUser`:
   - HTTP autenticado preenche ator do token.
-  - Worker preenche `system:worker`.
+  - Worker preenche usuário autenticado que ativou a sessão.
   - Migração preenche legado com fallback.
 
 ## Fora de escopo

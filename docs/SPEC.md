@@ -250,7 +250,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência (2026-06-29): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 105 testes aprovados, 0 falhas e cobertura de linhas em 90,82% (Cobertura `line-rate=0.9082`).
+- Execução de referência (2026-06-29): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 106 testes aprovados, 0 falhas e cobertura de linhas em 89,92% (Cobertura `line-rate=0.8992`).
 
 ## 12. Convenções Observadas
 
@@ -270,7 +270,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- implementar trilha de auditoria persistida mínima (Spec 15) e auditoria de inserção em `ChatMessages` (Spec 16).
+- implementar trilha de auditoria persistida mínima (Spec 15).
 - evoluir auditoria operacional para nome de usuário (Spec 21).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto

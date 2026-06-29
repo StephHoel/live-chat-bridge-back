@@ -24,7 +24,7 @@ Status: implementado
 
 - Endpoints: `POST /messages/ingest` (preenchimento da auditoria por usuário autenticado).
 - Handlers: `MessageIngestHandler` e serviços compartilhados de processamento.
-- Workers/Provedores: `ChatProcessorService` e fluxo assíncrono devem preencher identificador técnico.
+- Workers/Provedores: `ChatProcessorService` e fluxo assíncrono devem preencher o usuário autenticado que ativou a sessão do worker.
 - Integrações externas: sem alteração obrigatória.
 
 ## Dados e persistência
@@ -45,7 +45,7 @@ Status: implementado
 ## Regras de validação
 
 - `InsertedByUser` nunca pode ser nulo ou vazio após aplicação da migration.
-- O valor deve ser derivado de contexto confiável de execução (token/autenticação ou identidade técnica interna).
+- O valor deve ser derivado de contexto confiável de execução (token/autenticação e usuário autenticado da sessão ativa no worker).
 - O cliente não pode sobrescrever arbitrariamente o valor de auditoria.
 
 ## Critérios de aceite

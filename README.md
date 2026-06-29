@@ -112,14 +112,14 @@ docs/
 
 - Referência atual da suíte completa (2026-06-29):
   - Comando: `dotnet test LCB.sln -v minimal`
-  - Total: 133
+  - Total: 137
   - Falhas: 0
 
 - Referência atual de unit tests com cobertura (2026-06-29):
   - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
-  - Total: 105
+  - Total: 106
   - Falhas: 0
-  - Cobertura de linhas: **90,82%** (`line-rate=0.9082`)
+  - Cobertura de linhas: **89,92%** (`line-rate=0.8992`)
 
 ## 🤝 Para Contribuidores
 

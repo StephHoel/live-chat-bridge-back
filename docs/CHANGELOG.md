@@ -1,5 +1,32 @@
 # CHANGELOG
 
+## [v0.6.4] - 2026-06-29
+
+### 🔧 Melhorias Técnicas
+
+- Auditoria de origem no fluxo assíncrono do worker ajustada para registrar o usuário autenticado que ativou a sessão, em vez de identificador técnico fixo.
+
+### 🧪 Testes
+
+- Execução de validação da solução completa:
+  - comando: `dotnet test LCB.sln -v minimal`
+  - total: 137
+  - sucesso: 137
+  - falhas: 0
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - total: 106
+  - sucesso: 106
+  - falhas: 0
+  - cobertura de linhas: **89,92%** (`line-rate=0.8992`)
+
+### 📚 Documentação
+
+- Sincronização de `docs/specs/README.md` com a Spec 16 em `done/`.
+- Atualização de `docs/FLUXOS-FUNCIONAMENTO.md` removendo Spec 16 de planejadas e refletindo auditoria ativa no worker.
+- Atualização de `docs/SPEC.md` e `README.md` com números de testes/cobertura atuais e prioridades técnicas revisadas.
+- Ajuste de referência cruzada na Spec 17 para apontar à Spec 16 implementada.
+
 ## [v0.6.3] - 2026-06-29
 
 ### 🔧 Melhorias Técnicas
