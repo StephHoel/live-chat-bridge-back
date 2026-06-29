@@ -12,6 +12,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Ingestão de mensagens com detecção de comandos (endpoint protegido por JWT)
 - ✅ Fila de usuários
 - ✅ Worker background para provedores de live (TikTok)
+- ✅ Controle do worker por usuário autenticado (`POST /worker/start`, `POST /worker/stop`, `GET /worker/status`)
 - ✅ Persistência durável com SQLite/EF Core
 - ✅ Processamento real no worker com reuso do caso de uso de ingestão
 - 🎯 Diretriz de evolução: suporte a N usuários simultâneos com múltiplos workers concorrentes (um worker lógico por usuário)
@@ -69,6 +70,12 @@ docs/
 - `GET /config/live` - Consulta configuração de live do usuário autenticado (auto-cria configuração padrão se não existir)
 - `PUT /config/live` - Atualiza parcialmente usernames/reload da configuração de live do usuário autenticado
 
+### Controle de Worker
+
+- `POST /worker/start` - Inicia listeners para a instância do usuário autenticado
+- `POST /worker/stop` - Interrompe listeners da instância do usuário autenticado
+- `GET /worker/status` - Retorna estado atual do worker do usuário autenticado
+
 ### Contrato de resposta
 
 - Todos os endpoints retornam envelope `Result<T>` tanto em sucesso quanto em erro.
@@ -103,11 +110,16 @@ docs/
 
 ## 🧪 Cobertura de Testes
 
-- Referência atual de unit tests (2026-06-27):
-  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage"`
-  - Total: 99
+- Referência atual da suíte completa (2026-06-29):
+  - Comando: `dotnet test LCB.sln -v minimal`
+  - Total: 133
   - Falhas: 0
-  - Cobertura de linhas: **84,26%** (`line-rate=0.8426`)
+
+- Referência atual de unit tests com cobertura (2026-06-29):
+  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - Total: 105
+  - Falhas: 0
+  - Cobertura de linhas: **90,82%** (`line-rate=0.9082`)
 
 ## 🤝 Para Contribuidores
 
