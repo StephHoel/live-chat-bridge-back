@@ -46,13 +46,12 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-- _Nenhuma ativa_
+- [Swagger desprotegido e testes de integração](active/22-swagger-desprotegido-e-testes-integracao.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Swagger desprotegido e testes de integração](planned/22-swagger-desprotegido-e-testes-integracao.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](planned/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)

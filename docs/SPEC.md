@@ -41,6 +41,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Idempotência de mensagens** (Spec 01 ✅): chave derivada de `Provider + Author + Timestamp` normalizado; reprocessamento de mensagens não processadas via `UpdateAsync`; duplicatas já processadas retornam `400 Duplicate`.
 - **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
 - **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
+- **Exceção de autenticação para Swagger em Development** (Spec 22 🔄): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
 
 ## 3. Funcionalidades Planejadas
 
@@ -58,8 +59,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 11 specs em `docs/specs/planned/`
-- **Ativas:** 0 specs em `docs/specs/active/`
+- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Ativas:** 1 spec em `docs/specs/active/`
 - **Concluídas:** 10 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
@@ -238,6 +239,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
 - Há cobertura de integração para endpoints de autenticação e ingestão (`/auth/login`, `/auth/register`, `/messages/ingest`), incluindo cenários com token ausente, token inválido e token válido.
+- Há cobertura de integração para endpoints de documentação do Swagger (`/swagger/index.html` e `/swagger/v1/swagger.json`) sem token em ambiente `Development`.
 - Há cobertura de integração para `GET /config/live` e `PUT /config/live`, incluindo autenticação obrigatória, auto-provisionamento, atualização parcial e validação de `ReloadTimeInSec`.
 - Há cobertura de integração para `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`, incluindo autenticação obrigatória, transições de estado e isolamento por usuário autenticado.
 - Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
