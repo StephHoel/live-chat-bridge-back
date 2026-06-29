@@ -4,6 +4,9 @@ using LCB.Application.Commands.Config.Live.Put;
 using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Message.Ingest;
 using LCB.Application.Commands.Register;
+using LCB.Application.Commands.Worker.Get;
+using LCB.Application.Commands.Worker.Start;
+using LCB.Application.Commands.Worker.Stop;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Models.Config;
@@ -32,6 +35,9 @@ public static class DependencyInjection
         services.AddScoped<MessageIngestHandler>();
         services.AddScoped<GetLiveConfigHandler>();
         services.AddScoped<PutLiveConfigHandler>();
+        services.AddScoped<StartWorkerHandler>();
+        services.AddScoped<StopWorkerHandler>();
+        services.AddScoped<GetWorkerStatusHandler>();
 
         return services;
     }

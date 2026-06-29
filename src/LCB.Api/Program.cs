@@ -52,6 +52,7 @@ public partial class Program
         app.MapAuthEndpoints();
         app.MapMessageEndpoints();
         app.MapConfigEndpoints();
+        app.MapWorkerEndpoints();
 
         app.Run();
     }
