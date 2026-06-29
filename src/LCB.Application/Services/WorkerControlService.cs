@@ -36,7 +36,7 @@ public class WorkerControlService(
         await session.Gate.WaitAsync();
         try
         {
-            if (session.State is WorkerStateEnum.Active or WorkerStateEnum.Starting)
+            if (session.State is WorkerStateEnum.Active or WorkerStateEnum.Starting or WorkerStateEnum.Error)
                 return Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
 
             var settings = await GetLiveSettingsAsync(userId);
@@ -92,6 +92,7 @@ public class WorkerControlService(
             session.State = WorkerStateEnum.Stopping;
 
             var cancellationSource = session.CancellationTokenSource;
+            var tikTokTask = session.TikTokTask;
 
             session.CancellationTokenSource = null;
             session.TikTokTask = null;
@@ -100,6 +101,23 @@ public class WorkerControlService(
             session.YouTube = false;
 
             cancellationSource?.Cancel();
+
+            if (tikTokTask is not null)
+            {
+                try
+                {
+                    await tikTokTask;
+                }
+                catch (OperationCanceledException)
+                {
+                    // expected while stopping
+                }
+                catch (Exception ex)
+                {
+                    logger.LogWarning(ex, "Listener task faulted while stopping. UserId={UserId}", userId);
+                }
+            }
+
             cancellationSource?.Dispose();
 
             session.State = WorkerStateEnum.Inactive;
@@ -147,8 +165,20 @@ public class WorkerControlService(
 
     private void MarkSessionAsError(Guid userId)
     {
-        if (_sessions.TryGetValue(userId, out var session))
-            session.State = WorkerStateEnum.Error;
+        if (!_sessions.TryGetValue(userId, out var session))
+            return;
+
+        session.Gate.Wait();
+
+        try
+        {
+            if (session.State is WorkerStateEnum.Active or WorkerStateEnum.Starting)
+                session.State = WorkerStateEnum.Error;
+        }
+        finally
+        {
+            session.Gate.Release();
+        }
     }
 
     private async Task<LiveSettingsEntity?> GetLiveSettingsAsync(Guid userId)
