@@ -28,7 +28,7 @@ public static class WorkerEndpoints
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.BadRequest, typeof(Result<GetWorkerStatusResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.Conflict, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.ServiceUnavailable, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<GetWorkerStatusResponse>));
@@ -46,7 +46,7 @@ public static class WorkerEndpoints
         .WithTags("Worker")
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<GetWorkerStatusResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<GetWorkerStatusResponse>));
 
         app.MapGet("/worker/status", async (
@@ -62,7 +62,7 @@ public static class WorkerEndpoints
         .WithTags("Worker")
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<GetWorkerStatusResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<GetWorkerStatusResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<GetWorkerStatusResponse>));
 
         return app;

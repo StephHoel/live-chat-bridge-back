@@ -13,13 +13,11 @@ public class TikTokChatProvider(ChannelWriter<ChatMessageModel> Writer,
                                 ILogger<TikTokChatProvider> Logger)
     : ITikTokChatProvider
 {
-    private TikTokLiveClient? Client;
-
     public void Connect(string tiktokUsername, CancellationToken cancellationToken)
     {
         Logger.LogInformation("Starting {provider}", nameof(TikTokChatProvider));
 
-        Client = new TikTokLiveClient(hostId: tiktokUsername, settings: new()
+        var Client = new TikTokLiveClient(hostId: tiktokUsername, settings: new()
         {
             SkipRoomInfo = true, // IMPORTANTE: Pular o scraping que está dando erro
             HandleExistingMessagesOnConnect = true,
