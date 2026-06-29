@@ -6,7 +6,7 @@ namespace LCB.Application.Commands.Message.Ingest;
 
 public static class MessageIngestMapper
 {
-    public static ChatMessageEntity ToChatMessage(this MessageIngestRequest request)
+    public static ChatMessageEntity ToChatMessage(this MessageIngestRequest request, string insertedByUser)
     {
         var normalizedTimestamp = (request.Timestamp ?? DateTime.UtcNow.NormalizeToUtcMinus3())
             .NormalizeToUtcMinus3();
@@ -15,6 +15,7 @@ public static class MessageIngestMapper
         {
             Provider = request.Provider,
             Author = request.Author.Trim(),
+            InsertedByUser = insertedByUser.Trim(),
             Text = request.Text,
             Timestamp = normalizedTimestamp,
         };
