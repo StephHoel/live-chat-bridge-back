@@ -1,0 +1,137 @@
+# Mini-spec: Rollout de auditoria operacional no projeto
+
+Número: 23
+Status: planejado
+
+## Diretriz transversal de concorrência
+
+- O sistema deve estar apto a operar com N usuários conectados simultaneamente.
+- Esta mini-spec deve considerar execução concorrente de múltiplos workers/listeners, com isolamento por usuário (um worker lógico por usuário/sessão ativa).
+- O desenho técnico não deve assumir worker único global como premissa obrigatória.
+
+## Problema
+
+- A trilha de auditoria operacional ainda não está aplicada de forma consistente ao longo dos fluxos do sistema.
+- A Spec 15 define a base de persistência da auditoria, mas o projeto ainda precisa de um plano faseado para adoção progressiva em handlers, serviços e workers.
+- Sem um rollout explícito, há risco de implementações ad-hoc, inconsistências de payload e retrabalho entre as specs de auditoria.
+
+## Decisões consolidadas desta spec
+
+- A Spec 15 deve implementar apenas a base de auditoria: tabela e forma de salvar (`service -> repository`), sem alterar serviços já implementados.
+- O campo `Status` da auditoria deve ser modelado como enum no dominio e persistido como string no banco.
+- `MetadataJson` deve suportar payload operacional mais rico, com estrutura versionável.
+
+## Interferência com mini-specs existentes
+
+- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): esta spec detalha a estratégia de rollout e restringe o escopo inicial da 15 para infraestrutura básica sem tocar serviços existentes.
+- Interfere com [docs/specs/planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md](docs/specs/planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md): a 17 deve reutilizar a infraestrutura de auditoria criada na 15, sem redefinir contratos centrais de `AuditLog`.
+- Interfere com [docs/specs/planned/21-nome-de-usuario-para-auditoria-operacional.md](docs/specs/planned/21-nome-de-usuario-para-auditoria-operacional.md): a evolução do ator de auditoria (email -> nome de exibição) deve ser compatível com o contrato de `ActorUser` definido na 15.
+- Complementa [docs/specs/done/13-refatoracao-observabilidade-e-tratamento-erros.md](docs/specs/done/13-refatoracao-observabilidade-e-tratamento-erros.md): logs estruturados em runtime permanecem, enquanto esta spec cobre trilha persistida de auditoria.
+
+## Objetivo
+
+- Definir uma estratégia incremental para aplicar auditoria persistida ao longo do projeto, minimizando risco de regressão funcional.
+- Padronizar contrato de auditoria (`ActorUser`, `Action`, `Resource`, `Status`, `MetadataJson`, `CreatedAtUtc`) para novos pontos de instrumentacao.
+- Estabelecer governança para evolução futura de eventos auditáveis sem quebrar compatibilidade.
+
+## Escopo por fase
+
+### Fase 1 - Fundação (Spec 15)
+
+- Criar entidade e tabela `AuditLogs`.
+- Criar enum de status de auditoria com persistência como string.
+- Criar `AuditLogService` para orquestrar escrita e sanitização básica de payload.
+- Criar repositório de auditoria e registrar em DI.
+- Não alterar serviços/handlers/workers já implementados.
+
+### Fase 2 - Adoção em fluxos operacionais prioritários
+
+- Integrar auditoria em fluxos de controle operacional (início/parada/status de worker, configuração de live, operações administrativas).
+- Aplicar via `AuditLogService` sem acoplamento direto de handlers ao repositório.
+- Garantir que a adoção não altere contratos HTTP públicos.
+
+### Fase 3 - Cobertura ampliada e padronização
+
+- Expandir para fluxos de ingestão e processamento assíncrono quando houver ganho operacional claro.
+- Definir catálogo de `Action`/`Resource` oficiais para reduzir variação semântica.
+- Adicionar telemetria de qualidade da auditoria (campos faltantes, volume por fluxo, latência de escrita).
+
+## Superfícies afetadas
+
+- Endpoints: sem mudança obrigatória de contrato nesta spec.
+- Handlers: adoção faseada posterior via chamada a `AuditLogService`.
+- Workers/Provedores: adoção faseada para eventos operacionais relevantes.
+- Repositórios/Persistência: nova infraestrutura de `AuditLogs`.
+
+## Dados e persistência
+
+- Tabela `AuditLogs` com colunas base:
+  - `Id` (Guid)
+  - `CreatedAtUtc` (DateTime)
+  - `ActorUser` (string)
+  - `Action` (string)
+  - `Resource` (string)
+  - `Status` (string derivada de enum)
+  - `MetadataJson` (string opcional)
+- Índices mínimos:
+  - `CreatedAtUtc`
+  - `ActorUser`
+  - recomendável composto `Action + CreatedAtUtc`
+- Compatibilidade com SQLite atual e migração futura para PostgreSQL.
+
+## Contrato de domínio para status
+
+- Criar enum dedicado (exemplo): `AuditLogStatusEnum`.
+- Valores iniciais sugeridos:
+  - `Success`
+  - `Failure`
+  - `Warning`
+  - `Info`
+- Persistir com `HasConversion<string>()` no EF Core para manter legibilidade e facilitar evolução.
+
+## Política de MetadataJson
+
+- Permitir payload operacional mais rico, priorizando estrutura tipada serializada para JSON.
+- Campos recomendados por evento:
+  - `correlationId`
+  - `requestPath`
+  - `userId`
+  - `provider`
+  - `workerState`
+  - `httpStatus`
+  - `errorCode`
+  - `attempt`
+- Definir versão de schema do metadata (ex.: `metadataVersion`) para evolução sem quebra.
+- Proibir persistência de segredos: token, senha, chave, authorization header e equivalentes.
+
+## Regras de validação
+
+- `CreatedAtUtc` sempre preenchido no backend.
+- `ActorUser` obrigatório: usuário autenticado quando houver, ou identificador técnico controlado.
+- `Status` deve ser valor válido do enum de auditoria.
+- `MetadataJson` deve ser JSON válido quando informado.
+
+## Critérios de aceite
+
+- Existe plano claro e faseado para auditoria ao longo do projeto.
+- A fase 1 (Spec 15) fica explicitamente limitada a infraestrutura (tabela + escrita service/repository), sem alterar serviços existentes.
+- `Status` está padronizado como enum persistido como string.
+- `MetadataJson` suporta payload operacional rico com regras de segurança.
+- As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
+
+## Testes esperados
+
+- Fase 1:
+  - teste de repositório para escrita e consulta por período/ator.
+  - teste de conversão enum <-> string para `Status`.
+  - teste de validação de `MetadataJson` (JSON válido e bloqueio de campos sensíveis quando aplicável).
+- Fases seguintes:
+  - testes de integração por fluxo auditado.
+  - testes de regressão garantindo ausência de mudança em contratos de API.
+
+## Fora de escopo
+
+- Dashboard de auditoria.
+- SIEM/APM externo.
+- Política completa de retenção/arquivamento.
+- Reescrita imediata de todos os serviços existentes para instrumentação total em uma única entrega.
