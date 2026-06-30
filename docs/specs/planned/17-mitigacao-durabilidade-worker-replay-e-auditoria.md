@@ -22,18 +22,20 @@ Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem g
 - Implementar buffer durável de entrada para o worker (store-then-process) antes do processamento de negócio.
 - Permitir replay pós-restart de mensagens pendentes/falhas com estratégia de retentativa controlada.
 - Manter reutilização do caso de uso de ingestão para preservar regras de idempotência, fila e comandos.
-- Persistir auditoria mínima do fluxo com ator, ação, status e timestamp em tabela dedicada.
+- Persistir auditoria do fluxo reutilizando a infraestrutura da Spec 15 (sem redefinir contratos base de `AuditLogs`).
 - Preencher origem de inserção da mensagem em `ChatMessages` para distinguir autor do chat e ator de inserção no sistema.
 
 ## Interferência com mini-specs existentes
 
 - Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](docs/specs/done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
-- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): incorpora a trilha de auditoria mínima no mesmo fluxo de mitigação.
+- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): depende da fundação de auditoria da 15 e aplica essa base ao fluxo de replay do worker.
+- Interfere com [docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md](docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec executa a fase de adoção da auditoria no contexto de durabilidade/replay do worker.
 - Interfere com [docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
 
 ### Decisão explícita do usuário
 
-- Implementar esta mitigação em escopo consolidado, incluindo auditoria mínima e origem de inserção.
+- A fundação da auditoria (tabela + escrita `service -> repository`) fica restrita à Spec 15.
+- Esta spec deve focar no replay/durabilidade do worker e na adoção da auditoria sobre a base já existente.
 
 ## Superfícies afetadas
 
@@ -70,7 +72,7 @@ Criar tabela de entrada durável para mensagens recebidas do provider (ex.: `Wor
 
 ### 2) Auditoria mínima
 
-Criar/usar tabela `AuditLogs` com campos mínimos:
+Usar tabela `AuditLogs` definida na Spec 15 com campos mínimos:
 
 - `Id` (Guid)
 - `CreatedAtUtc` (DateTime)
@@ -80,8 +82,14 @@ Campos recomendados:
 
 - `Action` (string)
 - `Resource` (string)
-- `Status` (string)
+- `Status` (enum no domínio, persistido como string)
 - `MetadataJson` (string?)
+
+Diretrizes adicionais para esta spec:
+
+- Reutilizar `AuditLogService`/repositório definidos na Spec 15.
+- Não redefinir entidade base, contratos ou migration já estabelecidos na Spec 15.
+- Permitir `MetadataJson` operacional mais rico nos eventos de replay/retry/dead-letter, respeitando regras de segurança.
 
 ### 3) Origem de inserção em ChatMessages
 
@@ -159,8 +167,9 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 
 ## Plano sugerido de implementação (incremental)
 
-1. Migrações de schema: `WorkerInboxMessages`, `AuditLogs`, `ChatMessages.InsertedByUser`.
-2. Repositórios e serviços de claim/retry/recovery.
-3. Integração do provider com persistência de inbox (store-then-process).
-4. Integração do processador com transições de status + auditoria + dead-letter.
-5. Testes de regressão e cenários de restart.
+1. Pré-requisito: fundação de auditoria da Spec 15 concluída (`AuditLogs` + `service -> repository`).
+2. Migrações de schema desta spec: `WorkerInboxMessages` e evoluções relacionadas ao replay (sem recriar base de auditoria da 15).
+3. Repositórios e serviços de claim/retry/recovery.
+4. Integração do provider com persistência de inbox (store-then-process).
+5. Integração do processador com transições de status + auditoria + dead-letter reutilizando infraestrutura da 15.
+6. Testes de regressão e cenários de restart.
