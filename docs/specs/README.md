@@ -4,6 +4,8 @@ Esta pasta organiza mini-specs por status para funcionalidades e pendências do 
 
 Use estes documentos antes de iniciar qualquer alteração de produto. Quando uma mini-spec mudar de estágio, mova o arquivo para a pasta correspondente, atualize o status no documento, registre decisões tomadas durante a execução e mantenha o `docs/SPEC.md` sincronizado quando houver mudança de diretriz.
 
+Mini-specs em `done/` (implementadas/concluídas) não devem ter o conteúdo original reescrito. Quando necessário, registre apenas informações complementares (adendos/contexto), preservando as decisões já documentadas.
+
 Diretriz transversal vigente para specs planejadas e futuras:
 
 - O sistema deve suportar N usuários simultâneos conectados.

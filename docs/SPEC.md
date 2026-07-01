@@ -49,6 +49,8 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 As mini-specs ficam em `docs/specs/` e são organizadas por status em `planned/`, `active/`, `done/` e `discontinued/`. A estrutura já existe no repositório. Consulte a mini-spec correspondente antes da implementação.
 
+Specs em `docs/specs/done/` representam histórico implementado e não devem ter seu conteúdo original alterado. Quando necessário, apenas inclua complementos (adendos/contexto) sem reescrever decisões já registradas.
+
 ### Diretriz transversal para escalabilidade de workers
 
 - O sistema deve estar apto a operar com **N usuários conectados simultaneamente**.

@@ -31,6 +31,7 @@ Adicionalmente aos passos acima:
 ## Regras
 
 - Atualizar README **somente quando a informação for útil para usuários ou contribuidores** — mudança de API não justifica automaticamente atualização de README.
+- Mini-specs em `docs/specs/done/` (implementadas/concluídas) não devem ter conteúdo original alterado; quando necessário, apenas incluir informações complementares sem reescrever decisões já registradas.
 - Nunca executar `git commit` (nem variações como `git commit --amend`) sem que o usuário solicite explicitamente. Editar arquivos e fazer stage são permitidos; o commit final depende sempre de pedido explícito.
 - Sempre que for abrir Pull Request, usar obrigatoriamente o template em `.github/pull_request_template.md`, preenchendo todas as seções aplicáveis no corpo do PR.
 - Em endpoints HTTP, manter sempre envelope `Result<T>` em **todos** os responses (sucesso e erro). A implementação e a documentação (`Produces(...)`) devem permanecer consistentes com `Result<T>`.
