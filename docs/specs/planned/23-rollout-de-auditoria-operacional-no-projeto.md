@@ -69,6 +69,14 @@ Status: planejado
   - falha final com envio para dead-letter;
   - retomada pós-restart de itens pendentes/falhos elegíveis.
 
+## Contrato canônico de `ActorUser` (estado atual)
+
+- Valor persistido atual: manter o identificador já utilizado hoje no projeto (e-mail do usuário autenticado quando houver).
+- Fallback atual: quando não houver usuário autenticado, usar identificador técnico controlado (ex.: `system:worker`).
+- Regra de renomeação: nesta spec não há renomeação de valores já persistidos em `ActorUser`.
+- Política de migração histórica: nesta spec não há migração retroativa de histórico de `ActorUser`.
+- Evolução planejada: a mudança de ator (e-mail -> nome de exibição) será tratada pela Spec 21, preservando compatibilidade com a base existente.
+
 ## Política de falha da escrita de auditoria por fluxo
 
 - Regra geral para todos os fluxos auditáveis:
@@ -149,6 +157,7 @@ Status: planejado
 - `Status` está padronizado como enum persistido como string.
 - `MetadataJson` suporta payload operacional rico com regras de segurança.
 - Existe política única de falha na escrita de auditoria por fluxo: segunda tentativa imediata e, em nova falha, log estruturado para recuperação futura.
+- O contrato canônico atual de `ActorUser` permanece inalterado nesta spec, com evolução planejada e explicitamente delegada para a Spec 21.
 - As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
 
 ## Testes esperados
