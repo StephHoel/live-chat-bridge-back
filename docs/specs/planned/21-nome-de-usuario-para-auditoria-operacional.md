@@ -13,6 +13,11 @@ Status: planejado
 
 - Adicionar nome de exibição ao domínio de usuário autenticável.
 - Permitir que auditorias operacionais persistam nome do usuário em vez do e-mail quando esse dado existir.
+- Alterar a evolução do contrato de `ActorUser` definido na Spec 23 (estado atual: e-mail/fallback técnico) para suportar nome de exibição quando aplicável.
+
+## Interferência com mini-specs existentes
+
+- Interfere com [docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md](../planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec altera a estratégia de evolução do ator de auditoria (`ActorUser`) explicitada como estado atual na Spec 23.
 
 ## Superfícies afetadas
 
