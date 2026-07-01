@@ -69,6 +69,24 @@ Status: planejado
   - falha final com envio para dead-letter;
   - retomada pós-restart de itens pendentes/falhos elegíveis.
 
+## Política de falha da escrita de auditoria por fluxo
+
+- Regra geral para todos os fluxos auditáveis:
+  - ao falhar a escrita em `AuditLogs`, tentar uma segunda escrita imediata;
+  - se a segunda tentativa falhar, registrar erro estruturado em log para recuperação futura.
+
+- Endpoints operacionais (ex.: `POST /worker/start`, `POST /worker/stop`, `GET /worker/status`, `GET/PUT /config/live`):
+  - aplicar a regra geral de duas tentativas;
+  - a falha de auditoria não deve alterar contrato HTTP público nem status final da operação de negócio.
+
+- Worker/retry/dead-letter:
+  - aplicar a regra geral de duas tentativas para cada evento auditável assíncrono;
+  - se a auditoria falhar nas duas tentativas, manter a transição de estado funcional do item (`Processed`, `Failed`, `DeadLetter`) e registrar log estruturado para recuperação futura.
+
+- Tarefas de sistema:
+  - aplicar a regra geral de duas tentativas;
+  - após segunda falha, registrar log estruturado com contexto mínimo (`action`, `resource`, `correlationId` quando houver, motivo da falha) para suporte à recuperação futura.
+
 ## Superfícies afetadas
 
 - Endpoints: sem mudança obrigatória de contrato nesta spec.
@@ -130,6 +148,7 @@ Status: planejado
 - A fase 1 (Spec 15) fica explicitamente limitada a infraestrutura (tabela + escrita service/repository), sem alterar serviços existentes.
 - `Status` está padronizado como enum persistido como string.
 - `MetadataJson` suporta payload operacional rico com regras de segurança.
+- Existe política única de falha na escrita de auditoria por fluxo: segunda tentativa imediata e, em nova falha, log estruturado para recuperação futura.
 - As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
 
 ## Testes esperados
@@ -141,6 +160,7 @@ Status: planejado
 - Fases seguintes:
   - testes de integração por fluxo auditado.
   - testes de regressão garantindo ausência de mudança em contratos de API.
+  - testes de falha de auditoria garantindo segunda tentativa de escrita e, após nova falha, registro de log estruturado para recuperação futura.
 
 ## Fora de escopo
 
