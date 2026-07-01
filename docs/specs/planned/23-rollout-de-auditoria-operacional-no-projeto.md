@@ -47,6 +47,7 @@ Status: planejado
 
 ### Fase 2 - Adoção em fluxos operacionais prioritários
 
+- Definir e congelar o catálogo inicial fechado de `Action`/`Resource` como pré-requisito da instrumentação da fase, evitando retrabalho de normalização.
 - Integrar auditoria em fluxos de controle operacional (início/parada/status de worker, configuração de live, operações administrativas).
 - Aplicar via `AuditLogService` sem acoplamento direto de handlers ao repositório.
 - Garantir que a adoção não altere contratos HTTP públicos.
@@ -55,8 +56,50 @@ Status: planejado
 
 - Implementar auditoria operacional no processamento assíncrono, incluindo eventos de worker/replay/retry/dead-letter, sem duplicar implementação na Spec 17.
 - Expandir para outros fluxos de ingestão quando houver ganho operacional claro.
-- Definir catálogo de `Action`/`Resource` oficiais para reduzir variação semântica.
+- Evoluir o catálogo de `Action`/`Resource` já fechado na fase 2, mantendo compatibilidade retroativa.
 - Adicionar telemetria de qualidade da auditoria (campos faltantes, volume por fluxo, latência de escrita).
+
+## Catálogo inicial fechado de `Action` e `Resource`
+
+- Objetivo: evitar retrabalho de normalização semântica no rollout de auditoria.
+- Regra de uso: durante a fase 2, novos eventos auditáveis devem usar apenas valores deste catálogo inicial fechado.
+- Evolução: inclusão de novos valores fica permitida a partir da fase 3, com revisão explícita de compatibilidade.
+
+### `Resource` iniciais aprovados
+
+- `WorkerControl`
+- `LiveSettings`
+- `OperationalAdmin`
+- `WorkerInbox`
+- `WorkerReplay`
+- `WorkerDeadLetter`
+- `SystemTask`
+
+### `Action` iniciais aprovadas
+
+- `WorkerStartRequested`
+- `WorkerStartSucceeded`
+- `WorkerStartFailed`
+- `WorkerStopRequested`
+- `WorkerStopSucceeded`
+- `WorkerStopFailed`
+- `WorkerStatusChecked`
+- `LiveSettingsViewed`
+- `LiveSettingsUpdated`
+- `LiveSettingsUpdateFailed`
+- `OperationalActionRequested`
+- `OperationalActionSucceeded`
+- `OperationalActionFailed`
+- `WorkerInboxProcessingStarted`
+- `WorkerInboxProcessingSucceeded`
+- `WorkerInboxProcessingFailed`
+- `WorkerRetryScheduled`
+- `WorkerDeadLetterMoved`
+- `WorkerPendingRecoveryStarted`
+- `WorkerPendingRecoveryFinished`
+- `SystemTaskStarted`
+- `SystemTaskSucceeded`
+- `SystemTaskFailed`
 
 ## Delimitação de escopo com a Spec 17
 
