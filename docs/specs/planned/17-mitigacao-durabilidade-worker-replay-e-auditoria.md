@@ -14,7 +14,6 @@ Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem g
 
 - O fluxo assíncrono do worker usa canal em memória e não garante retenção entre reinícios do processo.
 - Quedas durante processamento podem causar perda de mensagens que ainda não foram persistidas de forma recuperável.
-- Falta trilha persistida unificada para auditoria operacional do processamento do worker.
 - A tabela `ChatMessages` ainda não diferencia claramente o ator que inseriu/processou a mensagem no backend.
 
 ## Comportamento esperado
@@ -22,27 +21,27 @@ Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem g
 - Implementar buffer durável de entrada para o worker (store-then-process) antes do processamento de negócio.
 - Permitir replay pós-restart de mensagens pendentes/falhas com estratégia de retentativa controlada.
 - Manter reutilização do caso de uso de ingestão para preservar regras de idempotência, fila e comandos.
-- Persistir auditoria do fluxo reutilizando a infraestrutura da Spec 15 (sem redefinir contratos base de `AuditLogs`).
 - Preencher origem de inserção da mensagem em `ChatMessages` para distinguir autor do chat e ator de inserção no sistema.
 
 ## Interferência com mini-specs existentes
 
-- Interfere com [docs/spec/done/05-processamento-real-chat-worker.md](../done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
-- Interfere com [docs/spec/done/15-tabela-logs-com-auditoria-minima.md](../done/15-tabela-logs-com-auditoria-minima.md): depende da fundação de auditoria da 15 e aplica essa base ao fluxo de replay do worker.
-- Interfere com [docs/spec/planned/23-rollout-de-auditoria-operacional-no-projeto.md](../planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec executa a fase de adoção da auditoria no contexto de durabilidade/replay do worker.
-- Interfere com [docs/spec/done/16-campo-auditoria-origem-insercao-chatmessages.md](../done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
+- Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](../done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
+- Interfere com [docs/specs/done/15-tabela-logs-com-auditoria-minima.md](../done/15-tabela-logs-com-auditoria-minima.md): depende da fundação de auditoria da 15 e aplica essa base ao fluxo de replay do worker.
+- Interfere com [docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md](../planned/23-rollout-de-auditoria-operacional-no-projeto.md): a adoção da auditoria no contexto de durabilidade/replay do worker será implementada exclusivamente na Spec 23.
+- Interfere com [docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md](../done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
 
 ### Decisão explícita do usuário
 
 - A fundação da auditoria (tabela + escrita `service -> repository`) fica restrita à Spec 15.
-- Esta spec deve focar no replay/durabilidade do worker e na adoção da auditoria sobre a base já existente.
+- Esta spec deve focar apenas em replay/durabilidade do worker.
+- A implementação de auditoria operacional no fluxo assíncrono (worker/replay/retry/dead-letter) fica exclusivamente na Spec 23 para evitar duplicidade.
 
 ## Superfícies afetadas
 
 - Endpoints: sem mudança obrigatória de contrato público nesta fase.
 - Handlers: `MessageIngestHandler` permanece como regra central de negócio.
 - Workers/Provedores: `ChatWorker`, `ChatProcessorService`, `TikTokChatProvider` (ou provedores equivalentes).
-- Repositórios/Persistência: novo repositório de inbox do worker, auditoria e evolução de `ChatMessages`.
+- Repositórios/Persistência: novo repositório de inbox do worker e evolução de `ChatMessages`.
 - Integrações externas: sem alteração de protocolo com provider nesta fase.
 
 ## Dados e persistência
@@ -70,28 +69,7 @@ Criar tabela de entrada durável para mensagens recebidas do provider (ex.: `Wor
 - `Status + NextRetryAtUtc`
 - `CreatedAtUtc`
 
-### 2) Auditoria mínima
-
-Usar tabela `AuditLogs` definida na Spec 15 com campos mínimos:
-
-- `Id` (Guid)
-- `CreatedAtUtc` (DateTime)
-- `ActorUser` (string)
-
-Campos recomendados:
-
-- `Action` (string)
-- `Resource` (string)
-- `Status` (enum no domínio, persistido como string)
-- `MetadataJson` (string?)
-
-Diretrizes adicionais para esta spec:
-
-- Reutilizar `AuditLogService`/repositório definidos na Spec 15.
-- Não redefinir entidade base, contratos ou migration já estabelecidos na Spec 15.
-- Permitir `MetadataJson` operacional mais rico nos eventos de replay/retry/dead-letter, respeitando regras de segurança.
-
-### 3) Origem de inserção em ChatMessages
+### 2) Origem de inserção em ChatMessages
 
 Adicionar coluna `InsertedByUser` em `ChatMessages`:
 
@@ -107,7 +85,6 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 3. Processador executa `MessageIngestHandler` com os dados da inbox.
 4. Em sucesso:
    - marca inbox como `Processed`;
-   - persiste auditoria de sucesso;
    - garante `InsertedByUser` em `ChatMessages`.
 5. Em falha transitória:
    - incrementa `Attempts`;
@@ -115,8 +92,7 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
    - calcula `NextRetryAtUtc` (backoff);
    - retorna para `Failed`.
 6. Ao exceder limite de tentativas:
-   - marca `DeadLetter`;
-   - persiste auditoria de falha final.
+   - marca `DeadLetter`.
 7. No startup/restart:
    - rotina de recuperação varre `Pending` e `Failed` elegíveis e retoma processamento.
 
@@ -134,9 +110,8 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 
 ## Regras de validação
 
-- Mensagens inválidas devem ser auditadas e descartadas com motivo estruturado.
+- Mensagens inválidas devem ser descartadas com motivo estruturado no fluxo de durabilidade/reprocessamento.
 - `InsertedByUser` não pode ser nulo/vazio para novas mensagens.
-- `ActorUser` não pode expor segredo (senha/token/chave).
 - Claim de processamento deve ser atômico para evitar corrida entre workers futuros.
 
 ## Critérios de aceite
@@ -144,7 +119,6 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 - Reiniciar o processo não perde mensagens já recebidas e persistidas na inbox.
 - Mensagens pendentes/falhas elegíveis são reprocessadas após restart.
 - Duplicatas não geram efeito colateral adicional no domínio.
-- Entradas de auditoria são persistidas com `CreatedAtUtc` e `ActorUser`.
 - `ChatMessages.InsertedByUser` é preenchido corretamente em fluxo HTTP e worker.
 - Mensagens com falha recorrente chegam em `DeadLetter` após limite de tentativas.
 
@@ -153,7 +127,6 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 - Testes de repositório da inbox durável: create, claim, transições de status e consultas por elegibilidade.
 - Testes de processamento: sucesso, falha transitória com retry, falha final com dead-letter.
 - Testes de restart: mensagens `Pending/Failed` são retomadas no boot.
-- Testes de auditoria: persistência de `CreatedAtUtc` e `ActorUser` sem dados sensíveis.
 - Testes de `InsertedByUser`:
   - HTTP autenticado preenche ator do token.
   - Worker preenche usuário autenticado que ativou a sessão.
@@ -171,5 +144,10 @@ Adicionar coluna `InsertedByUser` em `ChatMessages`:
 2. Migrações de schema desta spec: `WorkerInboxMessages` e evoluções relacionadas ao replay (sem recriar base de auditoria da 15).
 3. Repositórios e serviços de claim/retry/recovery.
 4. Integração do provider com persistência de inbox (store-then-process).
-5. Integração do processador com transições de status + auditoria + dead-letter reutilizando infraestrutura da 15.
+5. Integração do processador com transições de status e dead-letter.
 6. Testes de regressão e cenários de restart.
+
+## Delimitação de escopo com a Spec 23
+
+- Esta spec não implementa escrita de eventos em `AuditLogs` no fluxo assíncrono.
+- A instrumentação de auditoria operacional para worker/replay/retry/dead-letter é responsabilidade exclusiva da Spec 23.
