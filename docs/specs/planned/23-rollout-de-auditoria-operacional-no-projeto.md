@@ -173,25 +173,57 @@ Status: planejado
 
 ## Política de MetadataJson
 
-- Permitir payload operacional mais rico, priorizando estrutura tipada serializada para JSON.
-- Campos recomendados por evento:
-  - `correlationId`
-  - `requestPath`
-  - `userId`
-  - `provider`
-  - `workerState`
-  - `httpStatus`
-  - `errorCode`
-  - `attempt`
-- Definir versão de schema do metadata (ex.: `metadataVersion`) para evolução sem quebra.
-- Proibir persistência de segredos: token, senha, chave, authorization header e equivalentes.
+- Contrato mínimo obrigatório (Opção B) com `metadataVersion=1`.
+- Todo `MetadataJson` deve ser objeto JSON válido e tipado.
+
+### Campos obrigatórios em todos os eventos
+
+- `metadataVersion` (int): valor inicial obrigatório `1`.
+- `correlationId` (string): identificador de correlação do fluxo.
+- `eventCategory` (string): categoria do evento auditável (`EndpointOperational`, `WorkerFlow`, `SystemTask`).
+- `occurredAtUtc` (string ISO 8601): data/hora UTC do evento de auditoria.
+
+### Campos obrigatórios por tipo de evento
+
+- Endpoints operacionais (`eventCategory=EndpointOperational`):
+  - `endpointName` (string)
+  - `requestPath` (string)
+  - `httpStatus` (int)
+
+- Worker/retry/dead-letter (`eventCategory=WorkerFlow`):
+  - `provider` (string)
+  - `attempt` (int)
+  - `workerState` (string)
+  - `inboxMessageId` (string guid)
+
+- Tarefas de sistema (`eventCategory=SystemTask`):
+  - `taskName` (string)
+  - `executionId` (string)
+  - `outcome` (string)
+
+### Limite de tamanho
+
+- Tamanho máximo de `MetadataJson`: 4 KB (4096 bytes).
+- Payload acima do limite deve ser rejeitado na validação de auditoria, com erro estruturado em log para recuperação futura.
+
+### Sanitização e validação semântica
+
+- Aplicar bloqueio por denylist de chaves sensíveis (`token`, `password`, `secret`, `authorization`, `api_key`, `apikey`, `jwt`).
+- Aplicar allowlist por `eventCategory` para os campos obrigatórios e opcionais permitidos no evento.
+- Rejeitar payload com campos obrigatórios ausentes, tipos inválidos ou estrutura incompatível com `metadataVersion=1`.
+
+### Estratégia de indexação
+
+- Não indexar JSON bruto de `MetadataJson` nesta fase.
+- Manter consultas operacionais por colunas canônicas (`Action`, `Resource`, `CreatedAtUtc`, `ActorUser`).
+- Quando necessário por evidência de uso, criar coluna derivada para chave crítica (ex.: `CorrelationId`) em vez de índice direto no JSON.
 
 ## Regras de validação
 
 - `CreatedAtUtc` sempre preenchido no backend.
 - `ActorUser` obrigatório: usuário autenticado quando houver, ou identificador técnico controlado.
 - `Status` deve ser valor válido do enum de auditoria.
-- `MetadataJson` deve ser JSON válido quando informado.
+- `MetadataJson` deve cumprir contrato mínimo obrigatório (`metadataVersion=1`), incluindo campos globais, campos por categoria, limite de 4 KB e sanitização.
 
 ## Critérios de aceite
 
@@ -199,6 +231,7 @@ Status: planejado
 - A fase 1 (Spec 15) fica explicitamente limitada a infraestrutura (tabela + escrita service/repository), sem alterar serviços existentes.
 - `Status` está padronizado como enum persistido como string.
 - `MetadataJson` suporta payload operacional rico com regras de segurança.
+- `MetadataJson` segue contrato mínimo obrigatório por categoria de evento, com `metadataVersion=1`, limite de 4 KB e política de sanitização/validação.
 - Existe política única de falha na escrita de auditoria por fluxo: segunda tentativa imediata e, em nova falha, log estruturado para recuperação futura.
 - O contrato canônico atual de `ActorUser` permanece inalterado nesta spec, com evolução planejada e explicitamente delegada para a Spec 21.
 - As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
@@ -213,6 +246,9 @@ Status: planejado
   - testes de integração por fluxo auditado.
   - testes de regressão garantindo ausência de mudança em contratos de API.
   - testes de falha de auditoria garantindo segunda tentativa de escrita e, após nova falha, registro de log estruturado para recuperação futura.
+  - testes de contrato de `MetadataJson` por categoria (`EndpointOperational`, `WorkerFlow`, `SystemTask`) validando obrigatórios, tipos e `metadataVersion=1`.
+  - testes de limite de tamanho (aceita até 4 KB, rejeita acima de 4 KB).
+  - testes de sanitização com denylist e allowlist por categoria.
 
 ## Fora de escopo
 
