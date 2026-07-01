@@ -15,6 +15,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Controle do worker por usuário autenticado (`POST /worker/start`, `POST /worker/stop`, `GET /worker/status`)
 - ✅ Persistência durável com SQLite/EF Core
 - ✅ Processamento real no worker com reuso do caso de uso de ingestão
+- ✅ Fundação de auditoria persistida com `AuditLogs` (`service -> repository`, Spec 15)
 - 🎯 Diretriz de evolução: suporte a N usuários simultâneos com múltiplos workers concorrentes (um worker lógico por usuário)
 - 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 
@@ -110,16 +111,16 @@ docs/
 
 ## 🧪 Cobertura de Testes
 
-- Referência atual da suíte completa (2026-06-29):
+- Referência atual da suíte completa (2026-07-01):
   - Comando: `dotnet test LCB.sln -v minimal`
-  - Total: 137
+  - Total: 142
   - Falhas: 0
 
-- Referência atual de unit tests com cobertura (2026-06-29):
+- Referência atual de unit tests com cobertura (2026-07-01):
   - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
-  - Total: 106
+  - Total: 111
   - Falhas: 0
-  - Cobertura de linhas: **89,92%** (`line-rate=0.8992`)
+  - Cobertura de linhas: **90,41%** (`line-rate=0.9041`)
 
 ## 🤝 Para Contribuidores
 

@@ -1,5 +1,45 @@
 # CHANGELOG
 
+## [v0.6.5] - 2026-07-01
+
+### ✨ Funcionalidades
+
+- **Fundação da auditoria persistida** (Spec 15)
+  - Nova entidade de domínio `AuditLogEntity` e enum `AuditLogStatusEnum`
+  - Novo contrato de escrita `IAuditLogService` e contrato de persistência `IAuditLogRepository`
+  - Nova tabela `AuditLogs` com migration versionada (`AddAuditLogsFoundation`)
+  - Persistência de `Status` como enum no domínio e string no banco
+  - Estrutura `service -> repository` implementada sem instrumentar fluxos já existentes
+
+### 🔧 Melhorias Técnicas
+
+- `AuditLogService` com validação de `MetadataJson` (JSON válido)
+- Bloqueio de conteúdo sensível em metadata de auditoria (ex.: `token`, `password`, `authorization`, `secret`)
+- Índices operacionais adicionados em `AuditLogs`:
+  - `CreatedAtUtc`
+  - `ActorUser`
+  - `Action + CreatedAtUtc`
+
+### 🧪 Testes
+
+- Execução de validação da solução completa:
+  - comando: `dotnet test LCB.sln -v minimal`
+  - total: 142
+  - sucesso: 142
+  - falhas: 0
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - total: 111
+  - sucesso: 111
+  - falhas: 0
+  - cobertura de linhas: **90,41%** (`line-rate=0.9041`)
+
+### 📚 Documentação
+
+- Atualização de `README.md` com estado da fundação da auditoria e métricas atualizadas de testes/cobertura.
+- Atualização de `docs/SPEC.md` para versão `v0.6.5`, com sincronização do estado da Spec 15 em andamento e nova referência de cobertura.
+- Atualização de ciclo de vida da Spec 15 em `docs/specs/active/` e `docs/specs/README.md`.
+
 ## [v0.6.4] - 2026-06-29
 
 ### 🔧 Melhorias Técnicas

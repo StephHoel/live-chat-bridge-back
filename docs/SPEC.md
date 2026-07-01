@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.3
+> **Versão do Projeto:** v0.6.5
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -31,6 +31,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Atualização de fila persistida para usuários que enviam mensagens reconhecidas por `ShouldJoinQueue()`.
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
 - **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 ✅).
+- **Fundação da auditoria persistida** (Spec 15 ✅): tabela `AuditLogs`, status tipado por enum persistido como string, serviço de escrita (`IAuditLogService`) e repositório dedicado (`IAuditLogRepository`).
 - **Auditoria de origem de inserção em mensagens** (Spec 16 ✅): `ChatMessageEntity` diferencia `Author` (autor do chat) de `InsertedByUser` (ator que inseriu no backend), com preenchimento por usuário autenticado no fluxo HTTP e pelo usuário autenticado que ativou a sessão no worker.
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) dedicado ao processamento assíncrono do canal interno.
@@ -67,8 +68,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 15** - Tabela de logs com auditoria mínima
-2. **Spec 21** - Nome de usuário para auditoria operacional
+1. **Spec 21** - Nome de usuário para auditoria operacional
+2. **Spec 23** - Rollout de auditoria operacional no projeto
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -246,11 +247,14 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura de integração para `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`, incluindo autenticação obrigatória, transições de estado e isolamento por usuário autenticado.
 - Há cobertura para `RegisterHandler` incluindo sucesso, validações de payload, conflito por duplicidade e persistência de hash.
 - Repositórios EF (`UserRepository`, `QueueRepository`, `ChatMessageRepository`, `LiveSettingsRepository`) possuem testes com SQLite em memória.
+- Repositório de auditoria (`AuditLogRepository`) possui testes com SQLite em memória.
 - Há cobertura de `RepositoryBase` para fluxos de sucesso e erro.
+- Serviço de auditoria (`AuditLogService`) possui testes de validação para JSON inválido e bloqueio de conteúdo sensível em metadata.
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência (2026-06-29): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 106 testes aprovados, 0 falhas e cobertura de linhas em 89,92% (Cobertura `line-rate=0.8992`).
+- Execução de referência da solução completa (2026-07-01): `dotnet test LCB.sln -v minimal` com 142 testes aprovados e 0 falhas.
+- Execução de referência de unit tests com cobertura (2026-07-01): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 111 testes aprovados, 0 falhas e cobertura de linhas em 90,41% (Cobertura `line-rate=0.9041`).
 
 ## 12. Convenções Observadas
 
@@ -270,7 +274,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- implementar trilha de auditoria persistida mínima (Spec 15).
+- concluir adoção da auditoria operacional nos fluxos previstos (Spec 23/Spec 17).
 - evoluir auditoria operacional para nome de usuário (Spec 21).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto
