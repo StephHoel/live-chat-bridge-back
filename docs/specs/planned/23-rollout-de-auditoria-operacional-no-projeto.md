@@ -51,6 +51,7 @@ Status: planejado
 - Integrar auditoria em fluxos de controle operacional (início/parada/status de worker, configuração de live, operações administrativas).
 - Aplicar via `AuditLogService` sem acoplamento direto de handlers ao repositório.
 - Garantir que a adoção não altere contratos HTTP públicos.
+- Implementar política mínima obrigatória de retenção e manutenção de `AuditLogs` antes do encerramento da fase 2.
 
 ### Fase 3 - Cobertura ampliada e padronização
 
@@ -218,6 +219,37 @@ Status: planejado
 - Manter consultas operacionais por colunas canônicas (`Action`, `Resource`, `CreatedAtUtc`, `ActorUser`).
 - Quando necessário por evidência de uso, criar coluna derivada para chave crítica (ex.: `CorrelationId`) em vez de índice direto no JSON.
 
+## Política de retenção e manutenção
+
+- A política de retenção/manutenção é obrigatória antes do fim da fase 2.
+
+### TTL por categoria
+
+- `EndpointOperational`: 30 dias.
+- `WorkerFlow`: 15 dias.
+- `SystemTask`: 60 dias.
+
+### Purge
+
+- Execução diária com remoção por lotes.
+- Remover primeiro os registros mais antigos por `CreatedAtUtc`.
+- A estratégia de lotes deve ser configurável para reduzir impacto operacional.
+
+### Job de limpeza
+
+- Executar como tarefa interna agendada diariamente.
+- Garantir execução única por ciclo (evitar concorrência entre instâncias).
+- Em falha no job, registrar erro estruturado e permitir nova tentativa no próximo ciclo.
+
+### Gatilho de revisão
+
+- Se a tabela `AuditLogs` ultrapassar `X` registros ou `Y` MB, reavaliar TTL e frequência de purge.
+
+### Particionamento futuro
+
+- Não implementar particionamento nesta fase com SQLite.
+- Manter diretriz de evolução para particionamento em banco futuro (ex.: PostgreSQL), caso volume e consultas justifiquem.
+
 ## Regras de validação
 
 - `CreatedAtUtc` sempre preenchido no backend.
@@ -234,6 +266,8 @@ Status: planejado
 - `MetadataJson` segue contrato mínimo obrigatório por categoria de evento, com `metadataVersion=1`, limite de 4 KB e política de sanitização/validação.
 - Existe política única de falha na escrita de auditoria por fluxo: segunda tentativa imediata e, em nova falha, log estruturado para recuperação futura.
 - O contrato canônico atual de `ActorUser` permanece inalterado nesta spec, com evolução planejada e explicitamente delegada para a Spec 21.
+- Existe política mínima obrigatória de retenção/manutenção com TTL por categoria, purge diário em lotes e job de limpeza até o fim da fase 2.
+- O gatilho de revisão (`X` registros ou `Y` MB) está definido para reavaliar TTL e frequência de purge.
 - As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
 
 ## Testes esperados
@@ -249,10 +283,14 @@ Status: planejado
   - testes de contrato de `MetadataJson` por categoria (`EndpointOperational`, `WorkerFlow`, `SystemTask`) validando obrigatórios, tipos e `metadataVersion=1`.
   - testes de limite de tamanho (aceita até 4 KB, rejeita acima de 4 KB).
   - testes de sanitização com denylist e allowlist por categoria.
+  - testes de retenção por categoria garantindo expurgo conforme TTL (`EndpointOperational`, `WorkerFlow`, `SystemTask`).
+  - testes do purge diário em lotes e da ordenação por `CreatedAtUtc`.
+  - testes do gatilho de revisão quando ultrapassar `X` registros ou `Y` MB.
+  - testes de robustez do job de limpeza (execução única por ciclo e comportamento em falha).
 
 ## Fora de escopo
 
 - Dashboard de auditoria.
 - SIEM/APM externo.
-- Política completa de retenção/arquivamento.
+- Arquivamento avançado com storage externo dedicado.
 - Reescrita imediata de todos os serviços existentes para instrumentação total em uma única entrega.
