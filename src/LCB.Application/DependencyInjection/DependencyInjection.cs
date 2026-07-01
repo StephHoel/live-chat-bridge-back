@@ -67,6 +67,7 @@ public static class DependencyInjection
         services.AddScoped<IMessageRepository, ChatMessageRepository>();
         services.AddScoped<IQueueRepository, QueueRepository>();
         services.AddScoped<ILiveSettingsRepository, LiveSettingsRepository>();
+        services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 
         return services;
     }
