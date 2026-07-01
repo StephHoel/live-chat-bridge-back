@@ -27,10 +27,10 @@ Origem: risco registrado na PR #9 (semântica at-least-once intra-processo sem g
 
 ## Interferência com mini-specs existentes
 
-- Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](docs/specs/done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
-- Interfere com [docs/specs/planned/15-tabela-logs-com-auditoria-minima.md](docs/specs/planned/15-tabela-logs-com-auditoria-minima.md): depende da fundação de auditoria da 15 e aplica essa base ao fluxo de replay do worker.
-- Interfere com [docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md](docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec executa a fase de adoção da auditoria no contexto de durabilidade/replay do worker.
-- Interfere com [docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md](docs/specs/done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
+- Interfere com [docs/spec/done/05-processamento-real-chat-worker.md](../done/05-processamento-real-chat-worker.md): expande a semântica de entrega do worker para garantir recuperação cross-restart.
+- Interfere com [docs/spec/done/15-tabela-logs-com-auditoria-minima.md](../done/15-tabela-logs-com-auditoria-minima.md): depende da fundação de auditoria da 15 e aplica essa base ao fluxo de replay do worker.
+- Interfere com [docs/spec/planned/23-rollout-de-auditoria-operacional-no-projeto.md](../planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec executa a fase de adoção da auditoria no contexto de durabilidade/replay do worker.
+- Interfere com [docs/spec/done/16-campo-auditoria-origem-insercao-chatmessages.md](../done/16-campo-auditoria-origem-insercao-chatmessages.md): reutiliza e amplia o preenchimento de origem de inserção em todas as entradas.
 
 ### Decisão explícita do usuário
 
