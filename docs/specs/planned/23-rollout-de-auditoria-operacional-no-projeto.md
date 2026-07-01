@@ -56,9 +56,39 @@ Status: planejado
 ### Fase 3 - Cobertura ampliada e padronização
 
 - Implementar auditoria operacional no processamento assíncrono, incluindo eventos de worker/replay/retry/dead-letter, sem duplicar implementação na Spec 17.
-- Expandir para outros fluxos de ingestão quando houver ganho operacional claro.
+- Expandir para os demais fluxos de ingestão do projeto como requisito obrigatório desta fase.
 - Evoluir o catálogo de `Action`/`Resource` já fechado na fase 2, mantendo compatibilidade retroativa.
 - Adicionar telemetria de qualidade da auditoria (campos faltantes, volume por fluxo, latência de escrita).
+
+## Gate de qualidade do rollout
+
+- Decisão: todos os fluxos desta mini-spec são obrigatórios por fase, com exceção do fluxo de durabilidade/replay de inbox pertencente à Spec 17.
+
+### Fluxos obrigatórios por fase
+
+- Fase 1:
+  - infraestrutura de auditoria (`AuditLogs`, enum de status, `AuditLogService`, repositório e DI).
+
+- Fase 2:
+  - endpoints operacionais (`POST /worker/start`, `POST /worker/stop`, `GET /worker/status`, `GET /config/live`, `PUT /config/live`);
+  - tarefas de sistema auditáveis;
+  - política de retenção/manutenção ativa.
+
+- Fase 3:
+  - fluxo assíncrono auditável sob responsabilidade desta spec (`WorkerFlow`: início, sucesso, falha com retry, dead-letter, retomada pós-restart);
+  - demais fluxos de ingestão do projeto dentro do escopo da Spec 23.
+
+### Exclusão explícita
+
+- Não faz parte deste gate o fluxo de durabilidade/replay técnico da Spec 17 (persistência/claim/transição funcional da inbox sem escrita de auditoria).
+
+### Critérios mensuráveis de aceite do gate
+
+- Cobertura de fluxos obrigatórios por fase: 100% dos fluxos listados acima instrumentados e validados em teste de integração.
+- Conformidade de catálogo: 100% dos eventos usando valores de `Action`/`Resource` permitidos para a fase vigente.
+- Conformidade de metadata: 100% dos eventos com `MetadataJson` válido no contrato obrigatório (`metadataVersion=1`, campos obrigatórios por categoria e tamanho <= 4 KB).
+- Política de falha da auditoria: 100% dos fluxos obrigatórios validando segunda tentativa e fallback em log estruturado na dupla falha.
+- Não regressão de contrato HTTP: 100% dos testes de contrato de API dos endpoints operacionais aprovados sem mudança de envelope `Result<T>`.
 
 ## Catálogo inicial fechado de `Action` e `Resource`
 
@@ -268,6 +298,7 @@ Status: planejado
 - O contrato canônico atual de `ActorUser` permanece inalterado nesta spec, com evolução planejada e explicitamente delegada para a Spec 21.
 - Existe política mínima obrigatória de retenção/manutenção com TTL por categoria, purge diário em lotes e job de limpeza até o fim da fase 2.
 - O gatilho de revisão (`X` registros ou `Y` MB) está definido para reavaliar TTL e frequência de purge.
+- O gate de qualidade está definido com fluxos obrigatórios por fase e critérios mensuráveis, excluindo apenas o fluxo técnico da Spec 17.
 - As futuras specs que adicionarem novos pontos auditáveis devem referenciar esta mini-spec como baseline.
 
 ## Testes esperados
@@ -287,6 +318,8 @@ Status: planejado
   - testes do purge diário em lotes e da ordenação por `CreatedAtUtc`.
   - testes do gatilho de revisão quando ultrapassar `X` registros ou `Y` MB.
   - testes de robustez do job de limpeza (execução única por ciclo e comportamento em falha).
+  - testes de gate por fase validando cobertura de 100% dos fluxos obrigatórios definidos na mini-spec.
+  - testes de conformidade de catálogo garantindo ausência de `Action`/`Resource` fora da lista permitida por fase.
 
 ## Fora de escopo
 
