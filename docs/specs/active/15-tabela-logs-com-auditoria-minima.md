@@ -1,7 +1,7 @@
 # Mini-spec: Tabela de logs com auditoria mínima
 
 Número: 15
-Status: planejado
+Status: em andamento
 
 ## Diretriz transversal de concorrência
 
@@ -98,3 +98,11 @@ Status: planejado
 - Dashboard de auditoria.
 - Retenção, rotação e arquivamento avançado de logs.
 - Integração com SIEM/APM externo.
+
+## Decisões tomadas durante a implementação desta fase
+
+- Enum de status adotado como `AuditLogStatusEnum` com valores iniciais `Success`, `Failure`, `Warning` e `Info`.
+- Persistência de `Status` configurada com `HasConversion<string>()` no EF Core.
+- Estrutura de escrita implementada via `IAuditLogService` -> `IAuditLogRepository`.
+- `MetadataJson` validado como JSON no serviço de auditoria antes da persistência.
+- Conteúdo sensível em `MetadataJson` é bloqueado no serviço por validação semântica de termos proibidos (`token`, `password`, `secret`, `authorization`, `api_key`, `apikey`, `jwt`).

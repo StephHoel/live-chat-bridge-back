@@ -48,13 +48,12 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-- _Nenhuma ativa_
+- [Tabela de logs com auditoria mínima](active/15-tabela-logs-com-auditoria-minima.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Tabela de logs com auditoria mínima](planned/15-tabela-logs-com-auditoria-minima.md)
 - [Rollout de auditoria operacional no projeto](planned/23-rollout-de-auditoria-operacional-no-projeto.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
 - [Endpoint HTTP para bootstrap da fila](planned/07-endpoint-http-fila-bootstrap.md)
