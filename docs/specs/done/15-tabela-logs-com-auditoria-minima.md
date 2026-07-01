@@ -1,7 +1,7 @@
 # Mini-spec: Tabela de logs com auditoria mínima
 
 Número: 15
-Status: em andamento
+Status: implementado
 
 ## Diretriz transversal de concorrência
 

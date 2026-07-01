@@ -45,10 +45,11 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Acionamento do worker pelo front](done/18-acionamento-do-worker-pelo-front.md)
 - [Swagger desprotegido e testes de integração](done/22-swagger-desprotegido-e-testes-integracao.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](done/16-campo-auditoria-origem-insercao-chatmessages.md)
+- [Tabela de logs com auditoria mínima](done/15-tabela-logs-com-auditoria-minima.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Tabela de logs com auditoria mínima](active/15-tabela-logs-com-auditoria-minima.md)
+- _Nenhuma ativa_
 
 ### 📋 Planejadas (ordem de prioridade)
 
