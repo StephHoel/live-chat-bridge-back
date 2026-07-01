@@ -20,6 +20,7 @@ Status: planejado
 - A Spec 15 deve implementar apenas a base de auditoria: tabela e forma de salvar (`service -> repository`), sem alterar serviços já implementados.
 - O campo `Status` da auditoria deve ser modelado como enum no domínio e persistido como string no banco.
 - `MetadataJson` deve suportar payload operacional mais rico, com estrutura versionável.
+- A implementação de auditoria operacional no processamento assíncrono (worker/replay/retry/dead-letter) pertence exclusivamente a esta spec.
 
 ## Interferência com mini-specs existentes
 
@@ -52,9 +53,21 @@ Status: planejado
 
 ### Fase 3 - Cobertura ampliada e padronização
 
-- Expandir para fluxos de ingestão e processamento assíncrono quando houver ganho operacional claro.
+- Implementar auditoria operacional no processamento assíncrono, incluindo eventos de worker/replay/retry/dead-letter, sem duplicar implementação na Spec 17.
+- Expandir para outros fluxos de ingestão quando houver ganho operacional claro.
 - Definir catálogo de `Action`/`Resource` oficiais para reduzir variação semântica.
 - Adicionar telemetria de qualidade da auditoria (campos faltantes, volume por fluxo, latência de escrita).
+
+## Delimitação de escopo com a Spec 17
+
+- A Spec 17 implementa durabilidade/replay do worker e evolução de `ChatMessages.InsertedByUser`, sem escrita de auditoria em `AuditLogs`.
+- Esta spec concentra toda a instrumentação de auditoria operacional do fluxo assíncrono.
+- Eventos mínimos de auditoria assíncrona nesta spec:
+  - início de processamento do item de inbox;
+  - sucesso de processamento;
+  - falha transitória com retry agendado;
+  - falha final com envio para dead-letter;
+  - retomada pós-restart de itens pendentes/falhos elegíveis.
 
 ## Superfícies afetadas
 
