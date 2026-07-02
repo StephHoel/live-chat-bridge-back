@@ -189,7 +189,7 @@ public class ChatProcessorServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<AuditLogStatusEnum>(),
-                It.IsAny<string?>(),
+                It.IsAny<string>(),
                 It.IsAny<DateTime?>()))
             .ReturnsAsync(true);
 
@@ -241,7 +241,7 @@ public class ChatProcessorServiceTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<AuditLogStatusEnum>(),
-                It.IsAny<string?>(),
+                It.IsAny<string>(),
                 It.IsAny<DateTime?>()))
             .ReturnsAsync(true);
 

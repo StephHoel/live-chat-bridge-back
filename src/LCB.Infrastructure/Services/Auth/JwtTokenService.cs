@@ -19,7 +19,7 @@ public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenServi
         {
             logger.LogInformation("[{method}] Starting JWT generation for user {UserId}", [nameof(GenerateToken), user.Id]);
 
-            var key = new SymmetricSecurityKey(_keyBytes);
+            var key = new SymmetricSecurityKey(_keyBytes ?? []);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]

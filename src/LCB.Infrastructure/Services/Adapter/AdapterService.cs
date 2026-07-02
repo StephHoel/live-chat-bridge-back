@@ -16,11 +16,10 @@ public class AdapterService : IAdapterService
 
         var parts = textTrimmed.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
-        var token = parts.Length > 0 ? parts[0] : null;
+        var token = parts[0];
         var args = parts.Skip(1).ToArray();
 
-        if (token != null)
-            token = token.StartsWith('/') ? token[1..] : token;
+        token = token.StartsWith('/') ? token[1..] : token;
 
         return new(token, args, text);
     }

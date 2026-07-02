@@ -71,7 +71,7 @@ public class RecoverHandlerTests
 
         repository
             .Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
-            .ReturnsAsync((UserEntity?)null);
+            .ReturnsAsync((UserEntity)null);
 
         recoverTokenService
             .Setup(x => x.GenerateTemporaryResetToken())
@@ -97,7 +97,7 @@ public class RecoverHandlerTests
 
         repository
             .Setup(x => x.GetByEmailAsync(It.IsAny<string>()))
-            .ReturnsAsync((UserEntity?)null);
+            .ReturnsAsync((UserEntity)null);
 
         var handler = CreateHandler("Production");
 

@@ -59,7 +59,7 @@ Criar tabela de entrada durável para mensagens recebidas do provider (ex.: `Wor
 - `Status` (string/enum): `Pending`, `Processing`, `Processed`, `Failed`, `DeadLetter`
 - `Attempts` (int)
 - `NextRetryAtUtc` (DateTime?)
-- `LastError` (string?)
+- `LastError` (string)
 - `CreatedAtUtc` (DateTime)
 - `UpdatedAtUtc` (DateTime)
 

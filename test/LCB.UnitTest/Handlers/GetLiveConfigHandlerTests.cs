@@ -30,7 +30,7 @@ public class GetLiveConfigHandlerTests
                 It.IsAny<string>(),
                 It.IsAny<string>(),
                 It.IsAny<LCB.Domain.Enums.AuditLogStatusEnum>(),
-                It.IsAny<string?>(),
+                It.IsAny<string>(),
                 It.IsAny<DateTime?>()))
             .ReturnsAsync(true);
 
