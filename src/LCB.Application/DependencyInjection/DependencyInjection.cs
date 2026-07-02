@@ -84,6 +84,7 @@ public static class DependencyInjection
 
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddSingleton<IRecoverAntiAbuseService, RecoverAntiAbuseService>();
+        services.AddScoped<IRecoverTokenService, RecoverTokenService>();
         services.AddScoped<IAuditLogService, AuditLogService>();
 
         services.AddScoped<ITokenService, JwtTokenService>();
