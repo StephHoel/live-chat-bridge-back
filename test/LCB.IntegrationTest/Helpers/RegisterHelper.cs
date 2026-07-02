@@ -10,8 +10,8 @@ public static class RegisterHelper
 {
     public static async Task<(string Email, string Password)> RegisterAsync(
         this HttpClient client,
-        string? email = null,
-        string? password = null)
+        string email = null,
+        string password = null)
     {
         email ??= FakeData.BuildUniqueEmail();
         password ??= FakeData.GetCorrectPass();

@@ -62,9 +62,9 @@ Status: implementado
 ```cs
 public class PutConfigLiveRequest
 {
-  public string? TikTokUsername { get; set; }
-  public string? TwitchUsername { get; set; }
-  public string? YouTubeUsername { get; set; }
+  public string TikTokUsername { get; set; }
+  public string TwitchUsername { get; set; }
+  public string YouTubeUsername { get; set; }
   public long? ReloadTimeInSec { get; set; }
 }
 ```

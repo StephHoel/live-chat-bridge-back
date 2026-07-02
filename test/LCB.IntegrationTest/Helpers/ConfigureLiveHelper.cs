@@ -10,9 +10,9 @@ public static class ConfigureLiveHelper
 {
     public static async Task<LiveConfigResponse> ConfigureLiveAsync(
         this HttpClient client,
-        string? tikTokUsername,
-        string? twitchUsername,
-        string? youTubeUsername,
+        string tikTokUsername,
+        string twitchUsername,
+        string youTubeUsername,
         long reloadTimeInSec = 5)
     {
         var request = new PutLiveConfigRequest(

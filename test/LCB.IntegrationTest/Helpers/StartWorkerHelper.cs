@@ -8,7 +8,7 @@ namespace LCB.IntegrationTest.Helpers;
 
 public static class StartWorkerHelper
 {
-    public static async Task<HttpResponseMessage> StartWorkerAsync(this HttpClient client, string? tiktokUsername = null, string? twitchUsername = null, string? youtubeUsername = null)
+    public static async Task<HttpResponseMessage> StartWorkerAsync(this HttpClient client, string tiktokUsername = null, string twitchUsername = null, string youtubeUsername = null)
     {
         await client.ConfigureLiveAsync(tiktokUsername, twitchUsername, youtubeUsername);
 
