@@ -79,7 +79,23 @@ public class WorkerControlService(
         try
         {
             if (session.State is WorkerStateEnum.Active or WorkerStateEnum.Starting or WorkerStateEnum.Error)
-                return Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
+            {
+                var alreadyRunning = Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
+
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartSucceeded,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Info,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)alreadyRunning.StatusCode.GetValueOrDefault(HttpStatusCode.OK),
+                        userId: userId.ToString(),
+                        errorCode: "AlreadyRunning"));
+
+                return alreadyRunning;
+            }
 
             var settings = await GetLiveSettingsAsync(userId);
             if (settings is null)
