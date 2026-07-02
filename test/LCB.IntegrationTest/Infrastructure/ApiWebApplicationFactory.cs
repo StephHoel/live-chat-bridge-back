@@ -31,7 +31,7 @@ public sealed class ApiWebApplicationFactory : WebApplicationFactory<Program>
 
         builder.ConfigureAppConfiguration((_, configBuilder) =>
         {
-            configBuilder.AddInMemoryCollection(new Dictionary<string, string>
+            configBuilder.AddInMemoryCollection(new Dictionary<string, string?>
             {
                 ["ConnectionStrings:DefaultConnection"] = "Data Source=:memory:",
                 ["JWT_KEY"] = JwtTestKey,
