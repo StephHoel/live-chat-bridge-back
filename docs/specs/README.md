@@ -42,6 +42,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Refatoração transversal de observabilidade e tratamento de erros](done/13-refatoracao-observabilidade-e-tratamento-erros.md)
 - [Consolidação do modelo de mensagem entre HTTP e worker](done/04-consolidacao-modelo-de-mensagem.md)
 - [Processamento real de mensagens no ChatProcessorService](done/05-processamento-real-chat-worker.md)
+- [Endpoint de recuperação de acesso](done/06-endpoint-auth-recover.md)
 - [Segurança de acesso por token para HTTP e acionamento do worker](done/11-seguranca-basica-ingest-token-header.md)
 - [Configuração persistida de live e usernames por plataforma](done/19-configuracao-persistida-de-live-e-usernames.md)
 - [Acionamento do worker pelo front](done/18-acionamento-do-worker-pelo-front.md)
@@ -52,7 +53,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-- [Endpoint de recuperação de acesso](active/06-endpoint-auth-recover.md)
+- Nenhuma mini-spec ativa no momento.
 
 ### 📋 Planejadas (ordem de prioridade)
 

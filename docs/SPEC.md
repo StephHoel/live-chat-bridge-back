@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.6
+> **Versão do Projeto:** v0.6.7
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -22,6 +22,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 
 - Login por e-mail via `POST /auth/login`, com validação de senha e emissão de JWT.
 - Registro de conta via `POST /auth/register`, com validação de e-mail, confirmação de senha e política configurável.
+- Recuperação de acesso via `POST /auth/recover/`, com resposta neutra, política antiabuso (exceto `Test`) e token temporário apenas em `Development`/`Test`.
 - Configuração operacional por usuário via `GET /config/live` e `PUT /config/live`, com persistência durável de usernames por plataforma e `ReloadTimeInSec`.
 - Controle operacional de worker por usuário autenticado via `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`.
 - Ingestão de mensagens via `POST /messages/ingest` com autenticação JWT obrigatória, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
@@ -65,8 +66,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Planejadas:** 8 specs em `docs/specs/planned/`
-- **Ativas:** 1 spec em `docs/specs/active/`
-- **Concluídas:** 14 specs em `docs/specs/done/`
+- **Ativas:** 0 specs em `docs/specs/active/`
+- **Concluídas:** 15 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
@@ -98,7 +99,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
 - `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos e migrations.
 - `test/LCB.UnitTest`: testes unitários de handlers, serviços, workers e repositórios persistentes.
-- `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/messages/ingest`, `/config/live`, `/worker/start`, `/worker/stop`, `/worker/status`).
+- `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/auth/recover/`, `/messages/ingest`, `/config/live`, `/worker/start`, `/worker/stop`, `/worker/status`).
 
 ## 6. Fluxos Principais
 
@@ -126,6 +127,15 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 5. O handler verifica duplicidade de e-mail em `IUserRepository`.
 6. Em sucesso, persiste `UserEntity` com hash de senha (`IPasswordHasher`) e retorna `201 Created`.
 7. A resposta é convertida por `ResultExtensions.ToMinimalResult()` mantendo envelope `Result<T>`.
+
+### Recuperação de Acesso
+
+1. `AuthEndpoints` recebe `POST /auth/recover/` com payload contendo `email`.
+2. O endpoint valida payload e JSON; requisições inválidas retornam `422 Unprocessable Entity`.
+3. `RecoverHandler` aplica validação de e-mail, consulta real de usuário e mantém resposta neutra para evitar enumeração.
+4. A política antiabuso é aplicada em todos os ambientes, exceto `Test`; excesso de tentativas retorna `429 Too Many Requests`.
+5. Em `Development` e `Test`, o `200 OK` inclui `temporaryResetToken`; em `Hmg` e `Production`, o token não é retornado.
+6. O fluxo registra auditoria operacional com catálogo da Spec 23 e aplica mascaramento de e-mail conforme ambiente.
 
 ### Ingestão HTTP de Mensagens
 
