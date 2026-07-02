@@ -37,10 +37,10 @@ public static class WorkerEndpoints
             HttpContext httpContext,
             [FromServices] StopWorkerHandler handler) =>
         {
-            if (!httpContext.TryGetAuthenticatedUserData(out var userId, out _))
+            if (!httpContext.TryGetAuthenticatedUserData(out var userId, out var email))
                 return Result<GetWorkerStatusResponse>.Fail("Unauthorized", HttpStatusCode.Unauthorized).ToMinimalResult();
 
-            var result = await handler.Handle(userId);
+            var result = await handler.Handle(userId, email);
             return result.ToMinimalResult();
         })
         .WithTags("Worker")
@@ -53,10 +53,10 @@ public static class WorkerEndpoints
             HttpContext httpContext,
             [FromServices] GetWorkerStatusHandler handler) =>
         {
-            if (!httpContext.TryGetAuthenticatedUserData(out var userId, out _))
+            if (!httpContext.TryGetAuthenticatedUserData(out var userId, out var email))
                 return Result<GetWorkerStatusResponse>.Fail("Unauthorized", HttpStatusCode.Unauthorized).ToMinimalResult();
 
-            var result = await handler.Handle(userId);
+            var result = await handler.Handle(userId, email);
             return result.ToMinimalResult();
         })
         .WithTags("Worker")

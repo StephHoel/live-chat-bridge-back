@@ -1,9 +1,12 @@
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using LCB.Application.Commands.Config.Live.Get;
 using LCB.Domain.Entities;
+using LCB.Domain.Interfaces.Services;
 using LCB.Infrastructure.Repositories;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 using static LCB.UnitTest.Factories.RepositoryTestDbFactory;
 
@@ -20,7 +23,18 @@ public class GetLiveConfigHandlerTests
         var user = UserEntity.Create("alice@example.com", "hash");
         await userRepo.CreateAsync([user]);
 
-        var handler = new GetLiveConfigHandler(repo, new NullLogger<GetLiveConfigHandler>());
+        var auditLogService = new Mock<IAuditLogService>();
+        auditLogService
+            .Setup(x => x.WriteWithPolicyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<LCB.Domain.Enums.AuditLogStatusEnum>(),
+                It.IsAny<string?>(),
+                It.IsAny<DateTime?>()))
+            .ReturnsAsync(true);
+
+        var handler = new GetLiveConfigHandler(repo, auditLogService.Object, new NullLogger<GetLiveConfigHandler>());
 
         var result = await handler.Handle(user.Id, user.Email);
 

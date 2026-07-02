@@ -2,9 +2,9 @@ using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Infrastructure.Data;
+using LCB.Infrastructure.Repositories.Base;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using LCB.Infrastructure.Repositories.Base;
 
 namespace LCB.Infrastructure.Repositories;
 

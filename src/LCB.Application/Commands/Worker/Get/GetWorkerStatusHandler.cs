@@ -9,9 +9,9 @@ public class GetWorkerStatusHandler(
     WorkerControlService workerControlService,
     ILogger<GetWorkerStatusHandler> logger)
 {
-    public Task<Result<GetWorkerStatusResponse>> Handle(Guid userId)
+    public Task<Result<GetWorkerStatusResponse>> Handle(Guid userId, string userEmail)
         => OperationExecutor.ExecuteAsync(
             logger,
             nameof(GetWorkerStatusHandler),
-            () => workerControlService.GetStatusAsync(userId));
+            () => workerControlService.GetStatusAsync(userId, userEmail));
 }

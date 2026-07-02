@@ -16,7 +16,7 @@ public class WorkerControlServiceTests
     {
         var (Service, UserIdA, _) = ServiceHelper.Create();
 
-        var result = await Service.GetStatusAsync(UserIdA);
+        var result = await Service.GetStatusAsync(UserIdA, "user@example.com");
 
         Assert.True(result.Success);
         Assert.NotNull(result.Data);
@@ -65,7 +65,7 @@ public class WorkerControlServiceTests
         var (Service, UserIdA, _) = ServiceHelper.Create(settings);
 
         var started = await Service.StartAsync(UserIdA, "user@example.com", new WorkerStartRequest(true, false, false));
-        var stopped = await Service.StopAsync(UserIdA);
+        var stopped = await Service.StopAsync(UserIdA, "user@example.com");
 
         Assert.True(started.Success);
         Assert.Equal(WorkerStateEnum.Active, started.Data!.State);
@@ -80,10 +80,10 @@ public class WorkerControlServiceTests
         var (Service, UserIdA, UserIdB) = ServiceHelper.Create(settings);
 
         await Service.StartAsync(UserIdA, "user-a@example.com", new WorkerStartRequest(true, false, false));
-        var statusUserA = await Service.GetStatusAsync(UserIdA);
-        var statusUserB = await Service.GetStatusAsync(UserIdB);
+        var statusUserA = await Service.GetStatusAsync(UserIdA, "user-a@example.com");
+        var statusUserB = await Service.GetStatusAsync(UserIdB, "user-b@example.com");
 
-        await Service.StopAsync(UserIdA);
+        await Service.StopAsync(UserIdA, "user-a@example.com");
 
         Assert.Equal(WorkerStateEnum.Active, statusUserA.Data!.State);
         Assert.Equal(WorkerStateEnum.Inactive, statusUserB.Data!.State);
