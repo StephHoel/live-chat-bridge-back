@@ -35,7 +35,7 @@ public class GetLiveConfigHandler(
                 {
                     await auditLogService.WriteWithPolicyAsync(
                         userEmail,
-                        AuditLogCatalog.Action.LiveSettingsUpdateFailed,
+                        AuditLogCatalog.Action.LiveSettingsViewed,
                         AuditLogCatalog.Resource.LiveSettings,
                         AuditLogStatusEnum.Failure,
                         AuditMetadataFactory.CreateEndpointOperational(

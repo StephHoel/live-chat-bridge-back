@@ -163,7 +163,10 @@ public class AuditLogService(
     private bool TryValidateMetadata(string? metadataJson)
     {
         if (string.IsNullOrWhiteSpace(metadataJson))
-            return true;
+        {
+            logger.LogWarning("Audit metadata rejected because it is missing.");
+            return false;
+        }
 
         if (System.Text.Encoding.UTF8.GetByteCount(metadataJson) > MaxMetadataBytes)
         {
@@ -213,7 +216,12 @@ public class AuditLogService(
         if (!TryGetRequiredString(root, "occurredAtUtc", out var occurredAtUtc))
             return false;
 
-        if (!DateTime.TryParse(occurredAtUtc, out _))
+        if (!DateTimeOffset.TryParseExact(
+                occurredAtUtc,
+                "O",
+                System.Globalization.CultureInfo.InvariantCulture,
+                System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                out _))
             return false;
 
         var allowedForCategory = eventCategory switch
