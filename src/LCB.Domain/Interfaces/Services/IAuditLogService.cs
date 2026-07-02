@@ -11,4 +11,12 @@ public interface IAuditLogService
         AuditLogStatusEnum status,
         string? metadataJson = null,
         DateTime? createdAtUtc = null);
+
+    Task<bool> WriteWithPolicyAsync(
+        string actorUser,
+        string action,
+        string resource,
+        AuditLogStatusEnum status,
+        string? metadataJson = null,
+        DateTime? createdAtUtc = null);
 }

@@ -29,6 +29,7 @@ public static class WorkerDI
         services.AddSingleton<WorkerControlService>();
 
         services.AddHostedService<ChatWorker>();
+        services.AddHostedService<AuditRetentionCleanupWorker>();
 
         return services;
     }
