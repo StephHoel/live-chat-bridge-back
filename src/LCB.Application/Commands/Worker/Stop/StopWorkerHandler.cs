@@ -10,9 +10,9 @@ public class StopWorkerHandler(
     WorkerControlService workerControlService,
     ILogger<StopWorkerHandler> logger)
 {
-    public Task<Result<GetWorkerStatusResponse>> Handle(Guid userId)
+    public Task<Result<GetWorkerStatusResponse>> Handle(Guid userId, string userEmail)
         => OperationExecutor.ExecuteAsync(
             logger,
             nameof(StopWorkerHandler),
-            () => workerControlService.StopAsync(userId));
+            () => workerControlService.StopAsync(userId, userEmail));
 }

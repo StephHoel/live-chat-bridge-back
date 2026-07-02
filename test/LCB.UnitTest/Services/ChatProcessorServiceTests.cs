@@ -182,7 +182,20 @@ public class ChatProcessorServiceTests
     public async Task ProcessMessagesAsync_Stops_WhenCancellationIsRequestedBeforeRead()
     {
         var channel = Channel.CreateUnbounded<ChatMessageModel>();
-        var provider = new ServiceCollection().BuildServiceProvider();
+        var auditLogService = new Mock<IAuditLogService>();
+        auditLogService
+            .Setup(a => a.WriteWithPolicyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<AuditLogStatusEnum>(),
+                It.IsAny<string?>(),
+                It.IsAny<DateTime?>()))
+            .ReturnsAsync(true);
+
+        var provider = new ServiceCollection()
+            .AddScoped(_ => auditLogService.Object)
+            .BuildServiceProvider();
         var service = new ChatProcessorService(channel.Reader,
                                                provider.GetRequiredService<IServiceScopeFactory>(),
                                                NullLogger<ChatProcessorService>.Instance);
@@ -199,6 +212,7 @@ public class ChatProcessorServiceTests
         var messageRepository = new Mock<IMessageRepository>();
         var queueRepository = new Mock<IQueueRepository>();
         var adapterService = new Mock<IAdapterService>();
+        var auditLogService = new Mock<IAuditLogService>();
 
         messageRepository
             .Setup(r => r.GetByIdempotencyKeyAsync(It.IsAny<string>()))
@@ -221,11 +235,22 @@ public class ChatProcessorServiceTests
             .Setup(a => a.ParseAndDispatch(It.IsAny<ChatMessageEntity>()))
             .ReturnsAsync(new CommandDTO(TypeResultEnum.Success, new PayloadDTO("ok", []), "corr-default"));
 
+        auditLogService
+            .Setup(a => a.WriteWithPolicyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<AuditLogStatusEnum>(),
+                It.IsAny<string?>(),
+                It.IsAny<DateTime?>()))
+            .ReturnsAsync(true);
+
         var provider = new ServiceCollection()
             .AddLogging()
             .AddScoped(_ => messageRepository.Object)
             .AddScoped(_ => queueRepository.Object)
             .AddScoped(_ => adapterService.Object)
+            .AddScoped(_ => auditLogService.Object)
             .AddScoped<MessageIngestHandler>()
             .BuildServiceProvider();
 

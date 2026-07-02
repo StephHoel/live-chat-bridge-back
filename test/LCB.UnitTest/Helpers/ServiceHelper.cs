@@ -2,6 +2,7 @@ using System;
 using LCB.Application.Services;
 using LCB.Domain.Entities;
 using LCB.Domain.Interfaces.Repositories;
+using LCB.Domain.Interfaces.Services;
 using LCB.UnitTest.Fakes;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -34,6 +35,21 @@ public static class ServiceHelper
         serviceProvider
             .Setup(x => x.GetService(typeof(ILiveSettingsRepository)))
             .Returns(repository.Object);
+
+        var auditLogService = new Mock<IAuditLogService>();
+        auditLogService
+            .Setup(x => x.WriteWithPolicyAsync(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<LCB.Domain.Enums.AuditLogStatusEnum>(),
+                It.IsAny<string?>(),
+                It.IsAny<DateTime?>()))
+            .ReturnsAsync(true);
+
+        serviceProvider
+            .Setup(x => x.GetService(typeof(IAuditLogService)))
+            .Returns(auditLogService.Object);
 
         var scope = new Mock<IServiceScope>();
         scope

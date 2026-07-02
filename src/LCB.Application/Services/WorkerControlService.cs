@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Net;
 using LCB.Application.Commands.Worker.Get;
 using LCB.Application.Commands.Worker.Start;
+using LCB.Application.Helpers;
+using LCB.Domain.Constants;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
@@ -20,16 +22,56 @@ public class WorkerControlService(
 {
     private readonly ConcurrentDictionary<Guid, WorkerSessionModel> _sessions = new();
 
-    public Task<Result<GetWorkerStatusResponse>> GetStatusAsync(Guid userId)
+    public async Task<Result<GetWorkerStatusResponse>> GetStatusAsync(Guid userId, string userEmail)
     {
         var session = _sessions.GetOrAdd(userId, _ => new WorkerSessionModel());
-        return Task.FromResult(Result<GetWorkerStatusResponse>.Ok(session.ToResponse()));
+        var result = Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
+
+        await WriteAuditAsync(
+            userEmail,
+            AuditLogCatalog.Action.WorkerStatusChecked,
+            AuditLogCatalog.Resource.WorkerControl,
+            AuditLogStatusEnum.Info,
+            AuditMetadataFactory.CreateEndpointOperational(
+                "GET /worker/status",
+                "/worker/status",
+                (int)result.StatusCode.GetValueOrDefault(HttpStatusCode.OK),
+                userId: userId.ToString()));
+
+        return result;
     }
 
     public async Task<Result<GetWorkerStatusResponse>> StartAsync(Guid userId, string userEmail, WorkerStartRequest request)
     {
+        await WriteAuditAsync(
+            userEmail,
+            AuditLogCatalog.Action.WorkerStartRequested,
+            AuditLogCatalog.Resource.WorkerControl,
+            AuditLogStatusEnum.Info,
+            AuditMetadataFactory.CreateEndpointOperational(
+                "POST /worker/start",
+                "/worker/start",
+                (int)HttpStatusCode.OK,
+                userId: userId.ToString()));
+
         if (!request.TikTok && !request.Twitch && !request.YouTube)
+        {
+            var failed = Result<GetWorkerStatusResponse>.Fail("At least one platform must be enabled", HttpStatusCode.BadRequest);
+
+            await WriteAuditAsync(
+                userEmail,
+                AuditLogCatalog.Action.WorkerStartFailed,
+                AuditLogCatalog.Resource.WorkerControl,
+                AuditLogStatusEnum.Warning,
+                AuditMetadataFactory.CreateEndpointOperational(
+                    "POST /worker/start",
+                    "/worker/start",
+                    (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.BadRequest),
+                    userId: userId.ToString(),
+                    errorCode: "NoPlatformEnabled"));
+
             return Result<GetWorkerStatusResponse>.Fail("At least one platform must be enabled", HttpStatusCode.BadRequest);
+        }
 
         var session = _sessions.GetOrAdd(userId, _ => new WorkerSessionModel());
 
@@ -41,19 +83,94 @@ public class WorkerControlService(
 
             var settings = await GetLiveSettingsAsync(userId);
             if (settings is null)
+            {
+                var failed = Result<GetWorkerStatusResponse>.Fail("Live configuration not found for authenticated user", HttpStatusCode.Conflict);
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartFailed,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Warning,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.Conflict),
+                        userId: userId.ToString(),
+                        errorCode: "LiveConfigNotFound"));
+
                 return Result<GetWorkerStatusResponse>.Fail("Live configuration not found for authenticated user", HttpStatusCode.Conflict);
+            }
 
             if (request.TikTok && string.IsNullOrWhiteSpace(settings.TikTokUsername))
+            {
+                var failed = Result<GetWorkerStatusResponse>.Fail("TikTok username is required to start selected listener", HttpStatusCode.Conflict);
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartFailed,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Warning,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.Conflict),
+                        userId: userId.ToString(),
+                        errorCode: "TikTokUsernameMissing"));
+
                 return Result<GetWorkerStatusResponse>.Fail("TikTok username is required to start selected listener", HttpStatusCode.Conflict);
+            }
 
             if (request.Twitch && string.IsNullOrWhiteSpace(settings.TwitchUsername))
+            {
+                var failed = Result<GetWorkerStatusResponse>.Fail("Twitch username is required to start selected listener", HttpStatusCode.Conflict);
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartFailed,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Warning,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.Conflict),
+                        userId: userId.ToString(),
+                        errorCode: "TwitchUsernameMissing"));
+
                 return Result<GetWorkerStatusResponse>.Fail("Twitch username is required to start selected listener", HttpStatusCode.Conflict);
+            }
 
             if (request.YouTube && string.IsNullOrWhiteSpace(settings.YouTubeUsername))
+            {
+                var failed = Result<GetWorkerStatusResponse>.Fail("YouTube username is required to start selected listener", HttpStatusCode.Conflict);
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartFailed,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Warning,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.Conflict),
+                        userId: userId.ToString(),
+                        errorCode: "YouTubeUsernameMissing"));
+
                 return Result<GetWorkerStatusResponse>.Fail("YouTube username is required to start selected listener", HttpStatusCode.Conflict);
+            }
 
             if (request.Twitch || request.YouTube)
+            {
+                var failed = Result<GetWorkerStatusResponse>.Fail("Selected listener is not available in current runtime", HttpStatusCode.ServiceUnavailable);
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStartFailed,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Warning,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/start",
+                        "/worker/start",
+                        (int)failed.StatusCode.GetValueOrDefault(HttpStatusCode.ServiceUnavailable),
+                        userId: userId.ToString(),
+                        errorCode: "UnsupportedListener"));
+
                 return Result<GetWorkerStatusResponse>.Fail("Selected listener is not available in current runtime", HttpStatusCode.ServiceUnavailable);
+            }
 
             session.State = WorkerStateEnum.Starting;
             session.TikTok = request.TikTok;
@@ -71,6 +188,17 @@ public class WorkerControlService(
 
             session.State = WorkerStateEnum.Active;
 
+            await WriteAuditAsync(
+                userEmail,
+                AuditLogCatalog.Action.WorkerStartSucceeded,
+                AuditLogCatalog.Resource.WorkerControl,
+                AuditLogStatusEnum.Success,
+                AuditMetadataFactory.CreateEndpointOperational(
+                    "POST /worker/start",
+                    "/worker/start",
+                    (int)HttpStatusCode.OK,
+                    userId: userId.ToString()));
+
             return Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
         }
         finally
@@ -79,15 +207,41 @@ public class WorkerControlService(
         }
     }
 
-    public async Task<Result<GetWorkerStatusResponse>> StopAsync(Guid userId)
+    public async Task<Result<GetWorkerStatusResponse>> StopAsync(Guid userId, string userEmail)
     {
+        await WriteAuditAsync(
+            userEmail,
+            AuditLogCatalog.Action.WorkerStopRequested,
+            AuditLogCatalog.Resource.WorkerControl,
+            AuditLogStatusEnum.Info,
+            AuditMetadataFactory.CreateEndpointOperational(
+                "POST /worker/stop",
+                "/worker/stop",
+                (int)HttpStatusCode.OK,
+                userId: userId.ToString()));
+
         var session = _sessions.GetOrAdd(userId, _ => new WorkerSessionModel());
 
         await session.Gate.WaitAsync();
         try
         {
             if (session.State is WorkerStateEnum.Inactive)
-                return Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
+            {
+                var alreadyStopped = Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
+
+                await WriteAuditAsync(
+                    userEmail,
+                    AuditLogCatalog.Action.WorkerStopSucceeded,
+                    AuditLogCatalog.Resource.WorkerControl,
+                    AuditLogStatusEnum.Info,
+                    AuditMetadataFactory.CreateEndpointOperational(
+                        "POST /worker/stop",
+                        "/worker/stop",
+                        (int)alreadyStopped.StatusCode.GetValueOrDefault(HttpStatusCode.OK),
+                        userId: userId.ToString()));
+
+                return alreadyStopped;
+            }
 
             session.State = WorkerStateEnum.Stopping;
 
@@ -121,6 +275,17 @@ public class WorkerControlService(
             cancellationSource?.Dispose();
 
             session.State = WorkerStateEnum.Inactive;
+
+            await WriteAuditAsync(
+                userEmail,
+                AuditLogCatalog.Action.WorkerStopSucceeded,
+                AuditLogCatalog.Resource.WorkerControl,
+                AuditLogStatusEnum.Success,
+                AuditMetadataFactory.CreateEndpointOperational(
+                    "POST /worker/stop",
+                    "/worker/stop",
+                    (int)HttpStatusCode.OK,
+                    userId: userId.ToString()));
 
             return Result<GetWorkerStatusResponse>.Ok(session.ToResponse());
         }
@@ -186,5 +351,23 @@ public class WorkerControlService(
         using var scope = scopeFactory.CreateScope();
         var repository = scope.ServiceProvider.GetRequiredService<ILiveSettingsRepository>();
         return await repository.GetByUserIdAsync(userId);
+    }
+
+    private async Task WriteAuditAsync(
+        string actorUser,
+        string action,
+        string resource,
+        AuditLogStatusEnum status,
+        string metadataJson)
+    {
+        using var scope = scopeFactory.CreateScope();
+        var auditLogService = scope.ServiceProvider.GetRequiredService<IAuditLogService>();
+
+        await auditLogService.WriteWithPolicyAsync(
+            actorUser,
+            action,
+            resource,
+            status,
+            metadataJson);
     }
 }

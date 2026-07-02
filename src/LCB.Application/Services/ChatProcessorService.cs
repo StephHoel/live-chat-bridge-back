@@ -1,16 +1,20 @@
 using System.Threading.Channels;
 using LCB.Application.Commands.Message.Ingest;
+using LCB.Application.Helpers;
+using LCB.Domain.Constants;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
+using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Models;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Application.Services;
 
-public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
-                                  IServiceScopeFactory ScopeFactory,
-                                  ILogger<ChatProcessorService> Logger)
+public class ChatProcessorService(
+    ChannelReader<ChatMessageModel> Reader,
+    IServiceScopeFactory ScopeFactory,
+    ILogger<ChatProcessorService> Logger)
 {
     private const int MaxProcessingAttempts = 3;
 
@@ -18,13 +22,55 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
     {
         Logger.LogInformation("Starting {service}", nameof(ChatProcessorService));
 
+        await WriteWorkerAuditAsync(
+            "system:worker",
+            AuditLogCatalog.Action.WorkerPendingRecoveryStarted,
+            AuditLogCatalog.Resource.WorkerReplay,
+            AuditLogStatusEnum.Info,
+            "System",
+            0,
+            "RecoveryStarted",
+            "startup");
+
+        await WriteWorkerAuditAsync(
+            "system:worker",
+            AuditLogCatalog.Action.WorkerPendingRecoveryFinished,
+            AuditLogCatalog.Resource.WorkerReplay,
+            AuditLogStatusEnum.Info,
+            "System",
+            0,
+            "RecoveryFinished",
+            "startup");
+
         await foreach (var message in Reader.ReadAllAsync(cancellationToken))
         {
             var domainMessage = message.ToChatMessageEntity();
 
+            await WriteWorkerAuditAsync(
+                domainMessage.InsertedByUser,
+                AuditLogCatalog.Action.WorkerInboxProcessingStarted,
+                AuditLogCatalog.Resource.WorkerInbox,
+                AuditLogStatusEnum.Info,
+                domainMessage.Provider.ToString(),
+                1,
+                "Processing",
+                domainMessage.IdempotencyKey);
+
             if (!TryValidate(domainMessage, out var validationError))
             {
                 LogOutcome(domainMessage, StatusResultEnum.Error, validationError);
+
+                await WriteWorkerAuditAsync(
+                    domainMessage.InsertedByUser,
+                    AuditLogCatalog.Action.WorkerInboxProcessingFailed,
+                    AuditLogCatalog.Resource.WorkerInbox,
+                    AuditLogStatusEnum.Warning,
+                    domainMessage.Provider.ToString(),
+                    1,
+                    "ValidationFailed",
+                    domainMessage.IdempotencyKey,
+                    validationError);
+
                 continue;
             }
 
@@ -46,10 +92,44 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
             LogOutcome(message, status, result.Error);
 
             if (status is StatusResultEnum.Processed or StatusResultEnum.Duplicate)
+            {
+                await WriteWorkerAuditAsync(
+                    message.InsertedByUser,
+                    AuditLogCatalog.Action.WorkerInboxProcessingSucceeded,
+                    AuditLogCatalog.Resource.WorkerInbox,
+                    AuditLogStatusEnum.Success,
+                    message.Provider.ToString(),
+                    attempt,
+                    "Processed",
+                    message.IdempotencyKey);
+
                 return;
+            }
+
+            await WriteWorkerAuditAsync(
+                message.InsertedByUser,
+                AuditLogCatalog.Action.WorkerInboxProcessingFailed,
+                AuditLogCatalog.Resource.WorkerInbox,
+                AuditLogStatusEnum.Warning,
+                message.Provider.ToString(),
+                attempt,
+                "ProcessingFailed",
+                message.IdempotencyKey,
+                result.Error ?? status.ToString());
 
             if (attempt == MaxProcessingAttempts)
             {
+                await WriteWorkerAuditAsync(
+                    message.InsertedByUser,
+                    AuditLogCatalog.Action.WorkerDeadLetterMoved,
+                    AuditLogCatalog.Resource.WorkerDeadLetter,
+                    AuditLogStatusEnum.Failure,
+                    message.Provider.ToString(),
+                    attempt,
+                    "DeadLetter",
+                    message.IdempotencyKey,
+                    result.Error ?? "MaxAttemptsReached");
+
                 Logger.LogError(
                     "Message processing failed after retries. IdempotencyKey={IdempotencyKey} Provider={Provider} DateTime={DateTime}",
                     message.IdempotencyKey,
@@ -57,6 +137,17 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
                     message.Timestamp);
                 return;
             }
+
+            await WriteWorkerAuditAsync(
+                message.InsertedByUser,
+                AuditLogCatalog.Action.WorkerRetryScheduled,
+                AuditLogCatalog.Resource.WorkerReplay,
+                AuditLogStatusEnum.Warning,
+                message.Provider.ToString(),
+                attempt + 1,
+                "RetryScheduled",
+                message.IdempotencyKey,
+                result.Error);
 
             Logger.LogWarning(
                 "Retrying message processing. Attempt={Attempt} IdempotencyKey={IdempotencyKey} Provider={Provider} DateTime={DateTime}",
@@ -121,5 +212,27 @@ public class ChatProcessorService(ChannelReader<ChatMessageModel> Reader,
             error,
             message.Provider,
             message.Timestamp);
+    }
+
+    private async Task WriteWorkerAuditAsync(
+        string actorUser,
+        string action,
+        string resource,
+        AuditLogStatusEnum status,
+        string provider,
+        int attempt,
+        string workerState,
+        string inboxMessageId,
+        string? errorCode = null)
+    {
+        using var scope = ScopeFactory.CreateScope();
+        var auditLogService = scope.ServiceProvider.GetRequiredService<IAuditLogService>();
+
+        await auditLogService.WriteWithPolicyAsync(
+            string.IsNullOrWhiteSpace(actorUser) ? "system:worker" : actorUser,
+            action,
+            resource,
+            status,
+            AuditMetadataFactory.CreateWorkerFlow(provider, attempt, workerState, inboxMessageId, errorCode: errorCode));
     }
 }
