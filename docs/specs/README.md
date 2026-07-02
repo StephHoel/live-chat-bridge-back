@@ -66,6 +66,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Mitigação de durabilidade do worker com replay e auditoria](planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
 - [Nome de usuário para auditoria operacional](planned/21-nome-de-usuario-para-auditoria-operacional.md)
+- [Endpoint de redefinição de senha](planned/24-endpoint-redefinicao-de-senha.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.
 
