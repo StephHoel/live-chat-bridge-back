@@ -49,9 +49,10 @@ public class AuditLogRepository(
 
             var candidates = await context.Set<AuditLogEntity>()
                 .Where(x =>
-                    (x.MetadataJson != null && x.MetadataJson.Contains(endpointCategory) && x.CreatedAtUtc < endpointCutoffUtc) ||
-                    (x.MetadataJson != null && x.MetadataJson.Contains(workerCategory) && x.CreatedAtUtc < workerCutoffUtc) ||
-                    (x.MetadataJson != null && x.MetadataJson.Contains(systemTaskCategory) && x.CreatedAtUtc < systemCutoffUtc))
+                    (x.MetadataJson != null && x.MetadataJson.Contains(endpointCategory) && x.CreatedAtUtc < endpointCutoffUtc)
+                    || (x.MetadataJson != null && x.MetadataJson.Contains(workerCategory) && x.CreatedAtUtc < workerCutoffUtc)
+                    || (x.MetadataJson != null && x.MetadataJson.Contains(systemTaskCategory) && x.CreatedAtUtc < systemCutoffUtc)
+                    || (x.MetadataJson == null && x.CreatedAtUtc < systemCutoffUtc))
                 .OrderBy(x => x.CreatedAtUtc)
                 .Take(batchSize)
                 .ToListAsync();
@@ -72,23 +73,32 @@ public class AuditLogRepository(
         => await ExecuteAsync(async () =>
         {
             var connection = context.Database.GetDbConnection();
+            var shouldClose = connection.State != System.Data.ConnectionState.Open;
 
-            if (connection.State != System.Data.ConnectionState.Open)
+            if (shouldClose)
                 await connection.OpenAsync();
 
-            await using var pageCountCommand = connection.CreateCommand();
-            pageCountCommand.CommandText = "PRAGMA page_count;";
+            try
+            {
+                await using var pageCountCommand = connection.CreateCommand();
+                pageCountCommand.CommandText = "PRAGMA page_count;";
 
-            await using var pageSizeCommand = connection.CreateCommand();
-            pageSizeCommand.CommandText = "PRAGMA page_size;";
+                await using var pageSizeCommand = connection.CreateCommand();
+                pageSizeCommand.CommandText = "PRAGMA page_size;";
 
-            var pageCountRaw = await pageCountCommand.ExecuteScalarAsync();
-            var pageSizeRaw = await pageSizeCommand.ExecuteScalarAsync();
+                var pageCountRaw = await pageCountCommand.ExecuteScalarAsync();
+                var pageSizeRaw = await pageSizeCommand.ExecuteScalarAsync();
 
-            var pageCount = Convert.ToDouble(pageCountRaw ?? 0d);
-            var pageSize = Convert.ToDouble(pageSizeRaw ?? 0d);
+                var pageCount = Convert.ToDouble(pageCountRaw ?? 0d);
+                var pageSize = Convert.ToDouble(pageSizeRaw ?? 0d);
 
-            var bytes = pageCount * pageSize;
-            return bytes / (1024d * 1024d);
+                var bytes = pageCount * pageSize;
+                return bytes / (1024d * 1024d);
+            }
+            finally
+            {
+                if (shouldClose)
+                    await connection.CloseAsync();
+            }
         }, nameof(GetDatabaseSizeMbAsync));
 }
