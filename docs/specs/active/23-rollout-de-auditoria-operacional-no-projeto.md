@@ -1,7 +1,7 @@
 # Mini-spec: Rollout de auditoria operacional no projeto
 
 Número: 23
-Status: planejado
+Status: em andamento
 
 ## Diretriz transversal de concorrência
 

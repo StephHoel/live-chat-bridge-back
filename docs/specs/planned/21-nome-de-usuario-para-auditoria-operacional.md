@@ -17,7 +17,7 @@ Status: planejado
 
 ## Interferência com mini-specs existentes
 
-- Interfere com [docs/specs/planned/23-rollout-de-auditoria-operacional-no-projeto.md](../planned/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec altera a estratégia de evolução do ator de auditoria (`ActorUser`) explicitada como estado atual na Spec 23.
+- Interfere com [docs/specs/active/23-rollout-de-auditoria-operacional-no-projeto.md](../active/23-rollout-de-auditoria-operacional-no-projeto.md): esta spec altera a estratégia de evolução do ator de auditoria (`ActorUser`) explicitada como estado atual na Spec 23.
 
 ## Superfícies afetadas
 

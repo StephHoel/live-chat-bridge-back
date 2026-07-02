@@ -51,13 +51,12 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-- _Nenhuma ativa_
+- [Rollout de auditoria operacional no projeto](active/23-rollout-de-auditoria-operacional-no-projeto.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Rollout de auditoria operacional no projeto](planned/23-rollout-de-auditoria-operacional-no-projeto.md)
 - [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
 - [Endpoint HTTP para bootstrap da fila](planned/07-endpoint-http-fila-bootstrap.md)
 - [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
