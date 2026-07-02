@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## [v0.6.7] - 2026-07-02
+
+### ✨ Funcionalidades
+
+- **Endpoint de recuperação de acesso implementado** (Spec 06)
+  - Novo endpoint `POST /auth/recover/` com resposta neutra para e-mails existentes e inexistentes.
+  - Contrato com `422 Unprocessable Entity` para payload inválido e JSON malformado.
+  - Política antiabuso habilitada em todos os ambientes, exceto `Test`.
+  - Em `Development` e `Test`, resposta `200` inclui `temporaryResetToken`; em `Hmg` e `Production`, o token não é retornado.
+  - Auditoria operacional aplicada ao fluxo conforme baseline da Spec 23.
+
+### 🧪 Testes
+
+- Execução validada dos testes unitários:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal`
+  - total: 128
+  - sucesso: 128
+  - falhas: 0
+- Execução validada dos testes de integração:
+  - comando: `dotnet test test/LCB.IntegrationTest/LCB.IntegrationTest.csproj -v quiet`
+  - saída final: `EXIT:0`
+
+### 📚 Documentação
+
+- Spec 06 movida de `active/` para `done/` com status `implementado`.
+- Atualização de `docs/specs/README.md` para refletir `active=0` e `done=15`.
+- Atualização de `docs/SPEC.md` para versão `v0.6.7`, incluindo o fluxo de recuperação e o endpoint nos testes de integração.
+- Atualização de referência cruzada da Spec 24 para apontar à Spec 06 em `done/`.
+
 ## [v0.6.6] - 2026-07-02
 
 ### ✨ Funcionalidades
