@@ -52,13 +52,12 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 🔄 Ativas/Em andamento
 
-- Nenhuma no momento.
+- [Endpoint de recuperação de acesso](active/06-endpoint-auth-recover.md)
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Endpoint de recuperação de acesso](planned/06-endpoint-auth-recover.md)
 - [Endpoint HTTP para bootstrap da fila](planned/07-endpoint-http-fila-bootstrap.md)
 - [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
