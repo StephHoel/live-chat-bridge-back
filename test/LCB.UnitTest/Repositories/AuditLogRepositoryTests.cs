@@ -62,4 +62,43 @@ public class AuditLogRepositoryTests
 
         Assert.Equal(nameof(AuditLogStatusEnum.Success), status);
     }
+
+    [Fact]
+    public async Task TryAcquireMaintenanceLease_PreventsConcurrentOwnership_AndAllowsAcquireAfterRelease()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = new AuditLogRepository(db.Context, new NullLogger<AuditLogRepository>());
+
+        var leaseName = "audit-retention-cleanup";
+        var ownerA = "instance-a";
+        var ownerB = "instance-b";
+
+        var acquiredByA = await repo.TryAcquireMaintenanceLeaseAsync(leaseName, ownerA, TimeSpan.FromMinutes(2));
+        var acquiredByBWhileHeld = await repo.TryAcquireMaintenanceLeaseAsync(leaseName, ownerB, TimeSpan.FromMinutes(2));
+        var releasedByA = await repo.ReleaseMaintenanceLeaseAsync(leaseName, ownerA);
+        var acquiredByBAfterRelease = await repo.TryAcquireMaintenanceLeaseAsync(leaseName, ownerB, TimeSpan.FromMinutes(2));
+
+        Assert.True(acquiredByA);
+        Assert.False(acquiredByBWhileHeld);
+        Assert.True(releasedByA);
+        Assert.True(acquiredByBAfterRelease);
+    }
+
+    [Fact]
+    public async Task TryAcquireMaintenanceLease_AllowsTakeover_WhenLeaseExpires()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = new AuditLogRepository(db.Context, new NullLogger<AuditLogRepository>());
+
+        var leaseName = "audit-retention-cleanup";
+        var ownerA = "instance-a";
+        var ownerB = "instance-b";
+
+        var acquiredByA = await repo.TryAcquireMaintenanceLeaseAsync(leaseName, ownerA, TimeSpan.FromMilliseconds(20));
+        await Task.Delay(60);
+        var acquiredByB = await repo.TryAcquireMaintenanceLeaseAsync(leaseName, ownerB, TimeSpan.FromMinutes(1));
+
+        Assert.True(acquiredByA);
+        Assert.True(acquiredByB);
+    }
 }

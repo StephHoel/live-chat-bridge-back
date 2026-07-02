@@ -17,6 +17,7 @@ public class AuditRetentionCleanupWorker(
     ILogger<AuditRetentionCleanupWorker> logger) : BackgroundService
 {
     private const string TaskName = "AuditRetentionCleanup";
+    private const string CleanupLeaseName = "audit-retention-cleanup";
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -46,15 +47,30 @@ public class AuditRetentionCleanupWorker(
 
         var executionId = Guid.NewGuid().ToString("N");
 
-        await auditLogService.WriteWithPolicyAsync(
-            "system:worker",
-            AuditLogCatalog.Action.SystemTaskStarted,
-            AuditLogCatalog.Resource.SystemTask,
-            AuditLogStatusEnum.Info,
-            AuditMetadataFactory.CreateSystemTask(TaskName, executionId, "Started"));
+        var leaseDuration = TimeSpan.FromHours(Math.Max(1, retentionOptions.Value.CleanupIntervalHours));
+        var leaseAcquired = await repository.TryAcquireMaintenanceLeaseAsync(
+            CleanupLeaseName,
+            executionId,
+            leaseDuration,
+            stoppingToken);
+
+        if (!leaseAcquired)
+        {
+            logger.LogInformation(
+                "Skipping {TaskName} cycle because lease is held by another instance.",
+                TaskName);
+            return;
+        }
 
         try
         {
+            await auditLogService.WriteWithPolicyAsync(
+                "system:worker",
+                AuditLogCatalog.Action.SystemTaskStarted,
+                AuditLogCatalog.Resource.SystemTask,
+                AuditLogStatusEnum.Info,
+                AuditMetadataFactory.CreateSystemTask(TaskName, executionId, "Started"));
+
             var now = DateTime.UtcNow;
             var options = retentionOptions.Value;
 
@@ -106,6 +122,17 @@ public class AuditRetentionCleanupWorker(
                 AuditLogCatalog.Resource.SystemTask,
                 AuditLogStatusEnum.Failure,
                 AuditMetadataFactory.CreateSystemTask(TaskName, executionId, "Failed", errorCode: ex.GetType().Name));
+        }
+        finally
+        {
+            var released = await repository.ReleaseMaintenanceLeaseAsync(CleanupLeaseName, executionId, stoppingToken);
+            if (!released)
+            {
+                logger.LogWarning(
+                    "Failed to release maintenance lease for {TaskName}. ExecutionId={ExecutionId}",
+                    TaskName,
+                    executionId);
+            }
         }
     }
 }

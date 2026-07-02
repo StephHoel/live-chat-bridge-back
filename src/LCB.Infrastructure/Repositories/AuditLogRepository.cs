@@ -14,6 +14,8 @@ public class AuditLogRepository(
     ILogger<AuditLogRepository> logger)
     : RepositoryBase(logger), IAuditLogRepository
 {
+    private const string LeaseTableName = "AuditTaskLeases";
+
     public async Task<bool> CreateAsync(AuditLogEntity log)
         => await ExecuteAsync(async () =>
         {
@@ -101,4 +103,117 @@ public class AuditLogRepository(
                     await connection.CloseAsync();
             }
         }, nameof(GetDatabaseSizeMbAsync));
+
+    public async Task<bool> TryAcquireMaintenanceLeaseAsync(string leaseName, string ownerId, TimeSpan leaseDuration, CancellationToken cancellationToken = default)
+        => await ExecuteAsync(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(leaseName) || string.IsNullOrWhiteSpace(ownerId))
+                return false;
+
+            var duration = leaseDuration <= TimeSpan.Zero ? TimeSpan.FromMinutes(1) : leaseDuration;
+            var now = DateTime.UtcNow;
+            var expiresAt = now.Add(duration);
+
+            var connection = context.Database.GetDbConnection();
+            var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+            if (shouldClose)
+                await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                await using var createTableCommand = connection.CreateCommand();
+                createTableCommand.CommandText = $@"
+CREATE TABLE IF NOT EXISTS {LeaseTableName} (
+    LeaseName TEXT NOT NULL PRIMARY KEY,
+    OwnerId TEXT NOT NULL,
+    ExpiresAtUtc TEXT NOT NULL,
+    UpdatedAtUtc TEXT NOT NULL
+);";
+                await createTableCommand.ExecuteNonQueryAsync(cancellationToken);
+
+                await using var command = connection.CreateCommand();
+                command.CommandText = $@"
+INSERT INTO {LeaseTableName} (LeaseName, OwnerId, ExpiresAtUtc, UpdatedAtUtc)
+VALUES ($leaseName, $ownerId, $expiresAtUtc, $updatedAtUtc)
+ON CONFLICT(LeaseName) DO UPDATE SET
+    OwnerId = excluded.OwnerId,
+    ExpiresAtUtc = excluded.ExpiresAtUtc,
+    UpdatedAtUtc = excluded.UpdatedAtUtc
+WHERE {LeaseTableName}.ExpiresAtUtc <= $nowUtc OR {LeaseTableName}.OwnerId = $ownerId;";
+
+                var leaseNameParameter = command.CreateParameter();
+                leaseNameParameter.ParameterName = "$leaseName";
+                leaseNameParameter.Value = leaseName.Trim();
+                command.Parameters.Add(leaseNameParameter);
+
+                var ownerParameter = command.CreateParameter();
+                ownerParameter.ParameterName = "$ownerId";
+                ownerParameter.Value = ownerId.Trim();
+                command.Parameters.Add(ownerParameter);
+
+                var expiresAtParameter = command.CreateParameter();
+                expiresAtParameter.ParameterName = "$expiresAtUtc";
+                expiresAtParameter.Value = expiresAt.ToString("O");
+                command.Parameters.Add(expiresAtParameter);
+
+                var updatedAtParameter = command.CreateParameter();
+                updatedAtParameter.ParameterName = "$updatedAtUtc";
+                updatedAtParameter.Value = now.ToString("O");
+                command.Parameters.Add(updatedAtParameter);
+
+                var nowParameter = command.CreateParameter();
+                nowParameter.ParameterName = "$nowUtc";
+                nowParameter.Value = now.ToString("O");
+                command.Parameters.Add(nowParameter);
+
+                var affectedRows = await command.ExecuteNonQueryAsync(cancellationToken);
+                return affectedRows > 0;
+            }
+            finally
+            {
+                if (shouldClose)
+                    await connection.CloseAsync();
+            }
+        }, nameof(TryAcquireMaintenanceLeaseAsync));
+
+    public async Task<bool> ReleaseMaintenanceLeaseAsync(string leaseName, string ownerId, CancellationToken cancellationToken = default)
+        => await ExecuteAsync(async () =>
+        {
+            if (string.IsNullOrWhiteSpace(leaseName) || string.IsNullOrWhiteSpace(ownerId))
+                return false;
+
+            var connection = context.Database.GetDbConnection();
+            var shouldClose = connection.State != System.Data.ConnectionState.Open;
+
+            if (shouldClose)
+                await connection.OpenAsync(cancellationToken);
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = $@"
+DELETE FROM {LeaseTableName}
+WHERE LeaseName = $leaseName
+  AND OwnerId = $ownerId;";
+
+                var leaseNameParameter = command.CreateParameter();
+                leaseNameParameter.ParameterName = "$leaseName";
+                leaseNameParameter.Value = leaseName.Trim();
+                command.Parameters.Add(leaseNameParameter);
+
+                var ownerParameter = command.CreateParameter();
+                ownerParameter.ParameterName = "$ownerId";
+                ownerParameter.Value = ownerId.Trim();
+                command.Parameters.Add(ownerParameter);
+
+                var affectedRows = await command.ExecuteNonQueryAsync(cancellationToken);
+                return affectedRows > 0;
+            }
+            finally
+            {
+                if (shouldClose)
+                    await connection.CloseAsync();
+            }
+        }, nameof(ReleaseMaintenanceLeaseAsync));
 }
