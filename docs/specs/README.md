@@ -48,10 +48,11 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Swagger desprotegido e testes de integração](done/22-swagger-desprotegido-e-testes-integracao.md)
 - [Campo de auditoria de origem de inserção em ChatMessages](done/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](done/15-tabela-logs-com-auditoria-minima.md)
+- [Rollout de auditoria operacional no projeto](done/23-rollout-de-auditoria-operacional-no-projeto.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Rollout de auditoria operacional no projeto](active/23-rollout-de-auditoria-operacional-no-projeto.md)
+- Nenhuma no momento.
 
 ### 📋 Planejadas (ordem de prioridade)
 

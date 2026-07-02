@@ -1,7 +1,7 @@
 # Mini-spec: Rollout de auditoria operacional no projeto
 
 Número: 23
-Status: em andamento
+Status: implementado
 
 ## Diretriz transversal de concorrência
 
@@ -27,6 +27,18 @@ Status: em andamento
 - Interfere com [docs/specs/done/15-tabela-logs-com-auditoria-minima.md](../done/15-tabela-logs-com-auditoria-minima.md): esta spec detalha a estratégia de rollout e restringe o escopo inicial da 15 para infraestrutura básica sem tocar serviços existentes.
 - Interfere com [docs/specs/planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md](../planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md): a 17 deve reutilizar a infraestrutura de auditoria criada na 15, sem redefinir contratos centrais de `AuditLog`.
 - Interfere com [docs/specs/planned/21-nome-de-usuario-para-auditoria-operacional.md](../planned/21-nome-de-usuario-para-auditoria-operacional.md): a evolução do ator de auditoria (email -> nome de exibição) deve ser compatível com o contrato de `ActorUser` definido na 15.
+
+## Resultado de implementação
+
+- Catálogo canônico fechado de auditoria implementado em `AuditLogCatalog` (actions/resources/eventCategory).
+- Contrato `MetadataJson` v1 implementado com validação semântica, tamanho máximo (4 KB), denylist sensível e allowlist por categoria.
+- Política de falha aplicada na escrita de auditoria com segunda tentativa imediata e fallback em log estruturado.
+- Instrumentação operacional aplicada em:
+  - endpoints de controle de worker (`start/stop/status`),
+  - configuração live (`GET/PUT /config/live`),
+  - ingestão HTTP (`POST /messages/ingest`),
+  - fluxo assíncrono do worker (`started/succeeded/failed/retry/dead-letter/recovery`).
+- Política de retenção ativa implementada com cleanup diário, purge em lotes por TTL por categoria e gatilho de revisão por volume/tamanho.
 - Complementa [docs/specs/done/13-refatoracao-observabilidade-e-tratamento-erros.md](../done/13-refatoracao-observabilidade-e-tratamento-erros.md): logs estruturados em runtime permanecem, enquanto esta spec cobre trilha persistida de auditoria.
 
 ## Objetivo

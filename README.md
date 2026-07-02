@@ -16,6 +16,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Persistência durável com SQLite/EF Core
 - ✅ Processamento real no worker com reuso do caso de uso de ingestão
 - ✅ Fundação de auditoria persistida com `AuditLogs` (`service -> repository`, Spec 15)
+- ✅ Rollout de auditoria operacional (Spec 23): catálogo de eventos, metadata v1 validada, instrumentação em endpoints/worker e retenção automática
 - 🎯 Diretriz de evolução: suporte a N usuários simultâneos com múltiplos workers concorrentes (um worker lógico por usuário)
 - 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 
@@ -111,12 +112,17 @@ docs/
 
 ## 🧪 Cobertura de Testes
 
-- Referência atual da suíte completa (2026-07-01):
+- Referência atual da suíte completa (2026-07-02):
   - Comando: `dotnet test LCB.sln -v minimal`
-  - Total: 142
+  - Total: 144
   - Falhas: 0
 
-- Referência atual de unit tests com cobertura (2026-07-01):
+- Referência atual de unit tests (2026-07-02):
+  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal`
+  - Total: 113
+  - Falhas: 0
+
+- Última referência de unit tests com cobertura (2026-07-01):
   - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
   - Total: 111
   - Falhas: 0
