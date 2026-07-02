@@ -12,10 +12,12 @@ public static class ResultExtensions
             HttpStatusCode.OK => Results.Ok(result),
             HttpStatusCode.Created => Results.Created(string.Empty, result),
             HttpStatusCode.BadRequest => Results.BadRequest(result),
+            HttpStatusCode.UnprocessableEntity => Results.Json(result, statusCode: (int)HttpStatusCode.UnprocessableEntity),
             HttpStatusCode.NotFound => Results.NotFound(result),
             HttpStatusCode.Unauthorized => Results.Json(result, statusCode: (int)HttpStatusCode.Unauthorized),
             HttpStatusCode.Forbidden => Results.Json(result, statusCode: (int)HttpStatusCode.Forbidden),
             HttpStatusCode.Conflict => Results.Conflict(result),
+            HttpStatusCode.TooManyRequests => Results.Json(result, statusCode: (int)HttpStatusCode.TooManyRequests),
             HttpStatusCode.ServiceUnavailable => Results.Json(result, statusCode: (int)HttpStatusCode.ServiceUnavailable),
             _ => Results.InternalServerError(result)
         };
