@@ -27,6 +27,12 @@
   - total: 144
   - sucesso: 144
   - falhas: 0
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - total: 123
+  - sucesso: 123
+  - falhas: 0
+  - cobertura de linhas: **81,92%** (`line-rate=0.8192`)
 
 ### 📚 Documentação
 

@@ -119,14 +119,14 @@ docs/
 
 - Referência atual de unit tests (2026-07-02):
   - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal`
-  - Total: 113
+  - Total: 123
   - Falhas: 0
 
-- Última referência de unit tests com cobertura (2026-07-01):
-  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
-  - Total: 111
+- Última referência de unit tests com cobertura (2026-07-02):
+  - Comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - Total: 123
   - Falhas: 0
-  - Cobertura de linhas: **90,41%** (`line-rate=0.9041`)
+  - Cobertura de linhas: **81,92%** (`line-rate=0.8192`)
 
 ## 🤝 Para Contribuidores
 
