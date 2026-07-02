@@ -258,8 +258,8 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
 - Execução de referência da solução completa (2026-07-02): `dotnet test LCB.sln -v minimal` com 144 testes aprovados e 0 falhas.
-- Execução de referência de unit tests (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal` com 113 testes aprovados e 0 falhas.
-- Última execução de unit tests com cobertura (2026-07-01): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 111 testes aprovados, 0 falhas e cobertura de linhas em 90,41% (Cobertura `line-rate=0.9041`).
+- Execução de referência de unit tests (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal` com 123 testes aprovados e 0 falhas.
+- Última execução de unit tests com cobertura (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 123 testes aprovados, 0 falhas e cobertura de linhas em 81,92% (Cobertura `line-rate=0.8192`).
 
 ## 12. Convenções Observadas
 
