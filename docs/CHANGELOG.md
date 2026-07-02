@@ -1,5 +1,40 @@
 # CHANGELOG
 
+## [v0.6.6] - 2026-07-02
+
+### ✨ Funcionalidades
+
+- **Rollout de auditoria operacional concluído** (Spec 23)
+  - Instrumentação operacional aplicada em:
+    - `POST /worker/start`, `POST /worker/stop`, `GET /worker/status`
+    - `GET /config/live`, `PUT /config/live`
+    - `POST /messages/ingest`
+    - fluxo assíncrono do worker (`started/succeeded/failed/retry/dead-letter/recovery`)
+  - Catálogo canônico de auditoria implementado (`Action`, `Resource`, `EventCategory`)
+  - Contrato de metadata v1 validado com regra de tamanho (4 KB), denylist sensível e allowlist por categoria
+  - Política de escrita com segunda tentativa imediata e fallback em log estruturado
+
+### 🔧 Melhorias Técnicas
+
+- Política de retenção de auditoria ativada com cleanup diário, purge em lotes e TTL por categoria.
+- Novas opções de configuração `AuditRetention` adicionadas em `appsettings`.
+- Spec 23 movida de `active/` para `done/`, com atualização das referências cruzadas.
+
+### 🧪 Testes
+
+- Execução de validação da solução completa:
+  - comando: `dotnet test LCB.sln -v minimal`
+  - total: 144
+  - sucesso: 144
+  - falhas: 0
+
+### 📚 Documentação
+
+- Atualização de `docs/specs/README.md` com Spec 23 em implementadas e sem specs ativas.
+- Atualização de `docs/SPEC.md` para versão `v0.6.6`, incluindo status de planejamento e números atuais de testes.
+- Atualização de `README.md` com estado de implementação da auditoria operacional e métricas atualizadas.
+- Atualização de `docs/FLUXOS-FUNCIONAMENTO.md` refletindo auditoria operacional como fluxo ativo.
+
 ## [v0.6.5] - 2026-07-01
 
 ### ✨ Funcionalidades

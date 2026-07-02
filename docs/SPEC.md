@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.5
+> **Versão do Projeto:** v0.6.6
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -32,6 +32,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Persistência durável** para `UserEntity`, `QueueEntity` e `ChatMessageEntity` via EF Core com SQLite local (Spec 03 ✅).
 - **Persistência durável** para `LiveSettingsEntity` por usuário, incluindo auditoria mínima por e-mail em `UpdatedByUser` (Spec 19 ✅).
 - **Fundação da auditoria persistida** (Spec 15 ✅): tabela `AuditLogs`, status tipado por enum persistido como string, serviço de escrita (`IAuditLogService`) e repositório dedicado (`IAuditLogRepository`).
+- **Rollout de auditoria operacional** (Spec 23 ✅): catálogo fechado de ações/recursos, contrato `MetadataJson` v1 com validação semântica, política de segunda tentativa na escrita e instrumentação em endpoints operacionais, ingestão HTTP, worker assíncrono e tarefas de retenção.
 - **Auditoria de origem de inserção em mensagens** (Spec 16 ✅): `ChatMessageEntity` diferencia `Author` (autor do chat) de `InsertedByUser` (ator que inseriu no backend), com preenchimento por usuário autenticado no fluxo HTTP e pelo usuário autenticado que ativou a sessão no worker.
 - **Migrations versionadas** para evolução controlada do schema; índices otimizados e preparação para PostgreSQL.
 - Worker hospedado (`ChatWorker`) dedicado ao processamento assíncrono do canal interno.
@@ -64,8 +65,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Planejadas:** 8 specs em `docs/specs/planned/`
-- **Ativas:** 1 spec em `docs/specs/active/`
-- **Concluídas:** 13 specs em `docs/specs/done/`
+- **Ativas:** 0 specs em `docs/specs/active/`
+- **Concluídas:** 14 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
@@ -161,6 +162,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `ConnectionStrings:DefaultConnection` define o banco SQLite local.
 - `LiveConfig.SectionName` permanece disponível por compatibilidade de configuração, mas o acionamento de listeners usa usernames persistidos por usuário (`LiveSettings`).
 - `PasswordPolicy` define requisitos mínimos de senha (`MinLength`, `RequireUppercase`, `RequireLowercase`, `RequireDigit`, `RequireSpecialCharacter`).
+- `AuditRetention` define política de retenção de auditoria (`EndpointOperationalTtlDays`, `WorkerFlowTtlDays`, `SystemTaskTtlDays`, `BatchSize`, `CleanupIntervalHours`, `ReviewThresholdRows`, `ReviewThresholdMb`).
 - O Swagger só é exposto em ambiente de desenvolvimento.
 - A autenticação JWT depende de `JWT_KEY` com pelo menos 32 bytes; caso contrário, o helper retorna `null`.
 
@@ -255,8 +257,9 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência da solução completa (2026-07-01): `dotnet test LCB.sln -v minimal` com 142 testes aprovados e 0 falhas.
-- Execução de referência de unit tests com cobertura (2026-07-01): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 111 testes aprovados, 0 falhas e cobertura de linhas em 90,41% (Cobertura `line-rate=0.9041`).
+- Execução de referência da solução completa (2026-07-02): `dotnet test LCB.sln -v minimal` com 144 testes aprovados e 0 falhas.
+- Execução de referência de unit tests (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal` com 113 testes aprovados e 0 falhas.
+- Última execução de unit tests com cobertura (2026-07-01): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --configuration Release --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 111 testes aprovados, 0 falhas e cobertura de linhas em 90,41% (Cobertura `line-rate=0.9041`).
 
 ## 12. Convenções Observadas
 
@@ -276,7 +279,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 A ordem de implementação é sempre definida pelo usuário. A IA pode sugerir uma sequência, mas nunca deve impô-la ou assumir que a ordem abaixo é mandatória.
 
-- concluir adoção da auditoria operacional nos fluxos previstos (Spec 23/Spec 17).
+- concluir mitigação de durabilidade/replay no worker com persistência funcional de inbox (Spec 17).
 - evoluir auditoria operacional para nome de usuário (Spec 21).
 
 ## 15. Como a IA Deve Trabalhar Neste Projeto

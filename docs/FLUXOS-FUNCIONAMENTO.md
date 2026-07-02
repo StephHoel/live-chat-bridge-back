@@ -263,11 +263,17 @@ Arquivos base:
 - CorrelationId middleware e logging padronizado.
 - OperationExecutor centraliza início, fim e falha de operações.
 
+### Auditoria operacional persistida
+
+- Auditoria operacional implementada com `AuditLogs` e catálogo canônico de eventos.
+- Fluxos instrumentados: worker control, config/live, ingestão HTTP, fluxo assíncrono do worker e tarefas de retenção.
+- Escrita de auditoria com segunda tentativa imediata e fallback em log estruturado na dupla falha.
+- Retenção ativa por categoria com purge diário em lotes.
+
 ## Fluxos planejados (ainda não ativos)
 
 Os seguintes fluxos existem como planejamento e não estão implementados no comportamento atual:
 
-- Tabela de logs com auditoria mínima (spec 15)
 - Mitigação de durabilidade com replay (spec 17)
 
 Diretriz transversal de evolução:
@@ -277,13 +283,13 @@ Diretriz transversal de evolução:
 
 Referências:
 
-- docs/specs/planned/15-tabela-logs-com-auditoria-minima.md
 - docs/specs/planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md
+- docs/specs/done/23-rollout-de-auditoria-operacional-no-projeto.md
 
 ## Evidências de validação
 
 - Testes de integração cobrem auth, config/live, worker/start-stop-status e ingestão (incluindo token ausente/inválido/válido, duplicata, transição de estado e isolamento por usuário).
-- Execução de referência registrada no projeto: dotnet test LCB.sln -v minimal com 133 testes aprovados e 0 falhas.
+- Execução de referência registrada no projeto: dotnet test LCB.sln -v minimal com 144 testes aprovados e 0 falhas.
 
 ## Planejamento Geral de Sistemas
 
