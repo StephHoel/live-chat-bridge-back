@@ -24,7 +24,7 @@ public class RecoverHandler(
 
     private async Task<Result<RecoverResponse>> ExecuteAsync(RecoverRequest request, string remoteIpAddress)
     {
-        var normalizedEmail = request.Email.NormalizeEmail();
+        var normalizedEmail = (request.Email ?? string.Empty).NormalizeEmail();
 
         if (string.IsNullOrWhiteSpace(normalizedEmail))
             return Result<RecoverResponse>.Fail("Email is required", HttpStatusCode.UnprocessableEntity);

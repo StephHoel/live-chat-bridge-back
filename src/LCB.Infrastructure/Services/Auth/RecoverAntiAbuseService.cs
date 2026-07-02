@@ -19,10 +19,15 @@ public class RecoverAntiAbuseService : IRecoverAntiAbuseService
 
         lock (sync)
         {
-            if (entries.TryGetValue(key, out var current) && current.ExpiresAtUtc <= now)
-                entries.Remove(key);
+            var expiredKeys = entries
+                .Where(x => x.Value.ExpiresAtUtc <= now)
+                .Select(x => x.Key)
+                .ToArray();
 
-            if (!entries.TryGetValue(key, out current))
+            foreach (var expiredKey in expiredKeys)
+                entries.Remove(expiredKey);
+
+            if (!entries.TryGetValue(key, out var current))
             {
                 entries[key] = new Entry(1, now.Add(window));
                 return true;

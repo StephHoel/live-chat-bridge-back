@@ -19,7 +19,13 @@ public class JwtTokenService(IConfiguration configuration, ILogger<JwtTokenServi
         {
             logger.LogInformation("[{method}] Starting JWT generation for user {UserId}", [nameof(GenerateToken), user.Id]);
 
-            var key = new SymmetricSecurityKey(_keyBytes ?? []);
+            if (_keyBytes is null)
+            {
+                logger.LogError("JWT_KEY is missing or invalid; cannot generate JWT.");
+                return string.Empty;
+            }
+
+            var key = new SymmetricSecurityKey(_keyBytes);
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
