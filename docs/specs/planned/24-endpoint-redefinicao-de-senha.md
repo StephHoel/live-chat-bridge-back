@@ -23,7 +23,7 @@ Origem: desdobramento funcional da Spec 06 (recover)
 
 ## Interferência com mini-specs existentes
 
-- Interfere com [Endpoint de recuperação de acesso](06-endpoint-auth-recover.md): esta spec é etapa subsequente e consome o fluxo iniciado no recover.
+- Interfere com [Endpoint de recuperação de acesso](../active/06-endpoint-auth-recover.md): esta spec é etapa subsequente e consome o fluxo iniciado no recover.
 - Interfere com [Autenticação com validação de senha](../done/02-autenticacao-com-senha.md): deve manter compatibilidade com hashing PBKDF2 e validação de credenciais.
 - Interfere com [Registro de conta](../done/12-registro-de-conta.md): deve reaproveitar política de senha já definida para novo segredo.
 - Interfere com [Rollout de auditoria operacional no projeto](../done/23-rollout-de-auditoria-operacional-no-projeto.md): o fluxo de reset deve ser auditado como endpoint operacional.

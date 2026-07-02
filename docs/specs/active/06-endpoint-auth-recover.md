@@ -1,7 +1,7 @@
 # Mini-spec: Endpoint de recuperação de acesso
 
 Número: 06
-Status: planejado
+Status: em andamento
 Origem: [Issue #21](https://github.com/StephHoel/live-chat-bridge/issues/21)
 
 ## Diretriz transversal de concorrência
