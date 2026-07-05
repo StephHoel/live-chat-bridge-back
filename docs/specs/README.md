@@ -62,6 +62,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
+- [Isolamento da fila por usuário e deleção lógica](planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md)
 - [Mitigação de durabilidade do worker com replay e auditoria](planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
 - [Nome de usuário para auditoria operacional](planned/21-nome-de-usuario-para-auditoria-operacional.md)

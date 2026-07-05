@@ -149,3 +149,7 @@ public class WorkerStatusResponse
 - Escalonamento automático do worker.
 - Fila externa para comandos operacionais.
 - Edição de usernames das plataformas no mesmo endpoint de start.
+
+## Adendo posterior: interferência registrada
+
+- A [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](../planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md) reutiliza o mesmo princípio de isolamento por usuário/sessão ativa consolidado nesta spec para definir o dono lógico da fila e evitar vazamento de participantes entre sessões distintas.

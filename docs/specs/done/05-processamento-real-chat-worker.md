@@ -75,3 +75,7 @@ Status: implementado
 - Esta mini-spec consolidou o processamento assíncrono real no contexto inicial de um worker hospedado.
 - A diretriz atual do projeto exige evolução para múltiplos workers concorrentes com isolamento por usuário/sessão ativa (N usuários simultâneos).
 - Mudanças desse tipo devem ser tratadas pelas mini-specs planejadas de acionamento e durabilidade (`17` e `18`) e pelas próximas que detalharem orquestração por usuário.
+
+## Adendo posterior: interferência registrada
+
+- A [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](../planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md) altera a semântica da atualização de fila realizada neste fluxo: a entrada em fila deixa de ser global e passa a depender do contexto do usuário dono da sessão, além de suportar reativação e filtragem por deleção lógica.

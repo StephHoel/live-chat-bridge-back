@@ -40,6 +40,10 @@ Origem:
 - `!pontos`: consulta saldo no `PointsRepository`.
 - `!tada`: grava evento de efeito visual com defaults.
 
+## Interferência com mini-specs existentes
+
+- Interfere com [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](25-isolamento-da-fila-por-usuario-e-delecao-logica.md): o comando `!fila` deve consultar apenas a fila ativa do contexto correto e respeitar deleção lógica ao calcular posição e tempo de entrada.
+
 ## Contratos de API
 
 - Request: sem novo endpoint.
