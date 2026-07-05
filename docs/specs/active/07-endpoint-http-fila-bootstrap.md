@@ -1,7 +1,7 @@
 # Mini-spec: Endpoint HTTP para bootstrap da fila
 
 Número: 07
-Status: planejado
+Status: em andamento
 Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 
 ## Diretriz transversal de concorrência
@@ -32,6 +32,10 @@ Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 
 - Consulta deve usar `IQueueRepository` atual.
 - Não deve introduzir nova lógica de persistência, inserção, remoção ou reordenação da fila.
+
+## Interferência com mini-specs existentes
+
+- Interfere com [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](../planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md): a leitura implementada nesta spec é transitória sobre o modelo global atual e deverá evoluir para filtro por usuário/sessão ativa e exclusão de itens logicamente deletados.
 
 ## Contratos de API
 
