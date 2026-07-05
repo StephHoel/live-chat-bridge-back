@@ -25,6 +25,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - Recuperação de acesso via `POST /auth/recover/`, com resposta neutra, política antiabuso (exceto `Test`) e token temporário apenas em `Development`/`Test`.
 - Configuração operacional por usuário via `GET /config/live` e `PUT /config/live`, com persistência durável de usernames por plataforma e `ReloadTimeInSec`.
 - Controle operacional de worker por usuário autenticado via `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`.
+- Leitura de fila via `GET /queue` com autenticação JWT obrigatória, retornando a lista atual ordenada por `CreatedAt` para bootstrap da UI.
 - Ingestão de mensagens via `POST /messages/ingest` com autenticação JWT obrigatória, convertendo payload HTTP em `LCB.Domain.Entities.ChatMessageEntity`.
 - Detecção de comandos no texto da mensagem por `AdapterService`, com dispatch para handlers registrados em `CommandRegistry`.
 - Comando `!fila`, que hoje retorna resposta de sucesso simulada pelo `FilaCommandHandler`.
@@ -65,8 +66,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 8 specs em `docs/specs/planned/`
-- **Ativas:** 0 specs em `docs/specs/active/`
+- **Planejadas:** 7 specs em `docs/specs/planned/`
+- **Ativas:** 1 spec em `docs/specs/active/`
 - **Concluídas:** 15 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
@@ -156,6 +157,14 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 5. `PUT /config/live` opera como atualização parcial: apenas os campos enviados são alterados.
 6. Usernames são normalizados com `trim`, remoção de `@` inicial e extração de handle quando informados como URL.
 7. Toda atualização registra `UpdatedByUser` com o e-mail do usuário autenticado.
+
+### Bootstrap HTTP da Fila
+
+1. `QueueEndpoints` recebe `GET /queue`.
+2. A rota exige usuário autenticado via JWT.
+3. `GetQueueHandler` consulta `IQueueRepository`.
+4. O handler ordena os participantes por `CreatedAt` em ordem crescente.
+5. A resposta é convertida por `ResultExtensions.ToMinimalResult()` mantendo envelope `Result<T>`.
 
 ### Worker de Live
 
@@ -256,6 +265,7 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 
 - Há cobertura unitária para handlers de login/ingestão, serviços de autenticação, workers e repositórios persistentes.
 - Há cobertura de integração para endpoints de autenticação e ingestão (`/auth/login`, `/auth/register`, `/messages/ingest`), incluindo cenários com token ausente, token inválido e token válido.
+- Há cobertura de integração para `GET /queue`, incluindo autenticação obrigatória e ordenação da lista.
 - Há cobertura de integração para endpoints de documentação do Swagger (`/swagger/index.html` e `/swagger/v1/swagger.json`) sem token em ambiente `Development`.
 - Há cobertura de integração para `GET /config/live` e `PUT /config/live`, incluindo autenticação obrigatória, auto-provisionamento, atualização parcial e validação de `ReloadTimeInSec`.
 - Há cobertura de integração para `POST /worker/start`, `POST /worker/stop` e `GET /worker/status`, incluindo autenticação obrigatória, transições de estado e isolamento por usuário autenticado.
