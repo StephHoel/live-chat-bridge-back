@@ -18,8 +18,8 @@ Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 ## Comportamento esperado
 
 - Expor endpoint GET para leitura da fila inicial.
-- Aceitar filtros `platform` e `channelId`.
-- Retornar lista ordenada para bootstrap da UI.
+- Retornar lista ordenada por `CreatedAt` em ordem crescente para bootstrap da UI.
+- O endpoint deve ser somente leitura, sem alterar o estado da fila.
 
 ## Superfícies afetadas
 
@@ -31,33 +31,37 @@ Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 ## Dados e persistência
 
 - Consulta deve usar `IQueueRepository` atual.
-- Preparar contrato para futura persistência durável.
+- Não deve introduzir nova lógica de persistência, inserção, remoção ou reordenação da fila.
 
 ## Contratos de API
 
-- Request: query string `platform`, `channelId`.
-- Response: lista ordenada de participantes da fila.
+- Request: sem body e sem parâmetros obrigatórios.
+- Response: lista ordenada de participantes da fila, envelopada no padrão `Result<T>` do projeto.
 - Códigos HTTP:
   - `200 OK`: retorno da fila.
-  - `400 Bad Request`: query inválida.
+  - `401 Unauthorized`: ausência ou invalidade de token.
 
-## Regras de validação
+## Regras de ordenação
 
-- `platform` deve estar entre provedores suportados.
-- `channelId` obrigatório quando aplicável.
+- A lista deve ser ordenada por `CreatedAt` em ordem crescente.
 
 ## Critérios de aceite
 
 - Dashboard consegue carregar fila inicial por fetch.
-- Ordenação da fila consistente com regra de entrada.
+- Ordenação da fila consistente com `CreatedAt`.
+- A consulta não altera dados persistidos da fila.
 
 ## Testes esperados
 
-- Teste de endpoint com query válida.
-- Teste de validação de query inválida.
+- Teste de endpoint autenticado.
+- Teste de autenticação obrigatória.
 - Teste de ordenação da lista.
 
 ## Fora de escopo
 
 - Canal SSE em si.
+- Canal de transmissão (`channelId`) e filtros associados.
+- Inserção de participantes na fila.
+- Remoção, seleção, avanço ou qualquer mutação de estado da fila.
+- Alterações em workers, provedores ou regras de entrada na fila.
 - Alterações visuais da UI.
