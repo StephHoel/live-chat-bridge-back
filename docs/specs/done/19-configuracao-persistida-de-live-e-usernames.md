@@ -128,3 +128,7 @@ public class GetConfigLiveResponse
 - `ReloadTimeInSec`: exposto e atualizável em `GET` e `PUT`.
 - `UpdatedByUser`: persistido com e-mail do usuário autenticado.
 - Evolução planejada: criar mini-spec futura para adicionar nome em `Users` e migrar `UpdatedByUser` para nome de exibição.
+
+## Adendo posterior: interferência registrada
+
+- A [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](../planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md) usa o mesmo contexto autenticado por usuário desta spec como base para determinar o dono lógico da fila consultada e atualizada durante a sessão operacional.

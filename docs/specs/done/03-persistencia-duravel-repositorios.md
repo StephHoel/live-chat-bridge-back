@@ -102,3 +102,7 @@ Status: implementado
 - `UserRepository`, `QueueRepository` e `ChatMessageRepository` implementados sobre EF Core.
 - Migrations versionadas adicionadas em `src/LCB.Infrastructure/Data/Migrations`.
 - Aplicação de migrations no startup da API para manter schema alinhado no ambiente local.
+
+## Adendo posterior: interferência registrada
+
+- A [docs/specs/planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md](../planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md) evolui especificamente a modelagem persistida de `Queues`, substituindo o recorte global por `User` por um contexto isolado por usuário/sessão e introduzindo deleção lógica no domínio da fila.
