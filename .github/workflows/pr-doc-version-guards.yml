@@ -114,8 +114,8 @@ jobs:
             exit 1
           fi
 
-  validate-done-specs-unchanged:
-    name: Validate No Markdown Changes In specs/done
+  validate-active-specs-unchanged:
+    name: Validate specs/active Has No Markdown
     runs-on: ubuntu-latest
 
     steps:
@@ -124,19 +124,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Ensure there are no .md changes in docs/specs/done
+      - name: Ensure docs/specs/active has no .md files
         shell: bash
         run: |
           set -euo pipefail
 
-          BASE_REF="${{ github.base_ref }}"
-          git fetch origin "$BASE_REF"
+          shopt -s nullglob
+          ACTIVE_MD_FILES=(docs/specs/active/*.md)
 
-          CHANGED_DONE_MD="$(git diff --name-only "origin/$BASE_REF...HEAD" -- 'docs/specs/done/*.md')"
-
-          if [[ -n "$CHANGED_DONE_MD" ]]; then
-            echo "Foram detectadas alteracoes em markdown dentro de docs/specs/done/:" >&2
-            echo "$CHANGED_DONE_MD" >&2
-            echo "Nao e permitido alterar arquivos .md em docs/specs/done/." >&2
+          if (( ${#ACTIVE_MD_FILES[@]} > 0 )); then
+            echo "Foram detectados arquivos .md dentro de docs/specs/active/:" >&2
+            printf '%s\n' "${ACTIVE_MD_FILES[@]}" >&2
+            echo "A pasta docs/specs/active/ deve estar sem arquivos .md para abrir PR." >&2
             exit 1
           fi
