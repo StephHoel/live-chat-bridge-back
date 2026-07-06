@@ -4,7 +4,6 @@ using System.Net.Http.Json;
 using LCB.Application.Commands.Worker.Get;
 using LCB.Application.Commands.Worker.Start;
 using LCB.Domain.Enums;
-using LCB.Domain.Objects;
 using LCB.IntegrationTest.Helpers;
 using LCB.IntegrationTest.Infrastructure;
 using Xunit;
