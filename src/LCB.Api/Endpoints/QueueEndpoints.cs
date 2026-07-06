@@ -24,7 +24,7 @@ public static class QueueEndpoints
         .WithTags("Queue")
         .RequireAuthorization(AuthorizationPolicies.ProtectedApi)
         .Produces((int)HttpStatusCode.OK, typeof(Result<GetQueueResponse>))
-        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<object?>))
+        .Produces((int)HttpStatusCode.Unauthorized, typeof(Result<GetQueueResponse>))
         .Produces((int)HttpStatusCode.InternalServerError, typeof(Result<GetQueueResponse>));
 
         return app;
