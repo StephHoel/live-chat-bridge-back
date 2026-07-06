@@ -1,7 +1,7 @@
 # Mini-spec: Endpoint HTTP para bootstrap da fila
 
 Número: 07
-Status: em andamento
+Status: implementado
 Origem: [Issue #33](https://github.com/StephHoel/live-chat-bridge/issues/33)
 
 ## Diretriz transversal de concorrência

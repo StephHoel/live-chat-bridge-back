@@ -50,10 +50,11 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Campo de auditoria de origem de inserção em ChatMessages](done/16-campo-auditoria-origem-insercao-chatmessages.md)
 - [Tabela de logs com auditoria mínima](done/15-tabela-logs-com-auditoria-minima.md)
 - [Rollout de auditoria operacional no projeto](done/23-rollout-de-auditoria-operacional-no-projeto.md)
+- [Endpoint HTTP para bootstrap da fila](done/07-endpoint-http-fila-bootstrap.md)
 
 ### 🔄 Ativas/Em andamento
 
-- [Endpoint HTTP para bootstrap da fila](active/07-endpoint-http-fila-bootstrap.md)
+- Nenhuma mini-spec ativa no momento.
 
 ### 📋 Planejadas (ordem de prioridade)
 

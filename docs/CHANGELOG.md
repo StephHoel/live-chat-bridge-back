@@ -1,5 +1,34 @@
 # CHANGELOG
 
+## [v0.6.8] - 2026-07-06
+
+### ✨ Funcionalidades
+
+- **Mini-spec 07 concluída** (Endpoint HTTP para bootstrap da fila)
+  - Spec 07 movida de `docs/specs/active/` para `docs/specs/done/`.
+  - Status da mini-spec atualizado para `implementado`.
+
+### 🧪 Testes
+
+- Execução de validação da solução completa:
+  - comando: `dotnet test LCB.sln -v minimal`
+  - total: 167
+  - sucesso: 167
+  - falhas: 0
+- Execução de validação unitária com cobertura:
+  - comando: `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal`
+  - total: 129
+  - sucesso: 129
+  - falhas: 0
+  - cobertura de linhas: **84,83%** (`line-rate=0.8483`)
+
+### 📚 Documentação
+
+- Atualização de `README.md` com totais atuais de testes e cobertura.
+- Atualização de `docs/SPEC.md` para versão `v0.6.8`, com status de planejamento sincronizado (`active=0`, `done=16`) e métricas de testes atualizadas.
+- Atualização de `docs/specs/README.md` para remover specs ativas e registrar a Spec 07 como implementada.
+- Atualização de `docs/FLUXOS-FUNCIONAMENTO.md` com evidência de validação da suíte completa (167 testes).
+
 ## [v0.6.7] - 2026-07-02
 
 ### ✨ Funcionalidades
