@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 
-namespace LCB.Api.Extensions;
+namespace LCB.Api.DependencyInjection;
 
 public static class SwaggerDependencies
 {

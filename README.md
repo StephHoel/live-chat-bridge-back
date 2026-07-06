@@ -11,6 +11,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Configuração persistida de live por usuário (`GET /config/live`, `PUT /config/live`)
 - ✅ Ingestão de mensagens com detecção de comandos (endpoint protegido por JWT)
 - ✅ Fila de usuários
+- ✅ Bootstrap HTTP da fila (`GET /queue`)
 - ✅ Worker background para provedores de live (TikTok)
 - ✅ Controle do worker por usuário autenticado (`POST /worker/start`, `POST /worker/stop`, `GET /worker/status`)
 - ✅ Persistência durável com SQLite/EF Core
@@ -66,6 +67,10 @@ docs/
 ### Mensagens
 
 - `POST /messages/ingest` - Ingestão de mensagens com detecção de comandos (requer token JWT)
+
+### Fila
+
+- `GET /queue` - Retorna a fila atual ordenada por criação para bootstrap da UI (requer token JWT)
 
 ### Configuração de Live
 

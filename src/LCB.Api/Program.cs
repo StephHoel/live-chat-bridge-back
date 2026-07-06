@@ -1,6 +1,4 @@
 using LCB.Api.DependencyInjection;
-using LCB.Api.Endpoints;
-using LCB.Api.Extensions;
 using LCB.Api.Json;
 using LCB.Api.Middleware;
 using LCB.Application.DependencyInjection;
@@ -49,10 +47,7 @@ public partial class Program
 
         app.UseDevelopSwagger();
 
-        app.MapAuthEndpoints();
-        app.MapMessageEndpoints();
-        app.MapConfigEndpoints();
-        app.MapWorkerEndpoints();
+        app.AddEndpoints();
 
         app.Run();
     }
