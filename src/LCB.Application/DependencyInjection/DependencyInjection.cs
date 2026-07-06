@@ -3,6 +3,7 @@ using LCB.Application.Commands.Config.Live.Get;
 using LCB.Application.Commands.Config.Live.Put;
 using LCB.Application.Commands.Login;
 using LCB.Application.Commands.Message.Ingest;
+using LCB.Application.Commands.Queue.Get;
 using LCB.Application.Commands.Recover;
 using LCB.Application.Commands.Register;
 using LCB.Application.Commands.Worker.Get;
@@ -35,6 +36,7 @@ public static class DependencyInjection
         services.AddScoped<RegisterHandler>();
         services.AddScoped<RecoverHandler>();
         services.AddScoped<MessageIngestHandler>();
+        services.AddScoped<GetQueueHandler>();
         services.AddScoped<GetLiveConfigHandler>();
         services.AddScoped<PutLiveConfigHandler>();
         services.AddScoped<StartWorkerHandler>();
