@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.7
+> **Versão do Projeto:** v0.6.8
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -67,8 +67,8 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 ### Status Atual de Planejamento
 
 - **Planejadas:** 8 specs em `docs/specs/planned/`
-- **Ativas:** 1 spec em `docs/specs/active/`
-- **Concluídas:** 15 specs em `docs/specs/done/`
+- **Ativas:** 0 specs em `docs/specs/active/`
+- **Concluídas:** 16 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
@@ -277,9 +277,9 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Há cobertura unitária para normalização de usernames e handlers de leitura/atualização da configuração de live.
 - Testes unitários para geração estável de `IdempotencyKey` em `ChatMessageEntityTests`.
 - Testes de handler cobrem: mensagem nova, duplicata processada, reprocessamento (`Processed == false`), falha de persistência e erro de adapter.
-- Execução de referência da solução completa (2026-07-02): `dotnet test LCB.sln -v minimal` com 144 testes aprovados e 0 falhas.
-- Execução de referência de unit tests (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal` com 123 testes aprovados e 0 falhas.
-- Última execução de unit tests com cobertura (2026-07-02): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 123 testes aprovados, 0 falhas e cobertura de linhas em 81,92% (Cobertura `line-rate=0.8192`).
+- Execução de referência da solução completa (2026-07-06): `dotnet test LCB.sln -v minimal` com 167 testes aprovados e 0 falhas.
+- Execução de referência de unit tests (2026-07-06): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj -v minimal` com 129 testes aprovados e 0 falhas.
+- Última execução de unit tests com cobertura (2026-07-06): `dotnet test test/LCB.UnitTest/LCB.UnitTest.csproj --collect:"XPlat Code Coverage;Format=cobertura" --results-directory ./TestResults -v minimal` com 129 testes aprovados, 0 falhas e cobertura de linhas em 84,83% (Cobertura `line-rate=0.8483`).
 
 ## 12. Convenções Observadas
 

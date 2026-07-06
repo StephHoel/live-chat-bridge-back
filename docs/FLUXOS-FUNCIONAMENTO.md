@@ -289,7 +289,7 @@ Referências:
 ## Evidências de validação
 
 - Testes de integração cobrem auth, config/live, worker/start-stop-status e ingestão (incluindo token ausente/inválido/válido, duplicata, transição de estado e isolamento por usuário).
-- Execução de referência registrada no projeto: dotnet test LCB.sln -v minimal com 144 testes aprovados e 0 falhas.
+- Execução de referência registrada no projeto: dotnet test LCB.sln -v minimal com 167 testes aprovados e 0 falhas.
 
 ## Planejamento Geral de Sistemas
 
