@@ -24,7 +24,7 @@ Origem: desdobramento técnico posterior da Spec 07 e alinhamento com a diretriz
 
 ## Interferência com mini-specs existentes
 
-- Interfere com [docs/specs/active/07-endpoint-http-fila-bootstrap.md](../active/07-endpoint-http-fila-bootstrap.md): redefine a semântica da leitura de fila para retornar apenas itens ativos do usuário autenticado, substituindo a leitura global atualmente transitória.
+- Interfere com [docs/specs/done/07-endpoint-http-fila-bootstrap.md](../done/07-endpoint-http-fila-bootstrap.md): redefine a semântica da leitura de fila para retornar apenas itens ativos do usuário autenticado, substituindo a leitura global atualmente transitória.
 - Interfere com [docs/specs/done/03-persistencia-duravel-repositorios.md](../done/03-persistencia-duravel-repositorios.md): altera a identidade persistida da fila, seus índices e as consultas esperadas do repositório.
 - Interfere com [docs/specs/done/05-processamento-real-chat-worker.md](../done/05-processamento-real-chat-worker.md): a atualização de fila no processamento assíncrono passa a depender do contexto do dono da sessão e de regras de reativação lógica.
 - Interfere com [docs/specs/done/18-acionamento-do-worker-pelo-front.md](../done/18-acionamento-do-worker-pelo-front.md): deve reutilizar o isolamento por usuário/sessão ativa já definido para o ciclo operacional do worker.
