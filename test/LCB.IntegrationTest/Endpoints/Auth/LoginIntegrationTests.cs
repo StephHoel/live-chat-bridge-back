@@ -1,7 +1,6 @@
 using System.Net;
 using System.Net.Http.Json;
 using LCB.Application.Commands.Login;
-using LCB.Application.Commands.Register;
 using LCB.Domain.Objects;
 using LCB.IntegrationTest.Constants;
 using LCB.IntegrationTest.Helpers;
