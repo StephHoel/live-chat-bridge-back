@@ -1,0 +1,142 @@
+name: PR Doc Version Guards
+
+on:
+  pull_request:
+    branches:
+      - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+
+jobs:
+  validate-spec-version-bump:
+    name: Validate SPEC Version > main
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure docs/SPEC.md version is greater than main
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_REF="${{ github.base_ref }}"
+          git fetch origin "$BASE_REF"
+
+          extract_version() {
+            local file="$1"
+            grep -Eo '\*\*Versão do Projeto:\*\* v?[0-9]+\.[0-9]+\.[0-9]+' "$file" \
+              | head -n 1 \
+              | grep -Eo 'v?[0-9]+\.[0-9]+\.[0-9]+'
+          }
+
+          semver_to_number() {
+            local version="${1#v}"
+            IFS='.' read -r major minor patch <<< "$version"
+            printf '%03d%03d%03d\n' "$major" "$minor" "$patch"
+          }
+
+          BASE_SPEC_FILE="$(mktemp)"
+          git show "origin/$BASE_REF:docs/SPEC.md" > "$BASE_SPEC_FILE"
+
+          HEAD_VERSION="$(extract_version docs/SPEC.md)"
+          BASE_VERSION="$(extract_version "$BASE_SPEC_FILE")"
+
+          if [[ -z "$HEAD_VERSION" || -z "$BASE_VERSION" ]]; then
+            echo "Nao foi possivel extrair versao de docs/SPEC.md." >&2
+            exit 1
+          fi
+
+          HEAD_NUM="$(semver_to_number "$HEAD_VERSION")"
+          BASE_NUM="$(semver_to_number "$BASE_VERSION")"
+
+          echo "Versao na PR: $HEAD_VERSION"
+          echo "Versao na main: $BASE_VERSION"
+
+          if (( HEAD_NUM <= BASE_NUM )); then
+            echo "A versao em docs/SPEC.md deve ser maior que a versao da main." >&2
+            exit 1
+          fi
+
+  validate-changelog-new-version-entry:
+    name: Validate New Version Entry In Changelog
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure new SPEC version is present in changelog
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_REF="${{ github.base_ref }}"
+          git fetch origin "$BASE_REF"
+
+          extract_version() {
+            local file="$1"
+            grep -Eo '\*\*Versão do Projeto:\*\* v?[0-9]+\.[0-9]+\.[0-9]+' "$file" \
+              | head -n 1 \
+              | grep -Eo 'v?[0-9]+\.[0-9]+\.[0-9]+'
+          }
+
+          VERSION="$(extract_version docs/SPEC.md)"
+
+          if [[ -z "$VERSION" ]]; then
+            echo "Nao foi possivel extrair versao de docs/SPEC.md." >&2
+            exit 1
+          fi
+
+          HEADER_REGEX="^## \[$VERSION\] - "
+
+          if ! grep -Eq "$HEADER_REGEX" docs/CHANGELOG.md; then
+            echo "Nao existe entrada da versao $VERSION em docs/CHANGELOG.md." >&2
+            exit 1
+          fi
+
+          BASE_CHANGELOG_FILE="$(mktemp)"
+          git show "origin/$BASE_REF:docs/CHANGELOG.md" > "$BASE_CHANGELOG_FILE"
+
+          if grep -Eq "$HEADER_REGEX" "$BASE_CHANGELOG_FILE"; then
+            echo "A entrada da versao $VERSION ja existe na main; adicione uma nova versao para a PR." >&2
+            exit 1
+          fi
+
+  validate-done-specs-unchanged:
+    name: Validate No Markdown Changes In specs/done
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ensure there are no .md changes in docs/specs/done
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          BASE_REF="${{ github.base_ref }}"
+          git fetch origin "$BASE_REF"
+
+          CHANGED_DONE_MD="$(git diff --name-only "origin/$BASE_REF...HEAD" -- 'docs/specs/done/*.md')"
+
+          if [[ -n "$CHANGED_DONE_MD" ]]; then
+            echo "Foram detectadas alteracoes em markdown dentro de docs/specs/done/:" >&2
+            echo "$CHANGED_DONE_MD" >&2
+            echo "Nao e permitido alterar arquivos .md em docs/specs/done/." >&2
+            exit 1
+          fi
