@@ -2,8 +2,8 @@ name: Weekly Package Update Check
 
 on:
   schedule:
-    # Every Monday at 08:00 UTC
-    - cron: "0 8 * * 1"
+    # Every Sunday at 08:00 UTC
+    - cron: "0 8 * * 0"
   workflow_dispatch:
     inputs:
       fail_on_updates:
