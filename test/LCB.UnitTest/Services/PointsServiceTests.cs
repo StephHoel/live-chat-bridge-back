@@ -23,17 +23,24 @@ public class PointsServiceTests
         var balanceRepo = new Mock<IPointsBalanceRepository>();
         var txRepo = new Mock<IPointsTransactionRepository>();
 
-        PointsBalanceEntity activeBalance = currentBalance > 0
-            ? CreateBalance(currentBalance)
-            : null;
-
         balanceRepo
             .Setup(x => x.GetActiveBalanceAsync(Provider, Channel, User))
-            .ReturnsAsync(activeBalance);
+            .ReturnsAsync(currentBalance > 0 ? CreateBalance(currentBalance) : null);
 
         balanceRepo
             .Setup(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()))
             .ReturnsAsync((ProviderTypeEnum p, string c, string u, long d) => CreateBalance(Math.Max(0, currentBalance + d)));
+
+        // TryDebitAsync comporta-se de forma atômica: validação + atualização dentro de transação
+        balanceRepo
+            .Setup(x => x.TryDebitAsync(Provider, Channel, User, It.IsAny<long>()))
+            .ReturnsAsync((ProviderTypeEnum p, string c, string u, long points) =>
+            {
+                if (points <= 0) return false;
+                if (currentBalance < points) return false;
+                currentBalance -= points; // simula a dedução
+                return true;
+            });
 
         balanceRepo
             .Setup(x => x.ClearAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -118,19 +125,19 @@ public class PointsServiceTests
         var result = await service.DebitAsync(Provider, Channel, User, 30);
 
         Assert.True(result);
-        balanceRepo.Verify(x => x.UpsertAsync(Provider, Channel, User, -30), Times.Once);
+        balanceRepo.Verify(x => x.TryDebitAsync(Provider, Channel, User, 30), Times.Once);
         txRepo.Verify(x => x.CreateAsync(It.Is<PointsTransactionEntity>(t => t.Situation == PointsTransactionSituationEnum.Debit)), Times.Once);
     }
 
     [Fact]
-    public async Task DebitAsync_InsufficientBalance_ReturnsFalseAndNoChange()
+    public async Task DebitAsync_InsufficientBalance_ReturnsFalseAndNoTransaction()
     {
         var (service, balanceRepo, txRepo) = CreateService(currentBalance: 10);
 
         var result = await service.DebitAsync(Provider, Channel, User, 50);
 
         Assert.False(result);
-        balanceRepo.Verify(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
+        balanceRepo.Verify(x => x.TryDebitAsync(Provider, Channel, User, 50), Times.Once);
         txRepo.Verify(x => x.CreateAsync(It.IsAny<PointsTransactionEntity>()), Times.Never);
     }
 
@@ -142,7 +149,7 @@ public class PointsServiceTests
         var result = await service.DebitAsync(Provider, Channel, User, 0);
 
         Assert.False(result);
-        balanceRepo.Verify(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
+        balanceRepo.Verify(x => x.TryDebitAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Fact]

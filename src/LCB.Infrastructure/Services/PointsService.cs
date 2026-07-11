@@ -50,15 +50,13 @@ public class PointsService(
         if (points <= 0)
             return false;
 
-        var current = await GetBalanceAsync(provider, channelId, userId);
+        var isDebited = await balanceRepository.TryDebitAsync(provider, channelId, userId, points);
 
-        if (current < points)
+        if (!isDebited)
         {
-            logger.LogWarning("[PointsService] Debit of {Points} rejected for user {UserId}: insufficient balance {Balance}.", points, userId, current);
+            logger.LogWarning("[PointsService] Debit of {Points} rejected for user {UserId}: insufficient balance or record not found.", points, userId);
             return false;
         }
-
-        await balanceRepository.UpsertAsync(provider, channelId, userId, -points);
 
         var transaction = PointsTransactionEntity.Create(provider, channelId, userId, points, PointsTransactionSituationEnum.Debit);
         var isCreated = await transactionRepository.CreateAsync(transaction);

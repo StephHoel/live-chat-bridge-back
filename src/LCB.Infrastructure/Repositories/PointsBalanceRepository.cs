@@ -53,6 +53,34 @@ public class PointsBalanceRepository(
             return balance;
         }, nameof(UpsertAsync));
 
+    public async Task<bool> TryDebitAsync(ProviderTypeEnum provider, string channelId, string userId, long points)
+        => await ExecuteAsync(async () =>
+        {
+            if (points <= 0)
+                return false;
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+
+            var balance = await context.PointsBalances
+                .FirstOrDefaultAsync(x =>
+                    x.Provider == provider &&
+                    x.ChannelId == channelId &&
+                    x.UserId == userId &&
+                    x.IsActive);
+
+            if (balance is null || balance.Points < points)
+            {
+                await transaction.RollbackAsync();
+                return false;
+            }
+
+            balance.ApplyDelta(-points);
+            await context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            return true;
+        }, nameof(TryDebitAsync));
+
     public async Task<bool> ClearAsync(ProviderTypeEnum provider, string channelId, string userId)
         => await ExecuteAsync(async () =>
         {
