@@ -66,5 +66,6 @@ Origem: desdobramento das decisões das Specs 08 e 09
 ## Dependências
 
 - Depende da infraestrutura de domínio/repositório definida na Spec 08.
+  - A Spec 08 entregou a política estática em `PointsPolicy` (deltas fixos por provider/integrationType) como fallback seguro até esta spec ser implementada. A Spec 29 substituirá essa política estática por configuração persistida por streamer.
 - Complementa a Spec 09, que cobre caso de uso transacional de pontuação e evento `points_updated`.
 - Serve de base para a Spec 30, que expõe operações HTTP de pontos para uso operacional.
