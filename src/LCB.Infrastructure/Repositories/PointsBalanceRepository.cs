@@ -124,4 +124,142 @@ public class PointsBalanceRepository(
 
             return true;
         }, nameof(ClearAsync));
+
+    public async Task<bool> CreditWithTransactionAsync(ProviderTypeEnum provider, string channelId, string userId, long delta)
+        => await ExecuteAsync(async () =>
+        {
+            if (delta <= 0)
+                return false;
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var now = Domain.Extensions.DateTimeExtensions.NormalizeToUtcMinus3(DateTime.UtcNow);
+
+                // 1. Upsert saldo
+                var updated = await context.PointsBalances
+                     .Where(x =>
+                        x.Provider == provider &&
+                        x.ChannelId == channelId &&
+                        x.UserId == userId &&
+                        x.IsActive)
+                     .ExecuteUpdateAsync(setters => setters
+                         .SetProperty(x => x.Points, x => x.Points + delta)
+                         .SetProperty(x => x.UpdatedAt, now));
+
+                if (updated == 0)
+                {
+                    var balance = PointsBalanceEntity.Create(provider, channelId, userId, delta);
+                    await context.PointsBalances.AddAsync(balance);
+                }
+
+                // 2. Criar transação atomicamente
+                var txn = PointsTransactionEntity.Create(provider, channelId, userId, delta, PointsTransactionSituationEnum.Credit);
+                await context.PointsTransactions.AddAsync(txn);
+
+                // 3. Salvar tudo na mesma transação
+                await context.SaveChangesAsync();
+
+                // 4. Commit
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[PointsBalanceRepository] Error in CreditWithTransactionAsync for user {UserId}. Rolling back.", userId);
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }, nameof(CreditWithTransactionAsync));
+
+    public async Task<bool> DebitWithTransactionAsync(ProviderTypeEnum provider, string channelId, string userId, long points)
+        => await ExecuteAsync(async () =>
+        {
+            if (points <= 0)
+                return false;
+
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var now = Domain.Extensions.DateTimeExtensions.NormalizeToUtcMinus3(DateTime.UtcNow);
+
+                // 1. Validar e debitar atomicamente
+                var affected = await context.PointsBalances
+                     .Where(x => x.Provider == provider
+                                 && x.ChannelId == channelId
+                                 && x.UserId == userId
+                                 && x.IsActive
+                                 && x.Points >= points)
+                     .ExecuteUpdateAsync(setters => setters
+                         .SetProperty(x => x.Points, x => x.Points - points)
+                         .SetProperty(x => x.UpdatedAt, now));
+
+                if (affected == 0)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                // 2. Criar transação atomicamente
+                var txn = PointsTransactionEntity.Create(provider, channelId, userId, points, PointsTransactionSituationEnum.Debit);
+                await context.PointsTransactions.AddAsync(txn);
+
+                // 3. Salvar tudo na mesma transação
+                await context.SaveChangesAsync();
+
+                // 4. Commit
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[PointsBalanceRepository] Error in DebitWithTransactionAsync for user {UserId}. Rolling back.", userId);
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }, nameof(DebitWithTransactionAsync));
+
+    public async Task<bool> ClearWithTransactionAsync(ProviderTypeEnum provider, string channelId, string userId)
+        => await ExecuteAsync(async () =>
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync();
+            try
+            {
+                var balance = await context.PointsBalances
+                    .FirstOrDefaultAsync(x =>
+                        x.Provider == provider &&
+                        x.ChannelId == channelId &&
+                        x.UserId == userId &&
+                        x.IsActive);
+
+                if (balance is null)
+                {
+                    await transaction.RollbackAsync();
+                    return false;
+                }
+
+                var current = balance.Points;
+                balance.Deactivate();
+
+                // 1. Deactivate saldo
+                await context.SaveChangesAsync();
+
+                // 2. Criar transação atomicamente
+                var txn = PointsTransactionEntity.Create(provider, channelId, userId, current, PointsTransactionSituationEnum.Clear);
+                await context.PointsTransactions.AddAsync(txn);
+
+                // 3. Salvar tudo na mesma transação
+                await context.SaveChangesAsync();
+
+                // 4. Commit
+                await transaction.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "[PointsBalanceRepository] Error in ClearWithTransactionAsync for user {UserId}. Rolling back.", userId);
+                await transaction.RollbackAsync();
+                return false;
+            }
+        }, nameof(ClearWithTransactionAsync));
 }

@@ -9,7 +9,6 @@ namespace LCB.Infrastructure.Services;
 
 public class PointsService(
     IPointsBalanceRepository balanceRepository,
-    IPointsTransactionRepository transactionRepository,
     ILogger<PointsService> logger) : IPointsService
 {
     public async Task<long> GetBalanceAsync(ProviderTypeEnum provider, string channelId, string userId)
@@ -37,12 +36,9 @@ public class PointsService(
         if (delta <= 0)
             return;
 
-        await balanceRepository.UpsertAsync(provider, channelId, userId, delta);
-
-        var transaction = PointsTransactionEntity.Create(provider, channelId, userId, delta, PointsTransactionSituationEnum.Credit);
-        var isCreated = await transactionRepository.CreateAsync(transaction);
+        var isCreated = await balanceRepository.CreditWithTransactionAsync(provider, channelId, userId, delta);
         if (!isCreated)
-            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Credit, delta);
+            logger.LogError("[PointsService] Failed to persist credit transaction (atomicity issue). Provider={Provider} ChannelId={ChannelId} UserId={UserId} Points={Points}", provider, channelId, userId, delta);
     }
 
     public async Task<bool> DebitAsync(ProviderTypeEnum provider, string channelId, string userId, long points)
@@ -50,36 +46,18 @@ public class PointsService(
         if (points <= 0)
             return false;
 
-        var isDebited = await balanceRepository.TryDebitAsync(provider, channelId, userId, points);
+        var isDebited = await balanceRepository.DebitWithTransactionAsync(provider, channelId, userId, points);
 
         if (!isDebited)
-        {
-            logger.LogWarning("[PointsService] Debit of {Points} rejected for user {UserId}: insufficient balance or record not found.", points, userId);
-            return false;
-        }
+            logger.LogWarning("[PointsService] Debit of {Points} rejected for user {UserId}: insufficient balance, record not found, or atomicity error.", points, userId);
 
-        var transaction = PointsTransactionEntity.Create(provider, channelId, userId, points, PointsTransactionSituationEnum.Debit);
-        var isCreated = await transactionRepository.CreateAsync(transaction);
-        if (!isCreated)
-            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Debit, points);
-
-        return true;
+        return isDebited;
     }
 
     public async Task ClearAsync(ProviderTypeEnum provider, string channelId, string userId)
     {
-        var current = await GetBalanceAsync(provider, channelId, userId);
-
-        var cleared = await balanceRepository.ClearAsync(provider, channelId, userId);
-         if (!cleared)
-         {
-             logger.LogWarning("[PointsService] Clear rejected for user {UserId}: active balance record not found.", userId);
-             return;
-         }
-
-        var transaction = PointsTransactionEntity.Create(provider, channelId, userId, current, PointsTransactionSituationEnum.Clear);
-        var isCreated = await transactionRepository.CreateAsync(transaction);
-        if (!isCreated)
-            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Clear, current);
+        var cleared = await balanceRepository.ClearWithTransactionAsync(provider, channelId, userId);
+        if (!cleared)
+            logger.LogWarning("[PointsService] Clear rejected for user {UserId}: active balance record not found or atomicity error.", userId);
     }
 }
