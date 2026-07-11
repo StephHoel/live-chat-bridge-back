@@ -25,32 +25,59 @@ public class PointsBalanceRepository(
                     x.IsActive);
         }, nameof(GetActiveBalanceAsync));
 
-    public async Task<PointsBalanceEntity> UpsertAsync(ProviderTypeEnum provider, string channelId, string userId, long delta)
+    public async Task<PointsBalanceEntity?> UpsertAsync(ProviderTypeEnum provider, string channelId, string userId, long delta)
         => await ExecuteAsync(async () =>
         {
-            await using var transaction = await context.Database.BeginTransactionAsync();
+            var now = Domain.Extensions.DateTimeExtensions.NormalizeToUtcMinus3(DateTime.UtcNow);
 
-            var balance = await context.PointsBalances
-                .FirstOrDefaultAsync(x =>
+            var updated = await context.PointsBalances
+                 .Where(x =>
                     x.Provider == provider &&
                     x.ChannelId == channelId &&
                     x.UserId == userId &&
-                    x.IsActive);
+                    x.IsActive)
+                 .ExecuteUpdateAsync(setters => setters
+                     .SetProperty(x => x.Points, x => x.Points + delta < 0 ? 0 : x.Points + delta)
+                     .SetProperty(x => x.UpdatedAt, now));
 
-            if (balance is null)
+            if (updated > 0)
             {
-                balance = PointsBalanceEntity.Create(provider, channelId, userId, Math.Max(0, delta));
+                return await context.PointsBalances
+                     .AsNoTracking()
+                     .FirstAsync(x =>
+                         x.Provider == provider &&
+                         x.ChannelId == channelId &&
+                         x.UserId == userId &&
+                         x.IsActive);
+            }
+
+            var balance = PointsBalanceEntity.Create(provider, channelId, userId, Math.Max(0, delta));
+            try
+            {
                 await context.PointsBalances.AddAsync(balance);
+                await context.SaveChangesAsync();
+                return balance;
             }
-            else
+            catch (DbUpdateException)
             {
-                balance.ApplyDelta(delta);
+                await context.PointsBalances
+                    .Where(x =>
+                        x.Provider == provider &&
+                        x.ChannelId == channelId &&
+                        x.UserId == userId &&
+                        x.IsActive)
+                    .ExecuteUpdateAsync(setters => setters
+                        .SetProperty(x => x.Points, x => x.Points + delta < 0 ? 0 : x.Points + delta)
+                        .SetProperty(x => x.UpdatedAt, now));
+
+                return await context.PointsBalances
+                         .AsNoTracking()
+                         .FirstAsync(x =>
+                             x.Provider == provider &&
+                             x.ChannelId == channelId &&
+                             x.UserId == userId &&
+                             x.IsActive);
             }
-
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return balance;
         }, nameof(UpsertAsync));
 
     public async Task<bool> TryDebitAsync(ProviderTypeEnum provider, string channelId, string userId, long points)
@@ -59,26 +86,21 @@ public class PointsBalanceRepository(
             if (points <= 0)
                 return false;
 
-            await using var transaction = await context.Database.BeginTransactionAsync();
+            var now = Domain.Extensions.DateTimeExtensions.NormalizeToUtcMinus3(DateTime.UtcNow);
 
-            var balance = await context.PointsBalances
-                .FirstOrDefaultAsync(x =>
-                    x.Provider == provider &&
-                    x.ChannelId == channelId &&
-                    x.UserId == userId &&
-                    x.IsActive);
+            var affected = await context.PointsBalances
+                 .Where(x => x.Provider == provider
+                             && x.ChannelId == channelId
+                             && x.UserId == userId
+                             && x.IsActive
+                             && x.Points >= points)
+                 .ExecuteUpdateAsync(setters => setters
+                     .SetProperty(
+                        x => x.Points,
+                        x => x.Points - points)
+                     .SetProperty(x => x.UpdatedAt, now));
 
-            if (balance is null || balance.Points < points)
-            {
-                await transaction.RollbackAsync();
-                return false;
-            }
-
-            balance.ApplyDelta(-points);
-            await context.SaveChangesAsync();
-            await transaction.CommitAsync();
-
-            return true;
+            return affected > 0;
         }, nameof(TryDebitAsync));
 
     public async Task<bool> ClearAsync(ProviderTypeEnum provider, string channelId, string userId)
