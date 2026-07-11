@@ -62,12 +62,17 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 - [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
+- [Catálogo de integrationType](planned/29-catalogo-integrationtype.md)
+- [Endpoints operacionais de pontos](planned/30-endpoints-operacionais-de-pontos.md)
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
 - [Isolamento da fila por usuário e deleção lógica](planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md)
 - [Mitigação de durabilidade do worker com replay e auditoria](planned/17-mitigacao-durabilidade-worker-replay-e-auditoria.md)
 - [Migração de provider de banco para PostgreSQL](planned/14-migracao-provider-postgresql.md)
 - [Nome de usuário para auditoria operacional](planned/21-nome-de-usuario-para-auditoria-operacional.md)
 - [Endpoint de redefinição de senha](planned/24-endpoint-redefinicao-de-senha.md)
+- [Estabilização da suíte de testes completa](planned/26-estabilizacao-da-suite-de-testes-completa.md)
+- [Validação explícita da chave JWT](planned/27-validacao-explicita-da-chave-jwt.md)
+- [Endurecimento de concorrência do worker e robustez de configuração de segurança](planned/28-endurecimento-concorrencia-worker-e-configuracao-seguranca.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.
 
