@@ -51,7 +51,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Tabela de logs com auditoria mínima](done/15-tabela-logs-com-auditoria-minima.md)
 - [Rollout de auditoria operacional no projeto](done/23-rollout-de-auditoria-operacional-no-projeto.md)
 - [Endpoint HTTP para bootstrap da fila](done/07-endpoint-http-fila-bootstrap.md)
-- [Domínio de pontos, repositório e regras por plataforma](active/08-dominio-pontos-repositorio-e-regras.md)
+- [Domínio de pontos, repositório e regras por plataforma](done/08-dominio-pontos-repositorio-e-regras.md)
 
 ### 🔄 Ativas/Em andamento
 
@@ -59,7 +59,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 
 ### 📋 Planejadas (ordem de prioridade)
 
-**Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
+**Recomendação técnica:** concluir o domínio de pontos (catálogo configurável e use case de crédito) antes de expor endpoints operacionais ao frontend.
 
 - [Catálogo de integrationType](planned/29-catalogo-integrationtype.md)
 - [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
