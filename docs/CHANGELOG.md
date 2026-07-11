@@ -13,7 +13,7 @@
   - `PointsTransactionRepository` para registro persistente de trilha transacional.
   - `PointsService` orquestra política, saldo e trilha; ignora provider/integrationType não suportados com log de observabilidade.
   - Configuração EF Core: índice único filtrado (`IsActive = 1`) em `PointsBalances`; nova migration `Spec08_PointsBalanceAndTransactions`.
-  - Spec 08 movida de `docs/specs/planned/` para `docs/specs/active/`.
+  - Spec 08 movida de `docs/specs/planned/` para `docs/specs/done/`.
 
 ### 🧪 Testes
 
@@ -26,8 +26,8 @@
 
 - Spec 08 atualizada com item em “Fora de escopo”: configuração personalizada de delta por streamer (coberta na Spec 29).
 - Spec 29 atualizada com nota de referência cruzada: `PointsPolicy` da Spec 08 serve como fallback estático até Spec 29 ser implementada.
-- Atualização de `docs/SPEC.md` para versão `v0.7.0`, com nova funcionalidade existente (Spec 08) e contagens sincronizadas (`planned=9`, `active=1`).
-- Atualização de `docs/specs/README.md`: Spec 08 movida de planejadas para ativas.
+- Atualização de `docs/SPEC.md` para versão `v0.7.0`, com nova funcionalidade existente (Spec 08) e contagens sincronizadas (`planned=12`, `active=0`).
+- Atualização de `docs/specs/README.md`: Spec 08 movida de planejadas para concluídas.
 - Próximas prioridades sugeridas atualizadas: Spec 29 (catálogo de integrationType) e Spec 09 (use case de pontuação).
 
 ## [v0.6.8] - 2026-07-06
