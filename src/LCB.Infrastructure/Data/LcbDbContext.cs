@@ -11,6 +11,8 @@ public class LcbDbContext(DbContextOptions<LcbDbContext> options) : DbContext(op
     public DbSet<ChatMessageEntity> ChatMessages => Set<ChatMessageEntity>();
     public DbSet<LiveSettingsEntity> LiveSettings => Set<LiveSettingsEntity>();
     public DbSet<AuditLogEntity> AuditLogs => Set<AuditLogEntity>();
+    public DbSet<PointsBalanceEntity> PointsBalances => Set<PointsBalanceEntity>();
+    public DbSet<PointsTransactionEntity> PointsTransactions => Set<PointsTransactionEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -19,6 +21,8 @@ public class LcbDbContext(DbContextOptions<LcbDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new ChatMessageConfiguration());
         modelBuilder.ApplyConfiguration(new LiveSettingsConfiguration());
         modelBuilder.ApplyConfiguration(new AuditLogConfiguration());
+        modelBuilder.ApplyConfiguration(new PointsBalanceConfiguration());
+        modelBuilder.ApplyConfiguration(new PointsTransactionConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }
