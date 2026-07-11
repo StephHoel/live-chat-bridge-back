@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading.Tasks;
 using LCB.Domain.Enums;
 using LCB.Infrastructure.Repositories;
