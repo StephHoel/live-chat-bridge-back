@@ -47,7 +47,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
 - **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
 - **Exceção de autenticação para Swagger em Development** (Spec 22 ✅): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
-- **Domínio de pontos** (Spec 08 ✅): entidades `PointsBalanceEntity` e `PointsTransactionEntity`, repositórios persistentes com upsert atômico e clear lógico, política estática de pontos por plataforma (`PointsPolicy`) e `IPointsService` para orquestração de crédito, débito e limpeza com trilha transacional persistida.
+- **Domínio de pontos** (Spec 08 ✅): entidades `PointsBalanceEntity` e `PointsTransactionEntity`, repositórios persistentes com upsert/debit/clear atômicos em transação única, política estática de pontos por plataforma (`PointsPolicy`) e `IPointsService` para orquestração de crédito, débito e limpeza com trilha transacional persistida — **débito garante atomicidade: validação + atualização ocorrem em transação única, impossível deixar saldo negativo mesmo com chamadas concorrentes.**
 
 ## 3. Funcionalidades Planejadas
 
