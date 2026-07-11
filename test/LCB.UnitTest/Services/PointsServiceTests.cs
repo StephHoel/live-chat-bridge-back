@@ -17,11 +17,10 @@ public class PointsServiceTests
     private const string Channel = "streamer";
     private const string User = "user1";
 
-    private static (IPointsService service, Mock<IPointsBalanceRepository> balanceRepo, Mock<IPointsTransactionRepository> txRepo) CreateService(
+    private static (IPointsService service, Mock<IPointsBalanceRepository> balanceRepo) CreateService(
         long currentBalance = 0)
     {
         var balanceRepo = new Mock<IPointsBalanceRepository>();
-        var txRepo = new Mock<IPointsTransactionRepository>();
 
         balanceRepo
             .Setup(x => x.GetActiveBalanceAsync(Provider, Channel, User))
@@ -31,9 +30,14 @@ public class PointsServiceTests
             .Setup(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()))
             .ReturnsAsync((ProviderTypeEnum p, string c, string u, long d) => CreateBalance(Math.Max(0, currentBalance + d)));
 
-        // TryDebitAsync comporta-se de forma atômica: validação + atualização dentro de transação
+        // CreditWithTransactionAsync: operação atômica
         balanceRepo
-            .Setup(x => x.TryDebitAsync(Provider, Channel, User, It.IsAny<long>()))
+            .Setup(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()))
+            .ReturnsAsync(true);
+
+        // DebitWithTransactionAsync: operação atômica
+        balanceRepo
+            .Setup(x => x.DebitWithTransactionAsync(Provider, Channel, User, It.IsAny<long>()))
             .ReturnsAsync((ProviderTypeEnum p, string c, string u, long points) =>
             {
                 if (points <= 0) return false;
@@ -42,17 +46,14 @@ public class PointsServiceTests
                 return true;
             });
 
+        // ClearWithTransactionAsync: operação atômica
         balanceRepo
-            .Setup(x => x.ClearAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Setup(x => x.ClearWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(true);
 
-        txRepo
-            .Setup(x => x.CreateAsync(It.IsAny<PointsTransactionEntity>()))
-            .ReturnsAsync(true);
+        var service = new PointsService(balanceRepo.Object, new NullLogger<PointsService>());
 
-        var service = new PointsService(balanceRepo.Object, txRepo.Object, new NullLogger<PointsService>());
-
-        return (service, balanceRepo, txRepo);
+        return (service, balanceRepo);
     }
 
     private static PointsBalanceEntity CreateBalance(long points)
@@ -65,7 +66,7 @@ public class PointsServiceTests
     [Fact]
     public async Task GetBalance_NoRecord_ReturnsZero()
     {
-        var (service, _, _) = CreateService();
+        var (service, _) = CreateService();
 
         var result = await service.GetBalanceAsync(Provider, Channel, User);
 
@@ -75,7 +76,7 @@ public class PointsServiceTests
     [Fact]
     public async Task GetBalance_ExistingRecord_ReturnsPoints()
     {
-        var (service, _, _) = CreateService(currentBalance: 100);
+        var (service, _) = CreateService(currentBalance: 100);
 
         var result = await service.GetBalanceAsync(Provider, Channel, User);
 
@@ -83,83 +84,77 @@ public class PointsServiceTests
     }
 
     [Fact]
-    public async Task CreditAsync_UnsupportedProvider_SkipsUpsertAndTransaction()
+    public async Task CreditAsync_UnsupportedProvider_SkipsAtomicOperation()
     {
-        var (service, balanceRepo, txRepo) = CreateService();
+        var (service, balanceRepo) = CreateService();
 
         await service.CreditAsync((ProviderTypeEnum)999, Channel, User, IntegrationTypeEnum.Message);
 
-        balanceRepo.Verify(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
-        txRepo.Verify(x => x.CreateAsync(It.IsAny<PointsTransactionEntity>()), Times.Never);
+        balanceRepo.Verify(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Fact]
-    public async Task CreditAsync_UnsupportedIntegrationType_SkipsUpsertAndTransaction()
+    public async Task CreditAsync_UnsupportedIntegrationType_SkipsAtomicOperation()
     {
-        var (service, balanceRepo, txRepo) = CreateService();
+        var (service, balanceRepo) = CreateService();
 
         await service.CreditAsync(Provider, Channel, User, (IntegrationTypeEnum)999);
 
-        balanceRepo.Verify(x => x.UpsertAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
-        txRepo.Verify(x => x.CreateAsync(It.IsAny<PointsTransactionEntity>()), Times.Never);
+        balanceRepo.Verify(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Theory]
     [InlineData(IntegrationTypeEnum.Message)]
     [InlineData(IntegrationTypeEnum.Like)]
-    public async Task CreditAsync_SupportedCombination_UpsertsAndCreatesTransaction(IntegrationTypeEnum integrationType)
+    public async Task CreditAsync_SupportedCombination_ExecutesAtomicOperation(IntegrationTypeEnum integrationType)
     {
-        var (service, balanceRepo, txRepo) = CreateService();
+        var (service, balanceRepo) = CreateService();
 
         await service.CreditAsync(Provider, Channel, User, integrationType);
 
-        balanceRepo.Verify(x => x.UpsertAsync(Provider, Channel, User, It.Is<long>(d => d > 0)), Times.Once);
-        txRepo.Verify(x => x.CreateAsync(It.Is<PointsTransactionEntity>(t => t.Situation == PointsTransactionSituationEnum.Credit)), Times.Once);
+        balanceRepo.Verify(x => x.CreditWithTransactionAsync(Provider, Channel, User, It.Is<long>(d => d > 0)), Times.Once);
     }
 
     [Fact]
-    public async Task DebitAsync_SufficientBalance_ReturnsTrueAndCreatesTransaction()
+    public async Task DebitAsync_SufficientBalance_ReturnsTrueAndExecutesAtomicOperation()
     {
-        var (service, balanceRepo, txRepo) = CreateService(currentBalance: 100);
+        var (service, balanceRepo) = CreateService(currentBalance: 100);
 
         var result = await service.DebitAsync(Provider, Channel, User, 30);
 
         Assert.True(result);
-        balanceRepo.Verify(x => x.TryDebitAsync(Provider, Channel, User, 30), Times.Once);
-        txRepo.Verify(x => x.CreateAsync(It.Is<PointsTransactionEntity>(t => t.Situation == PointsTransactionSituationEnum.Debit)), Times.Once);
+        balanceRepo.Verify(x => x.DebitWithTransactionAsync(Provider, Channel, User, 30), Times.Once);
     }
 
     [Fact]
-    public async Task DebitAsync_InsufficientBalance_ReturnsFalseAndNoTransaction()
+    public async Task DebitAsync_InsufficientBalance_ReturnsFalseAndRollsBack()
     {
-        var (service, balanceRepo, txRepo) = CreateService(currentBalance: 10);
+        var (service, balanceRepo) = CreateService(currentBalance: 10);
 
         var result = await service.DebitAsync(Provider, Channel, User, 50);
 
         Assert.False(result);
-        balanceRepo.Verify(x => x.TryDebitAsync(Provider, Channel, User, 50), Times.Once);
-        txRepo.Verify(x => x.CreateAsync(It.IsAny<PointsTransactionEntity>()), Times.Never);
+        balanceRepo.Verify(x => x.DebitWithTransactionAsync(Provider, Channel, User, 50), Times.Once);
     }
 
     [Fact]
     public async Task DebitAsync_ZeroOrNegativePoints_ReturnsFalseImmediately()
     {
-        var (service, balanceRepo, txRepo) = CreateService(currentBalance: 100);
+        var (service, balanceRepo) = CreateService(currentBalance: 100);
 
         var result = await service.DebitAsync(Provider, Channel, User, 0);
 
         Assert.False(result);
-        balanceRepo.Verify(x => x.TryDebitAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
+        balanceRepo.Verify(x => x.DebitWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Fact]
-    public async Task ClearAsync_CallsClearAndCreatesTransaction()
+    public async Task ClearAsync_ExecutesAtomicClearWithTransaction()
     {
-        var (service, balanceRepo, txRepo) = CreateService(currentBalance: 75);
+        var (service, balanceRepo) = CreateService(currentBalance: 75);
 
         await service.ClearAsync(Provider, Channel, User);
 
-        balanceRepo.Verify(x => x.ClearAsync(Provider, Channel, User), Times.Once);
-        txRepo.Verify(x => x.CreateAsync(It.Is<PointsTransactionEntity>(t => t.Situation == PointsTransactionSituationEnum.Clear)), Times.Once);
+        balanceRepo.Verify(x => x.ClearWithTransactionAsync(Provider, Channel, User), Times.Once);
     }
 }
