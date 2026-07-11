@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using LCB.Domain.Entities;
 using LCB.Domain.Enums;
@@ -22,7 +23,7 @@ public class PointsServiceTests
         var balanceRepo = new Mock<IPointsBalanceRepository>();
         var txRepo = new Mock<IPointsTransactionRepository>();
 
-        PointsBalanceEntity? activeBalance = currentBalance > 0
+        PointsBalanceEntity activeBalance = currentBalance > 0
             ? CreateBalance(currentBalance)
             : null;
 
