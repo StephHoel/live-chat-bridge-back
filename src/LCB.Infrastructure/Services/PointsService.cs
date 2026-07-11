@@ -70,7 +70,12 @@ public class PointsService(
     {
         var current = await GetBalanceAsync(provider, channelId, userId);
 
-        await balanceRepository.ClearAsync(provider, channelId, userId);
+        var cleared = await balanceRepository.ClearAsync(provider, channelId, userId);
+         if (!cleared)
+         {
+             logger.LogWarning("[PointsService] Clear rejected for user {UserId}: active balance record not found.", userId);
+             return;
+         }
 
         var transaction = PointsTransactionEntity.Create(provider, channelId, userId, current, PointsTransactionSituationEnum.Clear);
         var isCreated = await transactionRepository.CreateAsync(transaction);
