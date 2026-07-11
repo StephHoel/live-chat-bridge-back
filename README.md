@@ -18,6 +18,7 @@ Backend centralizado em .NET 9 para ingestão e processamento de mensagens de ch
 - ✅ Processamento real no worker com reuso do caso de uso de ingestão
 - ✅ Fundação de auditoria persistida com `AuditLogs` (`service -> repository`, Spec 15)
 - ✅ Rollout de auditoria operacional (Spec 23): catálogo de eventos, metadata v1 validada, instrumentação em endpoints/worker e retenção automática
+- ✅ Domínio de pontos (Spec 08): saldo por espectador/plataforma/canal, trilha transacional, política de pontos estática por provider/integrationType
 - 🎯 Diretriz de evolução: suporte a N usuários simultâneos com múltiplos workers concorrentes (um worker lógico por usuário)
 - 📋 Evolução guiada por mini-specs (`docs/specs/planned`, `active`, `done`)
 

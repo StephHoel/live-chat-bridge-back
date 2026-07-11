@@ -1,7 +1,7 @@
 # Mini-spec: Domínio de pontos, repositório e regras por plataforma
 
 Número: 08
-Status: planejado
+Status: implementado
 Origem: [Issue #34](https://github.com/StephHoel/live-chat-bridge/issues/34) e [Issue #35](https://github.com/StephHoel/live-chat-bridge/issues/35)
 
 ## Diretriz transversal de concorrência

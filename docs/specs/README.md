@@ -51,18 +51,18 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Tabela de logs com auditoria mínima](done/15-tabela-logs-com-auditoria-minima.md)
 - [Rollout de auditoria operacional no projeto](done/23-rollout-de-auditoria-operacional-no-projeto.md)
 - [Endpoint HTTP para bootstrap da fila](done/07-endpoint-http-fila-bootstrap.md)
+- [Domínio de pontos, repositório e regras por plataforma](active/08-dominio-pontos-repositorio-e-regras.md)
 
 ### 🔄 Ativas/Em andamento
 
-- Nenhuma mini-spec ativa no momento.
+- Nenhuma ativa no momento.
 
 ### 📋 Planejadas (ordem de prioridade)
 
 **Recomendação técnica:** priorizar segurança transversal e auditoria antes de novas expansões de domínio.
 
-- [Domínio de pontos, repositório e regras por plataforma](planned/08-dominio-pontos-repositorio-e-regras.md)
-- [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
 - [Catálogo de integrationType](planned/29-catalogo-integrationtype.md)
+- [Use case de pontuação e evento points_updated](planned/09-award-points-e-evento-points-updated.md)
 - [Endpoints operacionais de pontos](planned/30-endpoints-operacionais-de-pontos.md)
 - [Comandos iniciais e registro no dispatcher](planned/10-comandos-iniciais-e-dispatcher.md)
 - [Isolamento da fila por usuário e deleção lógica](planned/25-isolamento-da-fila-por-usuario-e-delecao-logica.md)

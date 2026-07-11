@@ -1,5 +1,35 @@
 # CHANGELOG
 
+## [v0.7.0] - 2026-07-11
+
+### ✨ Funcionalidades
+
+- **Mini-spec 08** (Domínio de pontos, repositório e regras por plataforma)
+  - Novas entidades: `PointsBalanceEntity` (saldo ativo/inativo por `provider + channelId + userId`) e `PointsTransactionEntity` (trilha de crédito, débito e clear).
+  - Novos enums: `IntegrationTypeEnum` (`Message`, `Like`) e `PointsTransactionSituationEnum` (`Credit`, `Debit`, `Clear`).
+  - Novos contratos: `IPointsBalanceRepository`, `IPointsTransactionRepository`, `IPointsService`.
+  - `PointsPolicy` estática com delta por provider e integrationType (fallback seguro até Spec 29 ser implementada).
+  - `PointsBalanceRepository` com upsert atômico via transação EF e clear lógico (`isActive = false`).
+  - `PointsTransactionRepository` para registro persistente de trilha transacional.
+  - `PointsService` orquestra política, saldo e trilha; ignora provider/integrationType não suportados com log de observabilidade.
+  - Configuração EF Core: índice único filtrado (`IsActive = 1`) em `PointsBalances`; nova migration `Spec08_PointsBalanceAndTransactions`.
+  - Spec 08 movida de `docs/specs/planned/` para `docs/specs/active/`.
+
+### 🧪 Testes
+
+- 21 novos testes unitários:
+  - `PointsPolicyTests` (4): delta por plataforma/tipo, validadores de provider e integrationType suportados.
+  - `PointsBalanceRepositoryTests` (8): upsert, acúmulo, clamping a zero, clear, histórico inativo, isolamento por contexto, concorrência serializada.
+  - `PointsServiceTests` (9): getBalance com/sem registro, credit com provider/tipo inválido, credit válido, debit suficiente/insuficiente/zero, clear.
+
+### 📚 Documentação
+
+- Spec 08 atualizada com item em “Fora de escopo”: configuração personalizada de delta por streamer (coberta na Spec 29).
+- Spec 29 atualizada com nota de referência cruzada: `PointsPolicy` da Spec 08 serve como fallback estático até Spec 29 ser implementada.
+- Atualização de `docs/SPEC.md` para versão `v0.7.0`, com nova funcionalidade existente (Spec 08) e contagens sincronizadas (`planned=9`, `active=1`).
+- Atualização de `docs/specs/README.md`: Spec 08 movida de planejadas para ativas.
+- Próximas prioridades sugeridas atualizadas: Spec 29 (catálogo de integrationType) e Spec 09 (use case de pontuação).
+
 ## [v0.6.8] - 2026-07-06
 
 ### ✨ Funcionalidades

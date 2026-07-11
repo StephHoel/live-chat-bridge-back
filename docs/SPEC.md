@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.6.8
+> **Versão do Projeto:** v0.7.0
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -47,6 +47,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Autenticação com validação de senha** (Spec 02 ✅): Login valida `password` contra `PasswordHash` usando PBKDF2-SHA256; resposta unificada `401 Unauthorized` para email/senha inválidos (sem enumeration attacks); implementação em `IPasswordHasher` com constant-time comparison.
 - **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
 - **Exceção de autenticação para Swagger em Development** (Spec 22 ✅): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
+- **Domínio de pontos** (Spec 08 ✅): entidades `PointsBalanceEntity` e `PointsTransactionEntity`, repositórios persistentes com upsert atômico e clear lógico, política estática de pontos por plataforma (`PointsPolicy`) e `IPointsService` para orquestração de crédito, débito e limpeza com trilha transacional persistida.
 
 ## 3. Funcionalidades Planejadas
 
@@ -66,15 +67,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 10 specs em `docs/specs/planned/`
+- **Planejadas:** 12 specs em `docs/specs/planned/`
 - **Ativas:** 0 specs em `docs/specs/active/`
-- **Concluídas:** 16 specs em `docs/specs/done/`
+- **Concluídas:** 17 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 21** - Nome de usuário para auditoria operacional
-2. **Spec 24** - Endpoint de redefinição de senha
+1. **Spec 29** - Catálogo de integrationType (delta configurável por streamer)
+2. **Spec 09** - Use case de pontuação e evento points_updated
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
@@ -288,6 +289,16 @@ O projeto divide os tipos de domínio em três categorias com papéis fixos. A I
 - Uso de `Result<T>` para padronizar retornos de sucesso/erro.
 - Logging com mensagens de início/fim de método em vários componentes.
 - Repositórios usam `RepositoryBase` para padronizar logging e tratamento de exceções.
+
+### Política de Versionamento
+
+O projeto adota versionamento semântico `vMAJOR.MINOR.PATCH`:
+
+| Tipo de mudança | Incremento | Exemplos |
+| --- | --- | --- |
+| Correções, fixes, endpoints isolados, ajustes pontuais | `+PATCH` | novo endpoint de autenticação, fix de validação |
+| Novo domínio, nova camada ou conjunto coeso de funcionalidades | `+MINOR` (patch reseta para 0) | Spec 08 (domínio de pontos), nova entidade com repositório e serviço |
+| Quebra de contrato, refatoração estrutural major, mudança de produto | `+MAJOR` (minor e patch resetam para 0) | troca de provedor de persistência, mudança de protocolo |
 
 ## 13. Pendências de Documentação
 
