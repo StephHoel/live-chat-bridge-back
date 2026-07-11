@@ -11,25 +11,27 @@ namespace LCB.IntegrationTest.Endpoints.Worker;
 public class WorkerStatusIntegrationTests(ApiWebApplicationFactory factory)
     : IClassFixture<ApiWebApplicationFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly ApiWebApplicationFactory _factory = factory;
     private readonly string endpoint = "/worker/status";
 
     [Fact]
     public async Task Status_WithoutToken_Returns401()
     {
-        _client.DefaultRequestHeaders.Authorization = null;
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = null;
 
-        var response = await _client.GetAsync(endpoint);
+        var response = await client.GetAsync(endpoint);
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
 
     [Fact]
     public async Task Status_WithAuthenticatedUserAndNoSession_ReturnsInactive()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _client.GetAsync(endpoint);
+        var response = await client.GetAsync(endpoint);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
@@ -41,13 +43,15 @@ public class WorkerStatusIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Status_IsolatedByAuthenticatedUser()
     {
-        var tokenA = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
-        await _client.StartWorkerAsync("@user-a", null, null);
+        using var client = _factory.CreateClient();
+        var tokenA = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
+        await client.StartWorkerAsync("@user-a", null, null);
 
-        var tokenB = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenB);
-        var response = await _client.GetAsync(endpoint);
+        using var clientB = _factory.CreateClient();
+        var tokenB = await clientB.LoginWithRegisterAsync();
+        clientB.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenB);
+        var response = await clientB.GetAsync(endpoint);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
@@ -55,7 +59,7 @@ public class WorkerStatusIntegrationTests(ApiWebApplicationFactory factory)
         Assert.NotNull(body.Data);
         Assert.Equal(WorkerStateEnum.Inactive, body.Data!.State);
 
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
-        await _client.StopWorkerAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", tokenA);
+        await client.StopWorkerAsync();
     }
 }

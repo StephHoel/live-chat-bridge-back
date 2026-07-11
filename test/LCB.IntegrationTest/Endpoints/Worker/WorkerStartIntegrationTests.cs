@@ -13,17 +13,18 @@ namespace LCB.IntegrationTest.Endpoints.Worker;
 public class WorkerStartIntegrationTests(ApiWebApplicationFactory factory)
     : IClassFixture<ApiWebApplicationFactory>
 {
-    private readonly HttpClient _client = factory.CreateClient();
+    private readonly ApiWebApplicationFactory _factory = factory;
     private readonly string endpoint = "/worker/start";
 
     [Fact]
     public async Task Start_WithoutToken_Returns401()
     {
-        _client.DefaultRequestHeaders.Authorization = null;
+        using var client = _factory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = null;
 
         var request = new WorkerStartRequest(true, false, false);
 
-        var response = await _client.PostAsJsonAsync(endpoint, request);
+        var response = await client.PostAsJsonAsync(endpoint, request);
 
         Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
     }
@@ -31,11 +32,12 @@ public class WorkerStartIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Start_WithoutAnyPlatformEnabled_Returns400()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request = new WorkerStartRequest(false, false, false);
-        var response = await _client.PostAsJsonAsync(endpoint, request);
+        var response = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
@@ -46,37 +48,40 @@ public class WorkerStartIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Start_WithTikTokEnabledAndNoConfig_Returns409()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var request = new WorkerStartRequest(true, false, false);
-        var response = await _client.PostAsJsonAsync(endpoint, request);
+        var response = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
     }
 
     [Fact]
     public async Task Start_WithUnsupportedListener_Returns503()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        await _client.ConfigureLiveAsync("@integration-user", "integration-twitch", null);
+        await client.ConfigureLiveAsync("@integration-user", "integration-twitch", null);
 
         var request = new WorkerStartRequest(false, true, false);
-        var response = await _client.PostAsJsonAsync(endpoint, request);
+        var response = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.ServiceUnavailable, response.StatusCode);
     }
 
     [Fact]
     public async Task Start_WithValidTikTokConfig_ReturnsActiveState()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        await _client.ConfigureLiveAsync("@integration-user", null, null);
+        await client.ConfigureLiveAsync("@integration-user", null, null);
 
         var request = new WorkerStartRequest(true, false, false);
-        var response = await _client.PostAsJsonAsync(endpoint, request);
+        var response = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var body = await response.ReadResultAsync<GetWorkerStatusResponse>();
@@ -89,16 +94,17 @@ public class WorkerStartIntegrationTests(ApiWebApplicationFactory factory)
     [Fact]
     public async Task Start_WhenAlreadyActive_ReturnsCurrentState()
     {
-        var token = await _client.LoginWithRegisterAsync();
-        _client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        using var client = _factory.CreateClient();
+        var token = await client.LoginWithRegisterAsync();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        await _client.ConfigureLiveAsync("@integration-user", null, null);
+        await client.ConfigureLiveAsync("@integration-user", null, null);
 
         var request = new WorkerStartRequest(true, false, false);
-        var firstResponse = await _client.PostAsJsonAsync(endpoint, request);
+        var firstResponse = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.OK, firstResponse.StatusCode);
 
-        var secondResponse = await _client.PostAsJsonAsync(endpoint, request);
+        var secondResponse = await client.PostAsJsonAsync(endpoint, request);
         Assert.Equal(HttpStatusCode.OK, secondResponse.StatusCode);
 
         var body = await secondResponse.ReadResultAsync<GetWorkerStatusResponse>();
