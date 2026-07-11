@@ -139,4 +139,76 @@ public class PointsBalanceRepositoryTests
 
         Assert.Equal(50, balance!.Points);
     }
+
+    [Fact]
+    public async Task TryDebitAsync_SufficientBalance_ReturnsTrue()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+        var result = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 30);
+
+        Assert.True(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(70, balance!.Points);
+    }
+
+    [Fact]
+    public async Task TryDebitAsync_InsufficientBalance_ReturnsFalseAndNoChange()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 50);
+        var result = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+
+        Assert.False(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(50, balance!.Points); // saldo preservado
+    }
+
+    [Fact]
+    public async Task TryDebitAsync_NoRecord_ReturnsFalse()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        var result = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 10);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task TryDebitAsync_ZeroOrNegativePoints_ReturnsFalse()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+        var result = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 0);
+
+        Assert.False(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(100, balance!.Points);
+    }
+
+    [Fact]
+    public async Task TryDebitAsync_ConcurrentCallsSimulated_Serialized()
+    {
+        // SQLite :memory: serializa naturalmente; este teste valida que a validação + atualização
+        // são atômicas, rejeitando o segundo debit se o saldo fica insuficiente.
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+
+        var debit1 = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 60);
+        var debit2 = await repo.TryDebitAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 60);
+
+        Assert.True(debit1);  // primeiro passa
+        Assert.False(debit2); // segundo falha (saldo 40 < 60)
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(40, balance!.Points);
+    }
 }
