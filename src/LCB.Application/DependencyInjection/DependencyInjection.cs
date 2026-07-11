@@ -95,6 +95,7 @@ public static class DependencyInjection
 
         services.AddScoped<ITokenService, JwtTokenService>();
         services.AddScoped<IAdapterService, AdapterService>();
+        services.AddScoped<IPointsService, PointsService>();
 
         return services;
     }
