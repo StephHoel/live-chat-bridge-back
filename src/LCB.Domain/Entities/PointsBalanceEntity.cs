@@ -30,7 +30,7 @@ public class PointsBalanceEntity
 
     public void ApplyDelta(long delta)
     {
-        Points += delta;
+        Points = Math.Max(0, Points + delta);
         UpdatedAt = DateTime.UtcNow.NormalizeToUtcMinus3();
     }
 

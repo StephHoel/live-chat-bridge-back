@@ -125,11 +125,11 @@ public class PointsBalanceRepositoryTests
     }
 
     [Fact]
-    public async Task UpsertAsync_Concurrency_ResultIsConsistent()
+    public async Task UpsertAsync_MultipleSequentialCalls_AccumulatesPoints()
     {
         using var db = RepositoryTestDbFactory.CreateContext();
-        // SQLite :memory: é single-connection, concorrência via Task.WhenAll serializa na prática.
-        // O teste valida que múltiplas chamadas sequenciais acumulam corretamente.
+        // SQLite :memory: é single-connection, então Task.WhenAll tende a serializar na prática.
+        // Este teste valida que múltiplas chamadas sequenciais acumulam corretamente.
         var repo = CreateRepo(db);
 
         for (var i = 0; i < 5; i++)

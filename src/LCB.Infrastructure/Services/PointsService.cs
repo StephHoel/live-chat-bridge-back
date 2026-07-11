@@ -40,7 +40,9 @@ public class PointsService(
         await balanceRepository.UpsertAsync(provider, channelId, userId, delta);
 
         var transaction = PointsTransactionEntity.Create(provider, channelId, userId, delta, PointsTransactionSituationEnum.Credit);
-        await transactionRepository.CreateAsync(transaction);
+        var isCreated = await transactionRepository.CreateAsync(transaction);
+        if (!isCreated)
+            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Credit, delta);
     }
 
     public async Task<bool> DebitAsync(ProviderTypeEnum provider, string channelId, string userId, long points)
@@ -59,7 +61,9 @@ public class PointsService(
         await balanceRepository.UpsertAsync(provider, channelId, userId, -points);
 
         var transaction = PointsTransactionEntity.Create(provider, channelId, userId, points, PointsTransactionSituationEnum.Debit);
-        await transactionRepository.CreateAsync(transaction);
+        var isCreated = await transactionRepository.CreateAsync(transaction);
+        if (!isCreated)
+            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Debit, points);
 
         return true;
     }
@@ -71,6 +75,8 @@ public class PointsService(
         await balanceRepository.ClearAsync(provider, channelId, userId);
 
         var transaction = PointsTransactionEntity.Create(provider, channelId, userId, current, PointsTransactionSituationEnum.Clear);
-        await transactionRepository.CreateAsync(transaction);
+        var isCreated = await transactionRepository.CreateAsync(transaction);
+        if (!isCreated)
+            logger.LogError("[PointsService] Failed to persist points transaction. Provider={Provider} ChannelId={ChannelId} UserId={UserId} Situation={Situation} Points={Points}", provider, channelId, userId, PointsTransactionSituationEnum.Clear, current);
     }
 }
