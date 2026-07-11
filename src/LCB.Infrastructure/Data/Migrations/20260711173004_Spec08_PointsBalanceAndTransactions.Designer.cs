@@ -3,6 +3,7 @@ using System;
 using LCB.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LCB.Infrastructure.Data.Migrations
 {
     [DbContext(typeof(LcbDbContext))]
-    partial class LcbDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260711173004_Spec08_PointsBalanceAndTransactions")]
+    partial class Spec08_PointsBalanceAndTransactions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.17");
