@@ -88,3 +88,4 @@ Origem: [Issue #34](https://github.com/StephHoel/live-chat-bridge/issues/34) e [
 
 - Persistência relacional definitiva.
 - Painel de administração de pontos.
+- Configuração personalizada de delta por streamer (coberta na Spec 29).
