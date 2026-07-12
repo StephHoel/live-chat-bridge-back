@@ -13,14 +13,17 @@ namespace LCB.UnitTest.Services;
 
 public class PointsServiceTests
 {
+    private static readonly Guid StreamerUserId = Guid.NewGuid();
     private const ProviderTypeEnum Provider = ProviderTypeEnum.TIKTOK;
     private const string Channel = "streamer";
     private const string User = "user1";
 
-    private static (IPointsService service, Mock<IPointsBalanceRepository> balanceRepo) CreateService(
-        long currentBalance = 0)
+    private static (IPointsService service, Mock<IPointsBalanceRepository> balanceRepo, Mock<IPointsIntegrationTypeCatalogRepository> catalogRepo) CreateService(
+        long currentBalance = 0,
+        long catalogDelta = 10)
     {
         var balanceRepo = new Mock<IPointsBalanceRepository>();
+        var catalogRepo = new Mock<IPointsIntegrationTypeCatalogRepository>();
 
         balanceRepo
             .Setup(x => x.GetActiveBalanceAsync(Provider, Channel, User))
@@ -51,9 +54,13 @@ public class PointsServiceTests
             .Setup(x => x.ClearWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(true);
 
-        var service = new PointsService(balanceRepo.Object, new NullLogger<PointsService>());
+        catalogRepo
+            .Setup(x => x.GetDeltaAsync(It.IsAny<Guid>(), It.IsAny<ProviderTypeEnum>(), It.IsAny<IntegrationTypeEnum>()))
+            .ReturnsAsync(catalogDelta);
 
-        return (service, balanceRepo);
+        var service = new PointsService(balanceRepo.Object, catalogRepo.Object, new NullLogger<PointsService>());
+
+        return (service, balanceRepo, catalogRepo);
     }
 
     private static PointsBalanceEntity CreateBalance(long points)
@@ -66,7 +73,7 @@ public class PointsServiceTests
     [Fact]
     public async Task GetBalance_NoRecord_ReturnsZero()
     {
-        var (service, _) = CreateService();
+        var (service, _, _) = CreateService();
 
         var result = await service.GetBalanceAsync(Provider, Channel, User);
 
@@ -76,7 +83,7 @@ public class PointsServiceTests
     [Fact]
     public async Task GetBalance_ExistingRecord_ReturnsPoints()
     {
-        var (service, _) = CreateService(currentBalance: 100);
+        var (service, _, _) = CreateService(currentBalance: 100);
 
         var result = await service.GetBalanceAsync(Provider, Channel, User);
 
@@ -86,20 +93,22 @@ public class PointsServiceTests
     [Fact]
     public async Task CreditAsync_UnsupportedProvider_SkipsAtomicOperation()
     {
-        var (service, balanceRepo) = CreateService();
+        var (service, balanceRepo, catalogRepo) = CreateService();
 
-        await service.CreditAsync((ProviderTypeEnum)999, Channel, User, IntegrationTypeEnum.Message);
+        await service.CreditAsync(StreamerUserId, (ProviderTypeEnum)999, Channel, User, IntegrationTypeEnum.Message);
 
+        catalogRepo.Verify(x => x.GetDeltaAsync(It.IsAny<Guid>(), It.IsAny<ProviderTypeEnum>(), It.IsAny<IntegrationTypeEnum>()), Times.Never);
         balanceRepo.Verify(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Fact]
     public async Task CreditAsync_UnsupportedIntegrationType_SkipsAtomicOperation()
     {
-        var (service, balanceRepo) = CreateService();
+        var (service, balanceRepo, catalogRepo) = CreateService();
 
-        await service.CreditAsync(Provider, Channel, User, (IntegrationTypeEnum)999);
+        await service.CreditAsync(StreamerUserId, Provider, Channel, User, (IntegrationTypeEnum)999);
 
+        catalogRepo.Verify(x => x.GetDeltaAsync(It.IsAny<Guid>(), It.IsAny<ProviderTypeEnum>(), It.IsAny<IntegrationTypeEnum>()), Times.Never);
         balanceRepo.Verify(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
@@ -108,17 +117,29 @@ public class PointsServiceTests
     [InlineData(IntegrationTypeEnum.Like)]
     public async Task CreditAsync_SupportedCombination_ExecutesAtomicOperation(IntegrationTypeEnum integrationType)
     {
-        var (service, balanceRepo) = CreateService();
+        var (service, balanceRepo, catalogRepo) = CreateService(catalogDelta: 15);
 
-        await service.CreditAsync(Provider, Channel, User, integrationType);
+        await service.CreditAsync(StreamerUserId, Provider, Channel, User, integrationType);
 
-        balanceRepo.Verify(x => x.CreditWithTransactionAsync(Provider, Channel, User, It.Is<long>(d => d > 0)), Times.Once);
+        catalogRepo.Verify(x => x.GetDeltaAsync(StreamerUserId, Provider, integrationType), Times.Once);
+        balanceRepo.Verify(x => x.CreditWithTransactionAsync(Provider, Channel, User, 15), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreditAsync_NoRuleConfigured_UsesFallbackZeroAndSkipsAtomicOperation()
+    {
+        var (service, balanceRepo, catalogRepo) = CreateService(catalogDelta: 0);
+
+        await service.CreditAsync(StreamerUserId, Provider, Channel, User, IntegrationTypeEnum.Message);
+
+        catalogRepo.Verify(x => x.GetDeltaAsync(StreamerUserId, Provider, IntegrationTypeEnum.Message), Times.Once);
+        balanceRepo.Verify(x => x.CreditWithTransactionAsync(It.IsAny<ProviderTypeEnum>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<long>()), Times.Never);
     }
 
     [Fact]
     public async Task DebitAsync_SufficientBalance_ReturnsTrueAndExecutesAtomicOperation()
     {
-        var (service, balanceRepo) = CreateService(currentBalance: 100);
+        var (service, balanceRepo, _) = CreateService(currentBalance: 100);
 
         var result = await service.DebitAsync(Provider, Channel, User, 30);
 
@@ -129,7 +150,7 @@ public class PointsServiceTests
     [Fact]
     public async Task DebitAsync_InsufficientBalance_ReturnsFalseAndRollsBack()
     {
-        var (service, balanceRepo) = CreateService(currentBalance: 10);
+        var (service, balanceRepo, _) = CreateService(currentBalance: 10);
 
         var result = await service.DebitAsync(Provider, Channel, User, 50);
 
@@ -140,7 +161,7 @@ public class PointsServiceTests
     [Fact]
     public async Task DebitAsync_ZeroOrNegativePoints_ReturnsFalseImmediately()
     {
-        var (service, balanceRepo) = CreateService(currentBalance: 100);
+        var (service, balanceRepo, _) = CreateService(currentBalance: 100);
 
         var result = await service.DebitAsync(Provider, Channel, User, 0);
 
@@ -151,7 +172,7 @@ public class PointsServiceTests
     [Fact]
     public async Task ClearAsync_ExecutesAtomicClearWithTransaction()
     {
-        var (service, balanceRepo) = CreateService(currentBalance: 75);
+        var (service, balanceRepo, _) = CreateService(currentBalance: 75);
 
         await service.ClearAsync(Provider, Channel, User);
 
