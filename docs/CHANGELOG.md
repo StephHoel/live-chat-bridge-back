@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## [v0.7.1] - 2026-07-12
+
+### 🔧 Melhorias Técnicas
+
+- Workflow `weekly-package-update-check` ajustado para evitar falha de parsing no step `Publish summary` em PowerShell (uso de strings compatíveis com crases no conteúdo Markdown).
+- Execução manual mantida no workflow via `workflow_dispatch`, com suporte ao input `fail_on_updates`.
+- Atualização de actions para versões compatíveis com Node 24 no workflow semanal:
+  - `actions/checkout@v5`
+  - `actions/setup-dotnet@v5`
+  - `actions/upload-artifact@v5`
+
+### 📚 Documentação
+
+- Atualização de `docs/SPEC.md` para versão `v0.7.1`.
+
 ## [v0.7.0] - 2026-07-11
 
 ### ✨ Funcionalidades
