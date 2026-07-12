@@ -13,6 +13,7 @@ public class LcbDbContext(DbContextOptions<LcbDbContext> options) : DbContext(op
     public DbSet<AuditLogEntity> AuditLogs => Set<AuditLogEntity>();
     public DbSet<PointsBalanceEntity> PointsBalances => Set<PointsBalanceEntity>();
     public DbSet<PointsTransactionEntity> PointsTransactions => Set<PointsTransactionEntity>();
+    public DbSet<PointsIntegrationTypeCatalogEntity> PointsIntegrationTypeCatalog => Set<PointsIntegrationTypeCatalogEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -23,6 +24,7 @@ public class LcbDbContext(DbContextOptions<LcbDbContext> options) : DbContext(op
         modelBuilder.ApplyConfiguration(new AuditLogConfiguration());
         modelBuilder.ApplyConfiguration(new PointsBalanceConfiguration());
         modelBuilder.ApplyConfiguration(new PointsTransactionConfiguration());
+        modelBuilder.ApplyConfiguration(new PointsIntegrationTypeCatalogConfiguration());
 
         base.OnModelCreating(modelBuilder);
     }
