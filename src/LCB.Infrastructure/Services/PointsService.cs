@@ -2,13 +2,13 @@ using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
-using LCB.Infrastructure.Policies;
 using Microsoft.Extensions.Logging;
 
 namespace LCB.Infrastructure.Services;
 
 public class PointsService(
     IPointsBalanceRepository balanceRepository,
+    IPointsIntegrationTypeCatalogRepository integrationTypeCatalogRepository,
     ILogger<PointsService> logger) : IPointsService
 {
     public async Task<long> GetBalanceAsync(ProviderTypeEnum provider, string channelId, string userId)
@@ -17,21 +17,21 @@ public class PointsService(
         return balance?.Points ?? 0;
     }
 
-    public async Task CreditAsync(ProviderTypeEnum provider, string channelId, string userId, IntegrationTypeEnum integrationType)
+    public async Task CreditAsync(Guid streamerUserId, ProviderTypeEnum provider, string channelId, string userId, IntegrationTypeEnum integrationType)
     {
-        if (!PointsPolicy.IsProviderSupported(provider))
+        if (!Enum.IsDefined(provider))
         {
             logger.LogWarning("[PointsService] Provider {Provider} not supported. Skipping credit for user {UserId}.", provider, userId);
             return;
         }
 
-        if (!PointsPolicy.IsIntegrationTypeSupported(integrationType))
+        if (!Enum.IsDefined(integrationType))
         {
             logger.LogWarning("[PointsService] IntegrationType {IntegrationType} not supported. Skipping credit for user {UserId}.", integrationType, userId);
             return;
         }
 
-        var delta = PointsPolicy.GetDelta(provider, integrationType);
+        var delta = await integrationTypeCatalogRepository.GetDeltaAsync(streamerUserId, provider, integrationType);
 
         if (delta <= 0)
             return;
