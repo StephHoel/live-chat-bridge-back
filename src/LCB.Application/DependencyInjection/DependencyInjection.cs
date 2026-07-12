@@ -74,6 +74,7 @@ public static class DependencyInjection
         services.AddScoped<IAuditLogRepository, AuditLogRepository>();
         services.AddScoped<IPointsBalanceRepository, PointsBalanceRepository>();
         services.AddScoped<IPointsTransactionRepository, PointsTransactionRepository>();
+        services.AddScoped<IPointsIntegrationTypeCatalogRepository, PointsIntegrationTypeCatalogRepository>();
 
         return services;
     }
