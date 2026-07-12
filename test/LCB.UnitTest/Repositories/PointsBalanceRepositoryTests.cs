@@ -211,4 +211,170 @@ public class PointsBalanceRepositoryTests
         var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
         Assert.Equal(40, balance!.Points);
     }
+
+    [Fact]
+    public async Task CreditWithTransactionAsync_NoExistingBalance_CreatesNewAndTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        var result = await repo.CreditWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 50);
+
+        Assert.True(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.NotNull(balance);
+        Assert.Equal(50, balance.Points);
+
+        var txn = db.Context.PointsTransactions
+            .SingleOrDefault(x => x.UserId == "user1" && x.Situation == Domain.Enums.PointsTransactionSituationEnum.Credit);
+        Assert.NotNull(txn);
+        Assert.Equal(50, txn.Points);
+    }
+
+    [Fact]
+    public async Task CreditWithTransactionAsync_ExistingBalance_AccumulatesAndCreatesTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 30);
+        var result = await repo.CreditWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 20);
+
+        Assert.True(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(50, balance!.Points);
+
+        var txn = db.Context.PointsTransactions
+            .SingleOrDefault(x => x.UserId == "user1" && x.Situation == Domain.Enums.PointsTransactionSituationEnum.Credit);
+        Assert.NotNull(txn);
+        Assert.Equal(20, txn.Points);
+    }
+
+    [Fact]
+    public async Task CreditWithTransactionAsync_ZeroOrNegativeDelta_ReturnsFalse()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        var result = await repo.CreditWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 0);
+
+        Assert.False(result);
+        var txnCount = db.Context.PointsTransactions.Count();
+        Assert.Equal(0, txnCount);
+    }
+
+    [Fact]
+    public async Task DebitWithTransactionAsync_SufficientBalance_DebitsAndCreatesTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+        var result = await repo.DebitWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 30);
+
+        Assert.True(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(70, balance!.Points);
+
+        var txn = db.Context.PointsTransactions
+            .SingleOrDefault(x => x.UserId == "user1" && x.Situation == Domain.Enums.PointsTransactionSituationEnum.Debit);
+        Assert.NotNull(txn);
+        Assert.Equal(30, txn.Points);
+    }
+
+    [Fact]
+    public async Task DebitWithTransactionAsync_InsufficientBalance_ReturnsFalseAndNoTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 50);
+        var result = await repo.DebitWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+
+        Assert.False(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(50, balance!.Points); // saldo preservado
+
+        var txnCount = db.Context.PointsTransactions.Count();
+        Assert.Equal(0, txnCount); // sem transação criada
+    }
+
+    [Fact]
+    public async Task DebitWithTransactionAsync_NoRecord_ReturnsFalseAndNoTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        var result = await repo.DebitWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 10);
+
+        Assert.False(result);
+        var txnCount = db.Context.PointsTransactions.Count();
+        Assert.Equal(0, txnCount);
+    }
+
+    [Fact]
+    public async Task DebitWithTransactionAsync_ZeroOrNegativePoints_ReturnsFalse()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+        var result = await repo.DebitWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 0);
+
+        Assert.False(result);
+        var balance = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Equal(100, balance!.Points);
+
+        var txnCount = db.Context.PointsTransactions.Count();
+        Assert.Equal(0, txnCount);
+    }
+
+    [Fact]
+    public async Task ClearWithTransactionAsync_ActiveBalance_DeactivatesAndCreatesTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 75);
+        var result = await repo.ClearWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+
+        Assert.True(result);
+        var active = await repo.GetActiveBalanceAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+        Assert.Null(active);
+
+        var txn = db.Context.PointsTransactions
+            .SingleOrDefault(x => x.UserId == "user1" && x.Situation == Domain.Enums.PointsTransactionSituationEnum.Clear);
+        Assert.NotNull(txn);
+        Assert.Equal(75, txn.Points);
+    }
+
+    [Fact]
+    public async Task ClearWithTransactionAsync_NoRecord_ReturnsFalseAndNoTransaction()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        var result = await repo.ClearWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "userX");
+
+        Assert.False(result);
+        var txnCount = db.Context.PointsTransactions.Count();
+        Assert.Equal(0, txnCount);
+    }
+
+    [Fact]
+    public async Task ClearWithTransactionAsync_PreservesHistoricalData()
+    {
+        using var db = RepositoryTestDbFactory.CreateContext();
+        var repo = CreateRepo(db);
+
+        await repo.UpsertAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1", 100);
+        await repo.ClearWithTransactionAsync(ProviderTypeEnum.TIKTOK, "streamer", "user1");
+
+        var all = db.Context.PointsBalances
+            .Where(x => x.Provider == ProviderTypeEnum.TIKTOK && x.ChannelId == "streamer" && x.UserId == "user1")
+            .ToList();
+
+        Assert.Single(all); // histórico preservado
+        Assert.False(all[0].IsActive);
+    }
 }
