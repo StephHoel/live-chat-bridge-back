@@ -1,6 +1,12 @@
 name: Weekly Package Update Check
 
 on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
   schedule:
     # Every Sunday at 08:00 UTC
     - cron: "0 8 * * 0"
@@ -70,12 +76,12 @@ jobs:
 
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "## Package Update Check"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
-          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Solution: `LCB.sln`"
+          Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '- Solution: `LCB.sln`'
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "- Outdated packages found: **$count**"
           Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value ""
 
           if ($hasUpdates -eq 'true') {
-            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "> Outdated packages were detected. See workflow artifacts (`outdated.txt`, `outdated.json`)."
+            Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value '> Outdated packages were detected. See workflow artifacts (`outdated.txt`, `outdated.json`).'
           }
           else {
             Add-Content -Path $env:GITHUB_STEP_SUMMARY -Value "> No outdated packages found."
