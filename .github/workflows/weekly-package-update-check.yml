@@ -1,12 +1,6 @@
 name: Weekly Package Update Check
 
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
   schedule:
     # Every Sunday at 08:00 UTC
     - cron: "0 8 * * 0"
@@ -30,10 +24,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: "9.0.x"
 
@@ -88,7 +82,7 @@ jobs:
           }
 
       - name: Upload report artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: package-update-report
           path: |
