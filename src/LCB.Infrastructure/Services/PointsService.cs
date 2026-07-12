@@ -1,4 +1,3 @@
-using LCB.Domain.Entities;
 using LCB.Domain.Enums;
 using LCB.Domain.Interfaces.Repositories;
 using LCB.Domain.Interfaces.Services;
