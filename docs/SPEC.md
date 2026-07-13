@@ -1,7 +1,7 @@
 # Live Chat Bridge Backend - Spec Driven Guide para IA
 
 > Status: rascunho vivo. Este arquivo deve ser atualizado sempre que uma decisão de produto, arquitetura, design ou processo mudar.
-> **Versão do Projeto:** v0.7.1
+> **Versão do Projeto:** v0.7.2
 
 Este spec orienta futuras interações com ferramentas de IA como Codex, GitHub Copilot, ChatGPT ou agentes similares. Use-o como fonte primária antes de propor código, refatorações, testes, automações ou mudanças de produto.
 
@@ -48,6 +48,7 @@ O sistema ainda está em fase inicial/prototipal: já possui persistência local
 - **Segurança por token para endpoints protegidos** (Spec 11 ✅): `POST /auth/login` e `POST /auth/register` permanecem públicos; demais endpoints HTTP usam autenticação no pipeline com `FallbackPolicy` + policy `ProtectedApi`.
 - **Exceção de autenticação para Swagger em Development** (Spec 22 ✅): endpoints de documentação (`/swagger/index.html` e `/swagger/v1/swagger.json`) ficam públicos somente em `Development`; endpoints de negócio permanecem protegidos por token.
 - **Domínio de pontos** (Spec 08 ✅): entidades `PointsBalanceEntity` e `PointsTransactionEntity`, repositórios persistentes com upsert/debit/clear atômicos em transação única, política estática de pontos por plataforma (`PointsPolicy`) e `IPointsService` para orquestração de crédito, débito e limpeza com trilha transacional persistida — **débito garante atomicidade: validação + atualização ocorrem em transação única, impossível deixar saldo negativo mesmo com chamadas concorrentes.**
+- **Catálogo persistido de `integrationType` por streamer/contexto** (Spec 29 ✅): entidade e repositório para lookup por `StreamerUserId + Provider + IntegrationType`, com fallback seguro `0` quando não houver regra configurada e integração do cálculo de crédito ao fluxo de pontos.
 
 ## 3. Funcionalidades Planejadas
 
@@ -67,15 +68,15 @@ Antes de implementar qualquer item planejado, a IA deve pedir ou propor uma mini
 
 ### Status Atual de Planejamento
 
-- **Planejadas:** 12 specs em `docs/specs/planned/`
+- **Planejadas:** 11 specs em `docs/specs/planned/`
 - **Ativas:** 0 specs em `docs/specs/active/`
-- **Concluídas:** 17 specs em `docs/specs/done/`
+- **Concluídas:** 18 specs em `docs/specs/done/`
 - **Descontinuadas:** 1 spec em `docs/specs/discontinued/`
 
 ### Próximas Prioridades Sugeridas
 
-1. **Spec 29** - Catálogo de integrationType (delta configurável por streamer)
-2. **Spec 09** - Use case de pontuação e evento points_updated
+1. **Spec 09** - Use case de pontuação e evento points_updated
+2. **Spec 30** - Endpoints operacionais de pontos
 
 Apenas o usuário define a ordem de implementação. A IA deve respeitar a priorização dada, mesmo que sugerir uma sequência técnica diferente.
 
