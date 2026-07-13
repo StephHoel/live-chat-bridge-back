@@ -1,7 +1,7 @@
 # Mini-spec: Catálogo de integrationType
 
 Número: 29
-Status: planejado
+Status: implementado
 Origem: desdobramento das decisões das Specs 08 e 09
 
 ## Diretriz transversal de concorrência
