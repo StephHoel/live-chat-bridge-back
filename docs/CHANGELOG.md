@@ -4,8 +4,8 @@
 
 ### ✨ Funcionalidades
 
-- Spec 29 movida para `done/` com catálogo persistido de `integrationType` por `StreamerUserId + Provider + IntegrationType`.
-- `PointsService` resolve o delta de crédito via catálogo persistido, com fallback seguro `0` quando não houver regra configurada.
+- Spec 29 concluída e movida para `done/`, com catálogo persistido de `integrationType` por `StreamerUserId + Provider + IntegrationType`.
+- `PointsService` passou a resolver o delta de crédito pelo catálogo persistido, com fallback seguro `0` quando não houver regra configurada.
 
 ### 🧪 Testes
 
@@ -15,8 +15,7 @@
 ### 📚 Documentação
 
 - Atualização de `docs/SPEC.md` para versão `v0.7.2`.
-- Documentação do catálogo persistido de `integrationType` alinhada ao estado atual do código.
-- Registro do catálogo persistido de `integrationType` por streamer/contexto (base da Spec 29), com fallback seguro `0` e integração no fluxo de pontos.
+- Atualização de `docs/specs/README.md` para refletir a Spec 29 em `done/` e a revisão das prioridades planejadas.
 
 ## [v0.7.1] - 2026-07-12
 
