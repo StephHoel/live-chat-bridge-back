@@ -6,6 +6,12 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="FluentValidation" />
+        <PackageReference Include="MediatR" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+        <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" />
+
         <ProjectReference Include="..\LCB.Domain\LCB.Domain.csproj" />
         <ProjectReference Include="..\LCB.Infrastructure\LCB.Infrastructure.csproj" />
     </ItemGroup>
