@@ -24,8 +24,7 @@ public class PasswordHasher : IPasswordHasher
             rng.GetBytes(salt);
         }
 
-        using var pbkdf2 = new Rfc2898DeriveBytes(password, salt, Iterations, HashAlgorithmName.SHA256);
-        var hash = pbkdf2.GetBytes(HashSize);
+        var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
 
         // Format: base64(iterations_as_4_bytes) + base64(salt) + base64(hash)
         var iterationsBytes = BitConverter.GetBytes(Iterations);
@@ -63,11 +62,8 @@ public class PasswordHasher : IPasswordHasher
             var storedHash = new byte[combined.Length - sizeof(int) - SaltSize];
             Buffer.BlockCopy(combined, sizeof(int) + SaltSize, storedHash, 0, storedHash.Length);
 
-            using (var pbkdf2 = new Rfc2898DeriveBytes(password, salt, iterations, HashAlgorithmName.SHA256))
-            {
-                var computedHash = pbkdf2.GetBytes(HashSize);
-                return ConstantTimeComparison(computedHash, storedHash);
-            }
+            var computedHash = Rfc2898DeriveBytes.Pbkdf2(password, salt, iterations, HashAlgorithmName.SHA256, HashSize);
+            return ConstantTimeComparison(computedHash, storedHash);
         }
         catch
         {
