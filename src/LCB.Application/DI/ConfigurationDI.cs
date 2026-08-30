@@ -3,7 +3,7 @@ using LCB.Domain.Models.Config;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LCB.Application.DependencyInjection;
+namespace LCB.Application.DI;
 
 [ExcludeFromCodeCoverage]
 public static class ConfigurationDI
