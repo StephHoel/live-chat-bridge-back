@@ -7,7 +7,7 @@ using LCB.Domain.Models;
 using LCB.Infrastructure.Providers;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace LCB.Application.DependencyInjection;
+namespace LCB.Application.DI;
 
 [ExcludeFromCodeCoverage]
 public static class WorkerDI

@@ -1,9 +1,7 @@
 using LCB.Api.DependencyInjection;
 using LCB.Api.Json;
 using LCB.Api.Middleware;
-using LCB.Application.DependencyInjection;
-using LCB.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
+using LCB.Application.DI;
 
 namespace LCB.Api;
 
@@ -12,15 +10,15 @@ public partial class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        var configuration = builder.Configuration;
 
-        builder.Logging.AddLogging(builder.Configuration);
+        builder.Logging.AddLogging(configuration);
 
         builder.Services.ConfigureLogging();
-        builder.Services.AddJwtAuthentication(builder.Configuration);
-        builder.Services.AddConfiguration(builder.Configuration);
+        builder.Services.AddJwtAuthentication(configuration);
+        builder.Services.AddConfiguration(configuration);
         builder.Services.AddHandlers();
-        builder.Services.AddRepositories();
-        builder.Services.AddServices(builder.Configuration);
+        builder.Services.AddInfrastructure(configuration);
         builder.Services.AddSwagger();
         builder.Services.AddWorkers();
         builder.Services.ConfigureAuthorization();
@@ -34,11 +32,7 @@ public partial class Program
 
         var app = builder.Build();
 
-        using (var scope = app.Services.CreateScope())
-        {
-            var dbContext = scope.ServiceProvider.GetRequiredService<LcbDbContext>();
-            dbContext.Database.Migrate();
-        }
+        app.Services.MigrateInfrastructure();
 
         app.UseMiddleware<CorrelationIdMiddleware>();
 
