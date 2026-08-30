@@ -4,13 +4,15 @@
 
 ### 🔧 Melhorias Técnicas
 
-- Pacotes NuGet atualizados e centralizados em `LCB.Domain.csproj`, removendo versões explícitas duplicadas em `LCB.Api`, `LCB.Application`, `LCB.Infrastructure`, `LCB.IntegrationTest` e `LCB.UnitTest`.
+- Migração de todos os projetos para .NET 10.
+- Versionamento de pacotes NuGet centralizado em `Directory.Packages.props` com `ManagePackageVersionsCentrally`, removendo versões explícitas duplicadas dos projetos da solução.
 - Configuração do Swagger migrada para a nova API do `Microsoft.OpenApi` (`OpenApiSecuritySchemeReference` no lugar de `OpenApiReference`/`OpenApiSecurityScheme`), acompanhando a atualização de pacotes.
 - `PasswordHasher` migrado do construtor obsoleto de `Rfc2898DeriveBytes` para o método estático `Rfc2898DeriveBytes.Pbkdf2`, sem alteração de algoritmo (PBKDF2-SHA256, mesmas iterações e tamanhos de salt/hash).
+- Registro de dependências reorganizado: handlers e workers ficam em `LCB.Application.DI`; repositórios, serviços concretos, contexto e migrations ficam em `LCB.Infrastructure.DI`.
 
 ### 📚 Documentação
 
-- Atualização de `docs/SPEC.md` para versão `v0.7.3`.
+- Atualização de `docs/SPEC.md` para versão `v0.7.3`, .NET 10, gerenciamento centralizado de pacotes e responsabilidades de DI.
 
 ## [v0.7.2] - 2026-07-12
 
