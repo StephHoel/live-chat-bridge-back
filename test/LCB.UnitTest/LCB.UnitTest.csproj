@@ -7,7 +7,14 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\LCB.Domain\LCB.Domain.csproj" />
+        <PackageReference Include="coverlet.collector" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="Moq" />
+        <PackageReference Include="TikTokLive_Sharp" />
+        <PackageReference Include="xunit.runner.visualstudio" PrivateAssets="all" />
+        <PackageReference Include="xunit" />
+
         <ProjectReference Include="..\..\src\LCB.Application\LCB.Application.csproj" />
         <ProjectReference Include="..\..\src\LCB.Infrastructure\LCB.Infrastructure.csproj" />
     </ItemGroup>
