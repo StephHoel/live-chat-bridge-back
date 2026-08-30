@@ -83,6 +83,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 ## 4. Stack Real do Projeto
 
 - .NET 10 com solução Visual Studio (`LCB.sln`).
+- Versionamento centralizado de pacotes NuGet em `Directory.Packages.props` por `ManagePackageVersionsCentrally`.
 - ASP.NET Core Minimal API no projeto `LCB.Api`.
 - Arquitetura em camadas com projetos `Api`, `Application`, `Domain`, `Infrastructure` e `UnitTest`.
 - JWT Bearer Authentication com `Microsoft.AspNetCore.Authentication.JwtBearer`.
@@ -98,9 +99,9 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 - `.github`: workflows, Dependabot, assets e instruções para Copilot.
 - `docs`: documentação principal do projeto. Contém este spec e a árvore `docs/specs/` com as pastas `planned/`, `active/`, `done/` e `discontinued/` para mini-specs.
 - `src/LCB.Api`: entrypoint HTTP, DI, endpoints, middleware, logging e extensões de API.
-- `src/LCB.Application`: handlers de caso de uso, configuração, serviços de processamento e workers.
+- `src/LCB.Application`: handlers de caso de uso, configuração, serviços de processamento, workers e composição de dependências de Application.
 - `src/LCB.Domain`: contratos, entidades, enums, DTOs, objetos de resultado e modelos compartilhados.
-- `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos e migrations.
+- `src/LCB.Infrastructure`: repositórios persistentes EF Core, handlers de comando, provedores externos, serviços concretos, migrations e composição de dependências de Infrastructure.
 - `test/LCB.UnitTest`: testes unitários de handlers, serviços, workers e repositórios persistentes.
 - `test/LCB.IntegrationTest`: testes de integração de endpoints HTTP (`/auth/login`, `/auth/register`, `/auth/recover/`, `/messages/ingest`, `/config/live`, `/worker/start`, `/worker/stop`, `/worker/status`).
 
@@ -194,6 +195,7 @@ Ao trabalhar neste projeto, a IA deve:
 - preservar a separação atual entre `Api`, `Application`, `Domain` e `Infrastructure`;
 - manter contratos no `Domain` e implementações concretas fora dele;
 - evitar introduzir dependência direta de infraestrutura dentro de endpoints;
+- manter o registro de handlers e workers em `LCB.Application.DI` e o de repositórios, serviços concretos, contexto e migrations em `LCB.Infrastructure.DI`;
 - manter handlers pequenos, com regras de orquestração e retorno por `Result<T>`;
 - manter responses de API sempre envelopados em `Result<T>` (sucesso e erro), com metadados de endpoint (`Produces`) refletindo o mesmo contrato;
 - preferir mudanças incrementais, porque há partes ainda prototipais e não totalmente consolidadas;
