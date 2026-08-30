@@ -4,7 +4,6 @@ using LCB.Domain.Interfaces.Services;
 using LCB.Domain.Models.Config;
 using LCB.Domain.Services;
 using LCB.Infrastructure.Data;
-using LCB.Infrastructure.DI;
 using LCB.Infrastructure.Repositories;
 using LCB.Infrastructure.Services;
 using LCB.Infrastructure.Services.Adapter;
