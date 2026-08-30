@@ -73,6 +73,7 @@ Diretriz transversal vigente para specs planejadas e futuras:
 - [Estabilização da suíte de testes completa](planned/26-estabilizacao-da-suite-de-testes-completa.md)
 - [Validação explícita da chave JWT](planned/27-validacao-explicita-da-chave-jwt.md)
 - [Endurecimento de concorrência do worker e robustez de configuração de segurança](planned/28-endurecimento-concorrencia-worker-e-configuracao-seguranca.md)
+- [Supressão de comandos SQL e parâmetros do EF Core no log](planned/31-supressao-log-comandos-sql-ef-core.md)
 
 **Nota:** A ordem acima reflete sugestão técnica. O usuário sempre define a priorização final.
 
