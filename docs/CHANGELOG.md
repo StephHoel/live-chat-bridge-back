@@ -1,5 +1,17 @@
 # CHANGELOG
 
+## [v0.7.3] - 2026-08-30
+
+### 🔧 Melhorias Técnicas
+
+- Pacotes NuGet atualizados e centralizados em `LCB.Domain.csproj`, removendo versões explícitas duplicadas em `LCB.Api`, `LCB.Application`, `LCB.Infrastructure`, `LCB.IntegrationTest` e `LCB.UnitTest`.
+- Configuração do Swagger migrada para a nova API do `Microsoft.OpenApi` (`OpenApiSecuritySchemeReference` no lugar de `OpenApiReference`/`OpenApiSecurityScheme`), acompanhando a atualização de pacotes.
+- `PasswordHasher` migrado do construtor obsoleto de `Rfc2898DeriveBytes` para o método estático `Rfc2898DeriveBytes.Pbkdf2`, sem alteração de algoritmo (PBKDF2-SHA256, mesmas iterações e tamanhos de salt/hash).
+
+### 📚 Documentação
+
+- Atualização de `docs/SPEC.md` para versão `v0.7.3`.
+
 ## [v0.7.2] - 2026-07-12
 
 ### ✨ Funcionalidades
