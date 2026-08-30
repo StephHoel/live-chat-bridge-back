@@ -82,7 +82,7 @@ Apenas o usuário define a ordem de implementação. A IA deve respeitar a prior
 
 ## 4. Stack Real do Projeto
 
-- .NET 9 com solução Visual Studio (`LCB.sln`).
+- .NET 10 com solução Visual Studio (`LCB.sln`).
 - ASP.NET Core Minimal API no projeto `LCB.Api`.
 - Arquitetura em camadas com projetos `Api`, `Application`, `Domain`, `Infrastructure` e `UnitTest`.
 - JWT Bearer Authentication com `Microsoft.AspNetCore.Authentication.JwtBearer`.
